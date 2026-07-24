@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>关于 · 我的小站</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ---------- 全局重置 (与首页风格统一) ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #faf9f8;
+            color: #1e1e1e;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 28px;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* ---------- 导航 (完全复刻首页) ---------- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #0066ff, #00c6fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+            font-weight: 500;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #2c2c2c;
+            transition: color 0.2s;
+            font-size: 1rem;
+        }
+
+        .nav-links a:hover {
+            color: #0066ff;
+        }
+
+        .btn-outline {
+            border: 1.5px solid #1e1e1e;
+            padding: 8px 20px;
+            border-radius: 40px;
+            transition: all 0.25s;
+        }
+
+        .btn-outline:hover {
+            background: #1e1e1e;
+            color: #fff !important;
+        }
+
+        /* ---------- About 主内容 ---------- */
+        .about-hero {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            padding: 50px 0 40px;
+            flex-wrap: wrap;
+        }
+
+        .about-avatar {
+            flex-shrink: 0;
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, #e0e7ff, #d0d9ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+            color: #0066ff;
+            box-shadow: 0 12px 32px rgba(0, 102, 255, 0.12);
+        }
+
+        .about-intro h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 6px;
+        }
+
+        .about-intro .subhead {
+            font-size: 1.2rem;
+            color: #0066ff;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .about-intro p {
+            font-size: 1.05rem;
+            color: #3d3d3d;
+            max-width: 600px;
+        }
+
+        /* ---------- 正文卡片区 ---------- */
+        .about-detail {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            gap: 40px;
+            padding: 20px 0 50px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        @media (max-width: 750px) {
+            .about-detail {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        .bio p {
+            font-size: 1.05rem;
+            color: #2c2c2c;
+            margin-bottom: 18px;
+            line-height: 1.8;
+        }
+
+        .bio .highlight {
+            background: #f0f4ff;
+            padding: 2px 10px;
+            border-radius: 6px;
+            color: #0066ff;
+            font-weight: 600;
+        }
+
+        /* 技能标签 */
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0 10px;
+        }
+
+        .skill-tags span {
+            background: #fff;
+            border: 1px solid #e8ecf0;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e1e1e;
+            transition: all 0.2s;
+        }
+
+        .skill-tags span:hover {
+            border-color: #0066ff;
+            background: #f5f8ff;
+            color: #0066ff;
+            transform: translateY(-2px);
+        }
+
+        /* 时间线 (右侧) */
+        .timeline h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 22px;
+            border-left: 2px solid #e0e7ff;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #0066ff;
+            border-radius: 50%;
+            position: absolute;
+            left: -6px;
+            top: 6px;
+        }
+
+        .timeline-item .year {
+            font-weight: 700;
+            color: #0066ff;
+            min-width: 50px;
+            font-size: 0.95rem;
+        }
+
+        .timeline-item .desc {
+            color: #3d3d3d;
+        }
+
+        .timeline-item .desc strong {
+            color: #1e1e1e;
+        }
+
+        /* ---------- 页脚 ---------- */
+        .footer {
+            margin-top: 20px;
+            padding: 32px 0 28px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.95rem;
+            color: #5a5a5a;
+        }
+
+        .footer-socials a {
+            color: #3d3d3d;
+            margin-left: 22px;
+            font-size: 1.3rem;
+            transition: color 0.2s;
+        }
+
+        .footer-socials a:hover {
+            color: #0066ff;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 700px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .nav-links {
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+            .about-hero {
+                flex-direction: column;
+                text-align: center;
+                padding: 30px 0 20px;
+            }
+            .about-intro p {
+                max-width: 100%;
+            }
+            .footer {
+                flex-direction: column;
+                text-align: center;
+            }
+            .footer-socials a {
+                margin: 0 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 导航 -->
+        <nav class="navbar">
+            <span class="logo">✦ 小站</span>
+            <ul class="nav-links">
+                <li><a href="/">首页</a></li>
+                <li><a href="/blog.html">文章</a></li>
+                <li><a href="/projects.html">项目</a></li>
+                <li><a href="mailto:your@email.com" class="btn-outline">联系</a></li>
+            </ul>
+        </nav>
+
+        <!-- About 头部：头像 + 简介 -->
+        <div class="about-hero">
+            <div class="about-avatar">
+                <i class="fas fa-user-astronaut"></i>
+            </div>
+            <div class="about-intro">
+                <h1>关于我</h1>
+                <div class="subhead">✧ 独立开发者 · 极简主义践行者</div>
+                <p>用代码和文字搭建数字花园，相信简洁的力量。</p>
+            </div>
+        </div>
+
+        <!-- 详细内容：左侧自我介绍 + 技能，右侧时间线 -->
+        <div class="about-detail">
+            <!-- 左侧 -->
+            <div class="bio">
+                <p>
+                    你好！我是 <strong>Alex</strong>，一名热爱折腾的 <span class="highlight">全栈爱好者</span>。
+                    从大学时期开始接触编程，至今已有 5 年有余。
+                </p>
+                <p>
+                    这个网站是我用 <span class="highlight">GitHub Pages</span> 搭建的个人空间，
+                    用来记录技术笔记、项目实践和偶尔的胡思乱想。
+                    我信奉 <strong>“少即是多”</strong>——无论是代码结构、界面设计，还是生活方式。
+                </p>
+                <p>
+                    日常主要使用的技术栈：
+                </p>
+                <div class="skill-tags">
+                    <span>HTML / CSS</span>
+                    <span>JavaScript</span>
+                    <span>React</span>
+                    <span>Node.js</span>
+                    <span>Python</span>
+                    <span>Git</span>
+                    <span>Figma</span>
+                </div>
+                <p style="margin-top: 16px;">
+                    📬 想交流？欢迎发邮件到 <a href="mailto:your@email.com" style="color:#0066ff; font-weight:600;">your@email.com</a>
+                </p>
+            </div>
+
+            <!-- 右侧：时间线 -->
+            <div class="timeline">
+                <h3>📌 历程</h3>
+                <div class="timeline-item">
+                    <span class="year">2026</span>
+                    <span class="desc"><strong>开启个人站</strong><br />正式用 GitHub Pages 搭建了这个小站，开始持续输出。</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="year">2025</span>
+                    <span class="desc"><strong>自由职业</strong><br />转为独立开发者，接了一些有趣的外包项目，积累了全栈经验。</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="year">2024</span>
+                    <span class="desc"><strong>技术转型</strong><br />从前端切入，开始系统学习后端与云服务，完成第一个完整 SaaS 项目。</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="year">2021</span>
+                    <span class="desc"><strong>编程启蒙</strong><br />写出第一行 HTML，从此一头扎进代码的世界。</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <span>&copy; 2026 · 用 ❤️ 和 GitHub Pages 构建</span>
+            <div class="footer-socials">
+                <a href="https://github.com/你的用户名" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" target="_blank" aria-label="RSS"><i class="fas fa-rss"></i></a>
+            </div>
+        </footer>
+    </div>
+
+</body>
+</html>
