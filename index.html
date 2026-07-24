@@ -7,7 +7,7 @@
     <!-- 使用 Font Awesome 图标库 (免费) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        /* ---------- 全局重置 & 字体 ---------- */
+        /* ---------- 与之前相同的样式，为卡片添加一点悬停效果 ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -24,7 +24,6 @@
             min-height: 100vh;
         }
 
-        /* 柔和的渐变背景装饰 */
         .bg-glow {
             position: fixed;
             top: -20%;
@@ -46,7 +45,7 @@
             z-index: 1;
         }
 
-        /* ---------- 导航栏 ---------- */
+        /* ---------- 导航 ---------- */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -96,7 +95,7 @@
             color: #fff !important;
         }
 
-        /* ---------- 主横幅 (Hero) ---------- */
+        /* ---------- Hero ---------- */
         .hero {
             display: flex;
             flex-direction: column;
@@ -182,7 +181,7 @@
             background: rgba(0, 102, 255, 0.04);
         }
 
-        /* ---------- 技能 / 特点卡片 ---------- */
+        /* ---------- 卡片（现在变成可点击链接） ---------- */
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -192,16 +191,24 @@
             margin-top: 10px;
         }
 
+        .feature-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
         .feature-card {
             background: #ffffff;
             padding: 28px 22px;
             border-radius: 24px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
-            transition: transform 0.2s, box-shadow 0.3s;
             border: 1px solid rgba(0, 0, 0, 0.02);
+            height: 100%;
+            transition: inherit;
         }
 
-        .feature-card:hover {
+        .feature-card-link:hover .feature-card {
             transform: translateY(-6px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
         }
@@ -254,33 +261,27 @@
             .hero h1 {
                 font-size: 2.6rem;
             }
-
             .navbar {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 16px;
             }
-
             .nav-links {
                 gap: 20px;
                 flex-wrap: wrap;
             }
-
             .hero {
                 padding: 30px 0 20px;
             }
-
             .btn-primary,
             .btn-secondary {
                 width: 100%;
                 justify-content: center;
             }
-
             .footer {
                 flex-direction: column;
                 text-align: center;
             }
-
             .footer-socials a {
                 margin: 0 12px;
             }
@@ -289,7 +290,6 @@
 </head>
 <body>
 
-    <!-- 背景光晕装饰 (纯视觉) -->
     <div class="bg-glow"></div>
 
     <div class="container">
@@ -297,14 +297,15 @@
         <nav class="navbar">
             <span class="logo">✦ 小站</span>
             <ul class="nav-links">
-                <li><a href="#">首页</a></li>
-                <li><a href="#">文章</a></li>
-                <li><a href="#">项目</a></li>
-                <li><a href="#" class="btn-outline">联系</a></li>
+                <!-- 所有链接都已替换为实际路径 -->
+                <li><a href="/">首页</a></li>
+                <li><a href="/blog.html">文章</a></li>
+                <li><a href="/projects.html">项目</a></li>
+                <li><a href="mailto:your@email.com" class="btn-outline">联系</a></li>
             </ul>
         </nav>
 
-        <!-- 主内容 -->
+        <!-- Hero -->
         <section class="hero">
             <span class="hero-badge"><i class="fas fa-code" style="margin-right: 6px;"></i> 基于 GitHub Pages</span>
             <h1>
@@ -316,41 +317,50 @@
                 简洁、干净，就像一张白纸，等待书写。
             </p>
             <div class="hero-actions">
-                <a href="#" class="btn-primary">
+                <!-- “开始探索”跳转到项目页 -->
+                <a href="/projects.html" class="btn-primary">
                     <i class="fas fa-rocket"></i> 开始探索
                 </a>
-                <a href="#" class="btn-secondary">
+                <!-- “GitHub”跳转到你的 GitHub 主页（请替换用户名） -->
+                <a href="https://github.com/你的用户名" class="btn-secondary" target="_blank" rel="noopener noreferrer">
                     <i class="fab fa-github"></i> GitHub
                 </a>
             </div>
         </section>
 
-        <!-- 特点卡片 -->
+        <!-- 卡片区域：每个卡片都是一个可点击的链接 -->
         <div class="features">
-            <div class="feature-card">
-                <i class="fas fa-palette"></i>
-                <h3>极简美学</h3>
-                <p>干净、留白、聚焦内容。没有多余的干扰，只有纯粹的阅读体验。</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-bolt"></i>
-                <h3>天生快速</h3>
-                <p>纯静态页面，无需数据库，CDN 全球分发，加载几乎瞬开。</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-shield-alt"></i>
-                <h3>自由 & 安全</h3>
-                <p>完全由你掌控，没有第三方跟踪，自带 HTTPS，安心发布。</p>
-            </div>
+            <a href="/about.html" class="feature-card-link">
+                <div class="feature-card">
+                    <i class="fas fa-palette"></i>
+                    <h3>极简美学</h3>
+                    <p>干净、留白、聚焦内容。没有多余的干扰，只有纯粹的阅读体验。</p>
+                </div>
+            </a>
+            <a href="/tech.html" class="feature-card-link">
+                <div class="feature-card">
+                    <i class="fas fa-bolt"></i>
+                    <h3>天生快速</h3>
+                    <p>纯静态页面，无需数据库，CDN 全球分发，加载几乎瞬开。</p>
+                </div>
+            </a>
+            <a href="/security.html" class="feature-card-link">
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>自由 & 安全</h3>
+                    <p>完全由你掌控，没有第三方跟踪，自带 HTTPS，安心发布。</p>
+                </div>
+            </a>
         </div>
 
         <!-- 页脚 -->
         <footer class="footer">
             <span>&copy; 2026 · 用 ❤️ 和 GitHub Pages 构建</span>
             <div class="footer-socials">
-                <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="#" aria-label="RSS"><i class="fas fa-rss"></i></a>
+                <!-- 请将 # 替换为你的真实社交链接 -->
+                <a href="https://github.com/你的用户名" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                <a href="https://twitter.com/你的用户名" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="/feed.xml" aria-label="RSS"><i class="fas fa-rss"></i></a>
             </div>
         </footer>
     </div>
