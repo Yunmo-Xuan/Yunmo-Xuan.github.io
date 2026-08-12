@@ -1,26 +1,359 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
-    <title>404 Not Found</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>页面未找到 · 云陌轩</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #f4f4f4;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #faf9f8;
+            color: #1e1e1e;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background 0.3s;
         }
-        h1 { font-size: 50px; }
-        a {
-            color: #0366d6;
+
+        .bg-glow {
+            position: fixed;
+            top: -20%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 102, 255, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 28px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 导航 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #0066ff, #00c6fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+            font-weight: 500;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
             text-decoration: none;
+            color: #2c2c2c;
+            transition: color 0.2s, opacity 0.2s;
+            font-size: 1rem;
         }
-        a:hover { text-decoration: underline; }
+
+        .nav-links a:hover {
+            color: #0066ff;
+        }
+
+        /* 语言切换 */
+        .lang-switcher {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .lang-current {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            background: rgba(0,0,0,0.02);
+            transition: background 0.2s;
+            font-weight: 500;
+            text-decoration: none;
+            color: #2c2c2c;
+        }
+
+        .lang-current:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .lang-dropdown {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+            list-style: none;
+            padding: 8px 0;
+            min-width: 140px;
+            display: none;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .lang-dropdown li a {
+            display: block;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #1e1e1e;
+            font-size: 0.95rem;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+        .lang-dropdown li a:hover {
+            background: #f0f4ff;
+            color: #0066ff;
+        }
+
+        .lang-dropdown.show {
+            display: block;
+        }
+
+        /* 404 内容区 */
+        .error-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0066ff, #7b2ffc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            font-size: 1.3rem;
+            color: #3d3d3d;
+            max-width: 450px;
+            margin: 0 auto 2rem;
+            line-height: 1.7;
+        }
+
+        .btn-home {
+            display: inline-block;
+            background: #1e1e1e;
+            color: #fff;
+            padding: 14px 36px;
+            border-radius: 60px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.25s;
+        }
+
+        .btn-home:hover {
+            background: #0066ff;
+        }
+
+        .btn-home i {
+            margin-right: 8px;
+        }
+
+        /* 页脚 */
+        .footer {
+            margin-top: auto;
+            padding: 32px 0 28px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            text-align: center;
+            font-size: 0.95rem;
+            color: #5a5a5a;
+        }
+
+        @media (max-width: 700px) {
+            .error-code {
+                font-size: 4rem;
+            }
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .nav-links {
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>404</h1>
-    <p><strong>哎呀，页面走丢了！</strong></p>
-    <p><a href="/">返回首页</a></p>
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <nav class="navbar">
+            <span class="logo">✦ 云陌轩</span>
+            <ul class="nav-links">
+                <li><a href="/" data-i18n="nav_home">首页</a></li>
+                <li><a href="/blog.html" data-i18n="nav_blog">文章</a></li>
+                <li><a href="/projects.html" data-i18n="nav_projects">项目</a></li>
+
+                <li class="lang-switcher">
+                    <a href="#" class="lang-current" id="langToggle">
+                        <i class="fas fa-globe"></i>
+                        <span id="currentLangLabel">简</span>
+                    </a>
+                    <ul class="lang-dropdown" id="langDropdown">
+                        <li><a href="#" data-lang="zh-CN">简体中文</a></li>
+                        <li><a href="#" data-lang="zh-TW">繁體中文</a></li>
+                        <li><a href="#" data-lang="en">English</a></li>
+                        <li><a href="#" data-lang="ja">日本語</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="error-section">
+            <div class="emoji">🔍</div>
+            <div class="error-code">404</div>
+            <p class="message" data-i18n="error_msg">
+                哎呀，这个页面不存在或已被移除。<br />
+                别担心，你可以回到首页继续探索。
+            </p>
+            <a href="/" class="btn-home" data-i18n="btn_home">
+                <i class="fas fa-arrow-left"></i> 返回首页
+            </a>
+        </div>
+
+        <footer class="footer">
+            <span data-i18n="footer_text">© 2026 · 用 ❤️ 和 GitHub Pages 构建</span>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            // 多语言字典 (与主页完全一致，额外加入 404 专属文字)
+            const translations = {
+                'zh-CN': {
+                    nav_home: '首页',
+                    nav_blog: '文章',
+                    nav_projects: '项目',
+                    error_msg: '哎呀，这个页面不存在或已被移除。<br />别担心，你可以回到首页继续探索。',
+                    btn_home: '<i class="fas fa-arrow-left"></i> 返回首页',
+                    footer_text: '© 2026 · 用 ❤️ 和 GitHub Pages 构建'
+                },
+                'zh-TW': {
+                    nav_home: '首頁',
+                    nav_blog: '文章',
+                    nav_projects: '項目',
+                    error_msg: '哎呀，這個頁面不存在或已被移除。<br />別擔心，你可以回到首頁繼續探索。',
+                    btn_home: '<i class="fas fa-arrow-left"></i> 返回首頁',
+                    footer_text: '© 2026 · 用 ❤️ 與 GitHub Pages 建構'
+                },
+                'en': {
+                    nav_home: 'Home',
+                    nav_blog: 'Blog',
+                    nav_projects: 'Projects',
+                    error_msg: 'Oops! This page doesn\'t exist or has been removed.<br />Don\'t worry, you can go back to the homepage.',
+                    btn_home: '<i class="fas fa-arrow-left"></i> Back to Home',
+                    footer_text: '© 2026 · Built with ❤️ and GitHub Pages'
+                },
+                'ja': {
+                    nav_home: 'ホーム',
+                    nav_blog: 'ブログ',
+                    nav_projects: 'プロジェクト',
+                    error_msg: 'おっと、このページは存在しないか、削除されました。<br />心配しないで、ホームページに戻って探索を続けられます。',
+                    btn_home: '<i class="fas fa-arrow-left"></i> ホームに戻る',
+                    footer_text: '© 2026 · ❤️ と GitHub Pages で作成'
+                }
+            };
+
+            const langToggle = document.getElementById('langToggle');
+            const langDropdown = document.getElementById('langDropdown');
+            const currentLangLabel = document.getElementById('currentLangLabel');
+
+            let currentLang = localStorage.getItem('preferredLanguage') || 'zh-CN';
+
+            function setLanguage(lang) {
+                const dict = translations[lang];
+                if (!dict) return;
+
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (dict[key]) {
+                        el.innerHTML = dict[key];
+                    }
+                });
+
+                const labels = { 'zh-CN': '简', 'zh-TW': '繁', 'en': 'EN', 'ja': '日' };
+                currentLangLabel.textContent = labels[lang] || lang;
+                localStorage.setItem('preferredLanguage', lang);
+                currentLang = lang;
+                document.documentElement.lang = lang;
+            }
+
+            langToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                langDropdown.classList.toggle('show');
+            });
+
+            langDropdown.querySelectorAll('a[data-lang]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const lang = this.getAttribute('data-lang');
+                    setLanguage(lang);
+                    langDropdown.classList.remove('show');
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!langToggle.contains(e.target) && !langDropdown.contains(e.target)) {
+                    langDropdown.classList.remove('show');
+                }
+            });
+
+            // 初始化
+            setLanguage(currentLang);
+        })();
+    </script>
 </body>
 </html>
