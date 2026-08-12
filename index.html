@@ -84,18 +84,6 @@
             color: #0066ff;
         }
 
-        .btn-outline {
-            border: 1.5px solid #1e1e1e;
-            padding: 8px 20px;
-            border-radius: 40px;
-            transition: all 0.25s;
-        }
-
-        .btn-outline:hover {
-            background: #1e1e1e;
-            color: #fff !important;
-        }
-
         /* 语言切换 */
         .lang-switcher {
             position: relative;
@@ -308,26 +296,9 @@
             margin-top: auto;
             padding: 32px 0 28px;
             border-top: 1px solid rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
+            text-align: center;
             font-size: 0.95rem;
             color: #5a5a5a;
-        }
-
-        .footer-socials a {
-            color: #3d3d3d;
-            margin-left: 22px;
-            font-size: 1.3rem;
-            transition: color 0.2s, transform 0.2s;
-            display: inline-block;
-        }
-
-        .footer-socials a:hover {
-            color: #0066ff;
-            transform: translateY(-2px);
         }
 
         @media (max-width: 700px) {
@@ -350,13 +321,6 @@
             .btn-secondary {
                 width: 100%;
                 justify-content: center;
-            }
-            .footer {
-                flex-direction: column;
-                text-align: center;
-            }
-            .footer-socials a {
-                margin: 0 12px;
             }
         }
     </style>
@@ -384,8 +348,6 @@
                         <li><a href="#" data-lang="ja">日本語</a></li>
                     </ul>
                 </li>
-
-                <li><a href="mailto:your@email.com" class="btn-outline" data-i18n="nav_contact">联系</a></li>
             </ul>
         </nav>
 
@@ -437,10 +399,6 @@
 
         <footer class="footer">
             <span data-i18n="footer_text">© 2026 · 用 ❤️ 和 GitHub Pages 构建</span>
-            <div class="footer-socials">
-                <a href="https://github.com/你的用户名" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                <a href="/feed.xml" aria-label="RSS"><i class="fas fa-rss"></i></a>
-            </div>
         </footer>
     </div>
 
@@ -451,7 +409,6 @@
                     nav_home: '首页',
                     nav_blog: '文章',
                     nav_projects: '项目',
-                    nav_contact: '联系',
                     hero_badge: '<i class="fas fa-code" style="margin-right: 6px;"></i> 基于 GitHub Pages',
                     hero_title_1: '打造属于你的',
                     hero_title_2: '数字空间',
@@ -470,7 +427,6 @@
                     nav_home: '首頁',
                     nav_blog: '文章',
                     nav_projects: '項目',
-                    nav_contact: '聯絡',
                     hero_badge: '<i class="fas fa-code" style="margin-right: 6px;"></i> 基於 GitHub Pages',
                     hero_title_1: '打造屬於你的',
                     hero_title_2: '數位空間',
@@ -489,7 +445,6 @@
                     nav_home: 'Home',
                     nav_blog: 'Blog',
                     nav_projects: 'Projects',
-                    nav_contact: 'Contact',
                     hero_badge: '<i class="fas fa-code" style="margin-right: 6px;"></i> Powered by GitHub Pages',
                     hero_title_1: 'Build your own',
                     hero_title_2: 'digital space',
@@ -508,7 +463,6 @@
                     nav_home: 'ホーム',
                     nav_blog: 'ブログ',
                     nav_projects: 'プロジェクト',
-                    nav_contact: 'お問い合わせ',
                     hero_badge: '<i class="fas fa-code" style="margin-right: 6px;"></i> GitHub Pages で公開',
                     hero_title_1: 'あなただけの',
                     hero_title_2: 'デジタル空間',
