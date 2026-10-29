@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>probe</title>
+<style>
+  body { font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace; margin: 0; padding: 12px; background: #fff; color: #000; }
+  .frame-wrap { display: inline-block; vertical-align: top; margin: 4px; border: 1px solid #ccc; }
+  iframe { border: 0; display: block; }
+  #out div { white-space: pre-wrap; }
+  .ok { color: #0a7d3c; } .no { color: #c02020; }
+</style>
+</head>
+<body>
+<div id="out">running…</div>
+<div id="stages"></div>
+<script>
+/* 同源探针：把五个页面在各断点/主题下装进 iframe，检查布局与渲染结果。
+   用法：node tools/probe.js —— 由脚本写入 site/__probe.html 后无头运行。 */
+var PAGES = ['index.html', 'projects.html', 'blog.html', 'about.html', '404.html', 'blog.html#/post/rewrite-2026'];
+var STAGES = [
+  { label: 'light-1440', theme: 'light', w: 1440, h: 900 },
+  { label: 'dark-1440', theme: 'dark', w: 1440, h: 900 },
+  { label: 'light-390', theme: 'light', w: 390, h: 844 },
+  { label: 'dark-390', theme: 'dark', w: 390, h: 844 }
+];
+var results = [];
+var stageEl = document.getElementById('stages');
+
+function check(doc, label, page, stage) {
+  var de = doc.documentElement;
+  var problems = [];
+  var cw = de.clientWidth;
+  if (de.scrollWidth - cw > 1) problems.push('overflow ' + (de.scrollWidth - cw) + 'px');
+  if (!doc.title) problems.push('empty title');
+  if (!doc.querySelector('.nav-links a')) problems.push('no nav');
+  if (!doc.querySelector('main h1, .hero h1')) problems.push('no h1');
+  var slots = [].slice.call(doc.querySelectorAll('[data-i18n]')).filter(function (el) { return !el.textContent.trim(); });
+  if (slots.length) problems.push('empty i18n: ' + slots.map(function (e) { return e.getAttribute('data-i18n'); }).join(','));
+  /* 转义泄漏：文案里不该出现裸的 \u003c / &lt; / 被吃掉的标签 */
+  var text = doc.body.innerText || '';
+  if (/\\u003c|&lt;|&quot;/.test(text)) problems.push('escape leak in visible text');
+  /* 正文可见文字里不该出现未渲染的标签片段 */
+  if (/&lt;\/?(strong|em|code)&gt;/.test(text)) problems.push('unrendered inline tag');
+  var theme = de.getAttribute('data-theme');
+  if (theme !== stage.theme) problems.push('theme=' + theme);
+  if (doc.documentElement.lang !== 'zh-CN') problems.push('lang=' + doc.documentElement.lang);
+  var revealed = doc.querySelectorAll('.reveal.in').length;
+  var total = doc.querySelectorAll('.reveal').length;
+  /* 无头环境里 IntersectionObserver 未必被调度，reveal 只作信息展示，不算失败 */
+  /* 本页专属断言 */
+  if (page === 'blog.html' && !doc.querySelector('#postList a, #postContent h1')) problems.push('blog rendered nothing');
+  if (page.indexOf('post/') > -1) {
+    if (!doc.querySelector('#postContent h1')) problems.push('post body missing');
+    if (!doc.querySelector('#postContent p')) problems.push('post paragraphs missing');
+    if (!doc.querySelector('#listView[hidden]')) problems.push('list not hidden in reader');
+  }
+  if (page === 'projects.html' && !doc.querySelector('#projList .project')) problems.push('projects rendered nothing');
+  if (page === 'about.html' && !doc.querySelector('#changelog li')) problems.push('changelog empty');
+  if (page === 'about.html' && !doc.querySelector('#contactList li')) problems.push('contacts empty');
+  if (page === '404.html') {
+    if (!doc.querySelector('#pageMap a')) problems.push('site map empty');
+    var links = [].slice.call(doc.querySelectorAll('a[href]')).map(function (a) { return a.getAttribute('href'); })
+      .filter(function (h) { return h && !/^(https?:|#|mailto:|data:)/.test(h) && h.charAt(0) !== '/'; });
+    if (links.length) problems.push('404 must use root-absolute, found: ' + links.join(','));
+  }
+  results.push({ page: page, stage: label, ok: problems.length === 0, problems: problems, cw: cw, scrollW: de.scrollWidth, revealed: revealed + '/' + total });
+}
+
+function runStage(stage, pageIndex, done) {
+  localStorage.setItem('preferredTheme', stage.theme);
+  localStorage.setItem('preferredLanguage', 'zh-CN');
+  var wrap = document.createElement('div');
+  wrap.className = 'frame-wrap';
+  var f = document.createElement('iframe');
+  f.style.width = stage.w + 'px';
+  f.style.height = stage.h + 'px';
+  wrap.appendChild(f);
+  stageEl.appendChild(wrap);
+  f.addEventListener('load', function () {
+    setTimeout(function () {
+      /* 页面启动期异常无法在这里捕获（导航会替换 window），
+         但它一定会让下面的结构断言失败 */
+      try { check(f.contentDocument, stage.label, PAGES[pageIndex], stage); }
+      catch (e) { results.push({ page: PAGES[pageIndex], stage: stage.label, ok: false, problems: ['crash: ' + e.message] }); }
+      done();
+    }, 260);
+  });
+  f.src = PAGES[pageIndex];
+}
+
+var queue = [];
+STAGES.forEach(function (s, si) { PAGES.forEach(function (p, pi) { queue.push([s, pi]); }); });
+
+/* ---------- 交互阶段：真的点一遍，验证 JS 行为 ---------- */
+var INTERACTIONS = [
+  { page: 'index.html', w: 1440, name: 'theme toggle', run: function (d) {
+      var before = d.documentElement.getAttribute('data-theme');
+      d.getElementById('themeToggle').click();
+      var after = d.documentElement.getAttribute('data-theme');
+      if (before === after) throw 'theme did not flip (' + before + ')';
+      if (localStorage.getItem('preferredTheme') !== after) throw 'theme not persisted';
+      d.getElementById('themeToggle').click();
+    } },
+  { page: 'index.html', w: 1440, name: 'language switch', run: function (d) {
+      var t = d.getElementById('langToggle');
+      t.click();
+      if (!d.getElementById('langDropdown').classList.contains('show')) throw 'dropdown did not open';
+      if (t.getAttribute('aria-expanded') !== 'true') throw 'aria-expanded not set';
+      d.querySelector('[data-lang="en"]').click();
+      if (d.documentElement.lang !== 'en') throw 'lang attribute = ' + d.documentElement.lang;
+      var home = d.querySelector('[data-i18n="nav_home"]').textContent.trim();
+      if (home !== 'Home') throw 'nav not translated: ' + home;
+      if (!/^Yunmo-Xuan/.test(d.title)) throw 'title not translated: ' + d.title;
+      d.querySelector('[data-lang="zh-CN"]').click();
+      if (d.querySelector('[data-i18n="nav_home"]').textContent.trim() !== '首页') throw 'did not switch back';
+    } },
+  { page: 'index.html', w: 390, name: 'mobile menu', run: function (d) {
+      var btn = d.getElementById('navToggle');
+      if (getComputedStyle(btn).display === 'none') throw 'hamburger hidden at 390px';
+      btn.click();
+      if (!d.body.classList.contains('nav-open')) throw 'menu did not open';
+      if (btn.getAttribute('aria-expanded') !== 'true') throw 'aria-expanded not set';
+      d.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      if (d.body.classList.contains('nav-open')) throw 'Escape did not close';
+    } },
+  { page: 'blog.html', w: 1440, name: 'open post + back', run: function (d, win, done) {
+      function assertReaderOpen() {
+        if (d.querySelector('#postView[hidden]')) return 'reader stayed hidden after click';
+        if (!/#\/post\//.test(win.location.hash)) return 'hash not updated: ' + win.location.hash;
+        if (!d.querySelector('#postContent h2')) return 'post headings missing';
+        return null;
+      }
+      if (d.querySelector('#postView[hidden]') === null) return done('reader visible on load');
+      d.querySelector('.post-row').click();
+      /* hashchange 异步派发，等一拍再断言 */
+      setTimeout(function () {
+        var err = assertReaderOpen();
+        if (err) return done(err);
+        d.getElementById('backToList').click();
+        setTimeout(function () {
+          if (d.querySelector('#postView:not([hidden])')) return done('reader not closed after back');
+          done();
+        }, 150);
+      }, 150);
+    } },
+  { page: 'blog.html', w: 1440, name: 'tag filter', run: function (d) {
+      var pills = d.querySelectorAll('#postFilters .pill');
+      if (pills.length < 2) throw 'filter bar missing (pills=' + pills.length + ')';
+      var all = d.querySelectorAll('#postList .post-row').length;
+      pills[1].click();
+      var some = d.querySelectorAll('#postList .post-row').length;
+      if (some >= all) throw 'filter did not narrow list (' + all + ' -> ' + some + ')';
+      if (pills[1].getAttribute('aria-pressed') !== 'true') throw 'aria-pressed not set';
+      pills[0].click();
+      if (d.querySelectorAll('#postList .post-row').length !== all) throw 'reset failed';
+    } },
+  { page: 'projects.html', w: 1440, name: 'project filter', run: function (d) {
+      if (d.querySelectorAll('#projList .project').length === 0) throw 'no project card';
+      var pills = d.querySelectorAll('#projFilters .pill');
+      /* 只有一个标签时筛选条应当自动隐藏；目前这条项目带 4 个标签，所以应当显示 */
+      if (pills.length < 2) throw 'filter bar missing (pills=' + pills.length + ')';
+      pills[1].click();
+      if (pills[1].getAttribute('aria-pressed') !== 'true') throw 'aria-pressed not set';
+      if (d.querySelectorAll('#projList .project').length === 0) throw 'filter emptied the list unexpectedly';
+      if (d.querySelector('#projEmpty').hidden !== true) throw 'empty state shown with results present';
+      pills[0].click();
+    } },
+  { page: 'about.html', w: 1440, name: 'contact links on first load', run: function (d) {
+      var expected = [
+        'https://github.com/Yunmo-Xuan',
+        'https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io',
+        'https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io/issues/new'
+      ];
+      var links = Array.from(d.querySelectorAll('#contactList a'), function (a) { return a.href; });
+      if (JSON.stringify(links) !== JSON.stringify(expected)) throw 'incorrect contact destinations';
+    } },
+  { page: 'blog.html', w: 1440, name: 'counts and malformed hash', run: function (d, win, done) {
+      if (!/2/.test(d.getElementById('postCount').textContent)) return done('post count missing');
+      win.location.hash = '#/post/%E0%A4%A';
+      setTimeout(function () {
+        if (d.getElementById('listView').hidden) return done('malformed hash hid the article list');
+        done();
+      }, 150);
+    } },
+  { page: 'blog.html', w: 1440, name: 'language changes preserve navigation', run: function (d, win, done) {
+      ['en', 'ja', 'zh-TW', 'zh-CN'].forEach(function (lang) {
+        d.querySelector('[data-lang="' + lang + '"]').click();
+      });
+      if (!/2/.test(d.getElementById('postCount').textContent)) return done('post count disappeared');
+      d.querySelector('.post-row').click();
+      setTimeout(function () {
+        if (d.getElementById('postView').hidden) return done('reader failed after switching languages');
+        d.getElementById('backToList').click();
+        setTimeout(function () {
+          if (d.getElementById('listView').hidden) return done('back failed after switching languages');
+          done();
+        }, 150);
+      }, 150);
+    } },
+  { page: '404.html', w: 1440, name: 'site map links', run: function (d) {
+      var links = d.querySelectorAll('#pageMap a');
+      if (links.length !== 4) throw 'expected 4 map links, got ' + links.length;
+      for (var i = 0; i < links.length; i++) {
+        if (links[i].getAttribute('href').charAt(0) !== '/') throw 'map link not root-absolute: ' + links[i].getAttribute('href');
+      }
+    } }
+];
+
+function runInteraction(job, done) {
+  localStorage.removeItem('preferredTheme');
+  localStorage.removeItem('preferredLanguage');
+  var wrap = document.createElement('div');
+  wrap.className = 'frame-wrap';
+  var f = document.createElement('iframe');
+  f.style.width = job.w + 'px';
+  f.style.height = '900px';
+  wrap.appendChild(f);
+  stageEl.appendChild(wrap);
+  f.addEventListener('load', function () {
+    setTimeout(function () {
+      var win = f.contentWindow;
+      var errs = [];
+      /* 导航后 window 已被替换，这里只能捕获点击期异常；
+         启动期异常会让下面的断言直接失败 */
+      win.addEventListener('error', function (e) { errs.push(String(e.message).slice(0, 120)); });
+      var settled = false;
+      function finish(msg) {
+        if (settled) return;
+        settled = true;
+        var problems = msg ? [String(msg)] : [];
+        if (errs.length) problems.push('page error: ' + errs.join(' | '));
+        results.push({ page: job.page, stage: 'act:' + job.name, ok: problems.length === 0, problems: problems, cw: job.w, scrollW: job.w, revealed: '-' });
+        done();
+      }
+      try { job.run(f.contentDocument, win, finish); }
+      catch (e) { finish(e.message || e); return; }
+      setTimeout(function () {
+        finish(job.run.length >= 3 ? 'interaction timed out' : undefined);
+      }, 700);
+    }, 240);
+  });
+  f.src = job.page;
+}
+
+function next() {
+  if (queue.length) { var job = queue.shift(); runStage(job[0], job[1], next); return; }
+  if (INTERACTIONS.length) { runInteraction(INTERACTIONS.shift(), next); return; }
+  var out = document.getElementById('out');
+  var bad = results.filter(function (r) { return !r.ok; });
+  out.innerHTML = results.map(function (r) {
+    return '<div class="' + (r.ok ? 'ok' : 'no') + '">[' + (r.ok ? 'PASS' : 'FAIL') + '] ' + r.stage + ' ' + r.page +
+      (r.problems.length ? ' :: ' + r.problems.join('; ') : ' :: layout ' + r.cw + '/' + r.scrollW + ', reveal ' + r.revealed) + '</div>';
+  }).join('') + '<div class="' + (bad.length ? 'no' : 'ok') + '">TOTAL ' + results.length + ' checks, ' + bad.length + ' failed</div>';
+  document.title = (bad.length ? 'PROBE-FAIL-' + bad.length : 'PROBE-PASS') + '-' + results.length;
+}
+next();
+</script>
+</body>
+</html>
