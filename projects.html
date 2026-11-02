@@ -448,9 +448,28 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
         .placeholder-card p { margin: 0; font-size: .95rem; }
         .placeholder-card code { font-family: var(--mono); font-size: .85em; background: var(--surface); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); }
         .filterbar { margin-top: 30px; }
-        .stack-note { margin-top: 34px; }
-        @media (min-width: 780px) {
-            .project { grid-template-columns: 1fr; }
+        .stack-note { margin-top: 34px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .88rem; }
+        .project { scroll-margin-top: calc(var(--nav-h) + 24px); min-width: 0; }
+        .project h2 { overflow-wrap: anywhere; }
+        .version { font: 600 .8rem var(--mono); color: var(--accent-ink); background: var(--accent-soft); padding: 4px 10px; border-radius: 8px; }
+        .project-platform { color: var(--muted); font-size: .88rem; }
+        .project-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 22px; list-style: none; padding: 18px 0; border-block: 1px solid var(--line); }
+        .project-features li { display: flex; align-items: flex-start; gap: 9px; font-size: .93rem; }
+        .project-features .icon { color: var(--accent-ink); margin-top: 5px; }
+        .project-usage { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+        .project-usage summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+        .project-usage ul { padding: 4px 0 2px 20px; color: var(--muted); font-size: .88rem; }
+        .project-usage li { margin-top: 10px; }
+        .project .project-notice, .project .project-verified { color: var(--muted); font-size: .82rem; line-height: 1.65; }
+        .project .project-verified { padding-top: 12px; border-top: 1px solid var(--line); }
+        .project-links .btn { white-space: normal; text-align: center; }
+        @media (max-width: 700px) {
+            .project-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .project { padding: 22px 18px; }
+            .project-links .btn { flex: 1 1 auto; }
+        }
+        @media (max-width: 400px) {
+            .project-features { grid-template-columns: 1fr; gap: 10px; }
         }
 
     </style>
@@ -554,7 +573,7 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
                 <span class="eyebrow" data-i18n="eyebrow">项目</span>
                 <h1 data-i18n="title">做过的事</h1>
                 <p class="lead" data-i18n="lead">
-                    这里放我亲手做出来、并且愿意一直维护的东西。每一条都写清楚它解决了什么问题 —— 包括还没做的那些。
+                    从桌面文档工具到静态个人站，这里收录我的公开项目。查看功能、运行要求与使用说明，找到适合你的工具。
                 </p>
             </div>
         </section>
@@ -578,7 +597,7 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
 
                 <aside class="panel-note stack-note" id="projNote" hidden>
                     <svg class="icon" aria-hidden="true"><use href="#i-code" /></svg>
-                    <span data-i18n="source_note">本页源码就在上面那个仓库里。</span>
+                    <span data-i18n="source_note">项目文档与下载地址以对应仓库最新说明为准。</span>
                 </aside>
             </div>
         </section>
@@ -622,68 +641,100 @@ window.PAGE_I18N = {
     "meta_description": "云陌轩做过的东西：站点、工具与小实验，连同它们踩过的坑一起留档。",
     "eyebrow": "项目",
     "title": "做过的事",
-    "lead": "这里放我亲手做出来、并且愿意一直维护的东西。每一条都写清楚它解决了什么问题 —— 包括还没做的那些。",
+    "lead": "从桌面文档工具到静态个人站，这里收录我的公开项目。查看功能、运行要求与使用说明，找到适合你的工具。",
     "featured": "代表作",
     "view_source": "查看源码",
     "visit": "访问",
     "no_match": "没有匹配这个标签的项目。",
     "placeholder": "下一个项目的位置。在页面顶部的 \u003ccode>PROJECTS\u003c/code> 数组里复制一条，填上名字、链接和说明就能出现。",
     "more_on_github": "更多在 GitHub",
-    "source_note": "本页源码就在上面那个仓库里。",
+    "source_note": "项目文档与下载地址以对应仓库最新说明为准。",
     "count_label": "共 %d 个项目",
     "status_active": "维护中",
     "status_archived": "已归档",
+    "status_released": "已发布",
+    "view_docs": "使用说明与更新",
+    "usage_title": "使用要求、许可与转换限制",
+    "download_baidu": "前往百度网盘下载",
+    "view_license": "阅读使用条款",
+    "download_notice": "下载入口来自项目仓库，指向第三方网盘；安装包未做独立安全验证，下载前请阅读使用条款。",
+    "verified_on": "资料核对日期",
+    "version_snapshot": "版本与功能以仓库说明为准",
     "doc_title": "项目 · 云陌轩"
   },
   "zh-TW": {
     "meta_description": "雲陌軒做過的东西：站點、工具與小實驗，連同它們踩過的坑一起留檔。",
     "eyebrow": "項目",
     "title": "做過的事",
-    "lead": "這裡放我親手做出來、而且願意一直維護的東西。每一條都寫清楚它解決了什麼問題 —— 包括還沒做的那些。",
+    "lead": "從桌面文件工具到靜態個人站，這裡收錄我的公開專案。查看功能、執行需求與使用說明，找到適合你的工具。",
     "featured": "代表作",
     "view_source": "檢視原始碼",
     "visit": "造訪",
     "no_match": "沒有符合這個標籤的項目。",
     "placeholder": "下一個項目的位置。在頁面頂部的 \u003ccode>PROJECTS\u003c/code> 陣列裡複製一條，填上名稱、連結和說明就會出現。",
     "more_on_github": "更多在 GitHub",
-    "source_note": "本頁原始碼就在上面那個倉庫裡。",
+    "source_note": "專案文件與下載位址以對應倉庫最新說明為準。",
     "count_label": "共 %d 個項目",
     "status_active": "維護中",
     "status_archived": "已封存",
+    "status_released": "已發布",
+    "view_docs": "使用說明與更新",
+    "usage_title": "使用需求、授權與轉換限制",
+    "download_baidu": "前往百度網盤下載",
+    "view_license": "閱讀使用條款",
+    "download_notice": "下載入口來自專案倉庫，指向第三方網盤；安裝程式未經獨立安全驗證，下載前請閱讀使用條款。",
+    "verified_on": "資料核對日期",
+    "version_snapshot": "版本與功能以倉庫說明為準",
     "doc_title": "項目 · 雲陌軒"
   },
   "en": {
     "meta_description": "Things Yunmo-Xuan has built: the site itself, small tools and experiments, kept together with the mistakes behind them.",
     "eyebrow": "Projects",
     "title": "What I have built",
-    "lead": "Only things I made by hand and still intend to keep alive. Each entry says what problem it solved — including the ones not started yet.",
+    "lead": "From a desktop document toolkit to a static personal site: browse my public projects, their features, system requirements and documentation.",
     "featured": "Featured",
     "view_source": "Source",
     "visit": "Visit",
     "no_match": "No projects match this tag.",
     "placeholder": "Room for the next one. Copy an entry in the \u003ccode>PROJECTS\u003c/code> array at the top of this page, add a name, a link and a line about it.",
     "more_on_github": "More on GitHub",
-    "source_note": "The source for this page lives in that repository above.",
+    "source_note": "Refer to each repository for current documentation and download information.",
     "count_label": "%d project(s)",
     "status_active": "Maintained",
     "status_archived": "Archived",
+    "status_released": "Released",
+    "view_docs": "Documentation & updates",
+    "usage_title": "Requirements, license & conversion limits",
+    "download_baidu": "Download via Baidu Netdisk",
+    "view_license": "Read the terms",
+    "download_notice": "The repository links to a third-party file host. The installer has not been independently security-verified; read the terms before downloading.",
+    "verified_on": "Information checked",
+    "version_snapshot": "Version and features follow the repository documentation",
     "doc_title": "Projects · Yunmo-Xuan"
   },
   "ja": {
     "meta_description": "雲陌軒が作ったもの。サイト、小さなツール、小さな実験。そこに至った失敗といっしょに記録しています。",
     "eyebrow": "プロジェクト",
     "title": "作ったもの",
-    "lead": "自分で作って、今後も維持するつもりがあるものだけを置いています。各項目に「何を解決したか」を書いています —— まだ手をつけていないものも含めて。",
+    "lead": "デスクトップの文書ツールから静的な個人サイトまで、公開プロジェクトを紹介しています。機能や動作要件、使い方を確認して、目的に合うツールを見つけてください。",
     "featured": "主力",
     "view_source": "ソース",
     "visit": "開く",
     "no_match": "このタグに該当するプロジェクトはありません。",
     "placeholder": "次の1件用の空き枠です。ページ上部の \u003ccode>PROJECTS\u003c/code> 配列を1つ複製し、名前・リンク・説明を入れると表示されます。",
     "more_on_github": "GitHub でも",
-    "source_note": "このページのソースは上のリポジトリにあります。",
+    "source_note": "最新の説明書とダウンロード情報は、各リポジトリをご確認ください。",
     "count_label": "%d 件",
     "status_active": "メンテナンス中",
     "status_archived": "アーカイブ済み",
+    "status_released": "公開済み",
+    "view_docs": "使い方と更新情報",
+    "usage_title": "動作要件・ライセンス・変換の制限",
+    "download_baidu": "百度網盤でダウンロード",
+    "view_license": "利用規約を読む",
+    "download_notice": "リポジトリ記載の第三者ファイル共有サービスへのリンクです。インストーラーの独立した安全性検証は行っていません。事前に利用規約をご確認ください。",
+    "verified_on": "情報確認日",
+    "version_snapshot": "バージョンと機能はリポジトリの説明に基づきます",
     "doc_title": "プロジェクト · 雲陌軒"
   }
 };
@@ -695,12 +746,103 @@ window.PAGE_I18N = {
    ============================================================ */
 window.PAGE_DATA = [
   {
+    "slug": "pdf-tools",
+    "name": {
+      "zh-CN": "PDF 工具箱",
+      "zh-TW": "PDF 工具箱",
+      "en": "PDF Toolbox",
+      "ja": "PDF ツールボックス"
+    },
+    "url": "https://github.com/Yunmo-Xuan/PDF-Tools-Update",
+    "kind": "documentation",
+    "version": "6.0.4",
+    "verifiedOn": "2026-10-29",
+    "status": "released",
+    "featured": true,
+    "tags": [
+      "PDF",
+      "Windows",
+      "Python",
+      "pywebview"
+    ],
+    "desc": {
+      "zh-CN": "把常用 PDF 操作放进一个 Windows 桌面工具：从阅读、整理页面，到签名、水印与格式转换。公开仓库提供使用说明和版本信息，并非软件源码。",
+      "zh-TW": "把常用 PDF 操作整合到一個 Windows 桌面工具：從閱讀、整理頁面，到簽名、浮水印與格式轉換。公開倉庫提供使用說明和版本資訊，並非軟體原始碼。",
+      "en": "A Windows desktop toolkit for reading and organizing PDFs, adding signatures and watermarks, and converting documents. The public repository contains documentation and update metadata, not the application source.",
+      "ja": "PDF の閲覧・ページ整理から署名、透かし、形式変換までをまとめた Windows デスクトップツール。公開リポジトリは説明書と更新情報であり、アプリのソースコードではありません。"
+    },
+    "features": {
+      "zh-CN": [
+        "阅读与页面管理",
+        "拆分与合并",
+        "印章、签名与水印",
+        "文件压缩",
+        "加密与解密",
+        "Word / Excel / PPT / 图片转换"
+      ],
+      "zh-TW": [
+        "閱讀與頁面管理",
+        "分割與合併",
+        "印章、簽名與浮水印",
+        "檔案壓縮",
+        "加密與解密",
+        "Word / Excel / PPT / 圖片轉換"
+      ],
+      "en": [
+        "Viewing & page management",
+        "Split & merge",
+        "Stamps, signatures & watermarks",
+        "File compression",
+        "Encryption & decryption",
+        "Word / Excel / PPT / image conversion"
+      ],
+      "ja": [
+        "閲覧とページ管理",
+        "分割と結合",
+        "印章・署名・透かし",
+        "ファイル圧縮",
+        "暗号化と復号",
+        "Word・Excel・PPT・画像への変換"
+      ]
+    },
+    "requirements": {
+      "zh-CN": "Windows 10 / 11 · 64 位 · 需要 Microsoft WebView2 运行时",
+      "zh-TW": "Windows 10 / 11 · 64 位元 · 需要 Microsoft WebView2 執行階段",
+      "en": "Windows 10 / 11 · 64-bit · Microsoft WebView2 Runtime required",
+      "ja": "Windows 10 / 11 · 64-bit · Microsoft WebView2 ランタイムが必要"
+    },
+    "usage": {
+      "zh-CN": [
+        "个人使用免费，采用非开源许可。商业销售、捆绑推广或收费分发需要开发者书面授权。",
+        "据项目文档，PDF 处理在本地完成；更新检查等功能会联网。处理前建议备份原文件。",
+        "PPT 转换为图片型幻灯片，复杂文档转换可能出现排版偏差，请核对输出结果。"
+      ],
+      "zh-TW": [
+        "個人使用免費，採用非開源授權。商業銷售、捆綁推廣或收費分發需要開發者書面授權。",
+        "依專案文件，PDF 處理在本機完成；更新檢查等功能會連網。處理前建議備份原始檔案。",
+        "PPT 轉換為圖片型投影片，複雜文件轉換可能出現排版偏差，請核對輸出結果。"
+      ],
+      "en": [
+        "Free for personal use under a proprietary license. Commercial sales, bundled promotion and paid distribution require written permission.",
+        "According to the documentation, PDFs are processed locally; update checks and certain other features access the network. Back up originals before processing.",
+        "PPT exports use image-based slides. Complex document conversions may alter formatting; check the output."
+      ],
+      "ja": [
+        "個人利用は無料ですが、オープンソースではありません。商業販売、バンドル宣伝、有料配布には開発者の書面による許可が必要です。",
+        "説明書によると PDF はローカルで処理されますが、更新確認などは通信します。処理前に原本をバックアップしてください。",
+        "PPT 出力は画像ベースのスライドです。複雑な文書ではレイアウトが変わる場合があるため、出力を確認してください。"
+      ]
+    },
+    "downloadUrl": "https://pan.baidu.com/s/15RhbPNt1BiRUj0FDz3Bd7A?pwd=2dca",
+    "licenseUrl": "https://github.com/Yunmo-Xuan/PDF-Tools-Update/blob/main/LICENSE.md"
+  },
+  {
     "slug": "yunmo-xuan-github-io",
     "name": "Yunmo-Xuan.github.io",
     "url": "https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io",
     "year": "2026",
     "status": "active",
-    "featured": true,
+    "featured": false,
     "tags": [
       "HTML",
       "CSS",
@@ -708,8 +850,10 @@ window.PAGE_DATA = [
       "GitHub Pages"
     ],
     "desc": {
-      "zh-CN": "你正在看的这个站点。整站由五个自包含的 HTML 文件组成：没有框架、没有构建步骤，也不向 CDN 发起任何请求。",
-      "en": "The site you are looking at. Five self-contained HTML files: no framework, no build step in production, and not a single request to a CDN."
+      "zh-CN": "你正在看的个人站：展示实用工具、项目和笔记。五个自包含页面，支持深浅色与四语言界面，不加载外部字体、图标或运行时脚本。",
+      "zh-TW": "你正在看的個人站：展示實用工具、專案和筆記。五個獨立頁面，支援深淺色與四語言介面，不載入外部字型、圖示或執行階段腳本。",
+      "en": "This personal site showcases practical tools, projects and notes. Five self-contained pages with light and dark themes, four interface languages and no external fonts, icons or runtime scripts.",
+      "ja": "実用ツール、プロジェクト、ノートを紹介するこの個人サイト。5 つの独立したページ、明暗テーマ、4 言語の UI を備え、外部フォント・アイコン・実行用スクリプトは読み込みません。"
     },
     "blocks": [
       {
@@ -766,21 +910,32 @@ window.PAGE_RENDER = function(ctx) {
 
         function card(p) {
             var external = isExternal(p.url);
-            var label = external ? ctx.t('view_source') : ctx.t('visit');
+            var label = p.kind === 'documentation' ? ctx.t('view_docs') : ctx.t(external ? 'view_source' : 'visit');
             var mark = external ? '<svg class="icon" aria-hidden="true"><use href="#i-external" /></svg>' : '';
-            var status = p.status === 'archived'
-                ? '<span class="status status-archived"><i></i>' + ctx.t('status_archived') + '</span>'
-                : '<span class="status status-active"><i></i>' + ctx.t('status_active') + '</span>';
+            var status = '<span class="status ' + (p.status === 'archived' ? 'status-archived' : 'status-active') + '"><i aria-hidden="true"></i>' + escHtml(ctx.t('status_' + p.status)) + '</span>';
             var stars = p.featured ? '<span class="featured-badge">' + ctx.t('featured') + '</span>' : '';
-            return '<article class="project reveal' + (p.featured ? ' is-featured' : '') + '">' +
+            var features = p.features ? '<ul class="project-features">' + ctx.pick(p.features).map(function (feature) {
+                return '<li><svg class="icon" aria-hidden="true"><use href="#i-check" /></svg><span>' + escHtml(feature) + '</span></li>';
+            }).join('') + '</ul>' : '';
+            var usage = p.usage ? '<details class="project-usage"><summary>' + escHtml(ctx.t('usage_title')) + '</summary><ul>' + ctx.pick(p.usage).map(function (item) {
+                return '<li>' + escHtml(item) + '</li>';
+            }).join('') + '</ul></details>' : '';
+            var download = p.downloadUrl ? '<a class="btn btn-primary btn-sm" href="' + safeUrl(p.downloadUrl) + '" target="_blank" rel="noopener noreferrer">' + ctx.t('download_baidu') + mark + '</a>' : '';
+            var license = p.licenseUrl ? '<a class="btn btn-ghost btn-sm" href="' + safeUrl(p.licenseUrl) + '" target="_blank" rel="noopener noreferrer">' + ctx.t('view_license') + '</a>' : '';
+            return '<article id="' + escHtml(p.slug) + '" class="project reveal' + (p.featured ? ' is-featured' : '') + '">' +
                 '<div class="project-top">' +
-                '<h2><a href="' + safeUrl(p.url) + '"' + (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + escHtml(p.name) + '</a></h2>' +
-                '<span class="year">' + escHtml(p.year || '') + '</span>' + status + stars +
+                '<h2><a href="' + safeUrl(p.url) + '"' + (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + escHtml(ctx.pick(p.name)) + '</a></h2>' +
+                (p.version ? '<span class="version">v' + escHtml(p.version) + '</span>' : '<span class="year">' + escHtml(p.year || '') + '</span>') + status + stars +
                 '</div>' +
                 '<p class="summary">' + inline(ctx.pick(p.desc) || '') + '</p>' +
+                (p.requirements ? '<p class="project-platform">' + escHtml(ctx.pick(p.requirements)) + '</p>' : '') +
+                features +
                 '<ul class="tag-list">' + (p.tags || []).map(function (tg) { return '<li><span class="tag">' + escHtml(tg) + '</span></li>'; }).join('') + '</ul>' +
-                '<div class="project-links"><a class="btn btn-ghost btn-sm" href="' + safeUrl(p.url) + '"' +
-                (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + mark + '<span>' + label + '</span></a></div>' +
+                usage +
+                '<div class="project-links">' + download + '<a class="btn btn-ghost btn-sm" href="' + safeUrl(p.url) + '"' +
+                (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + mark + '<span>' + label + '</span></a>' + license + '</div>' +
+                (p.downloadUrl ? '<p class="project-notice">' + escHtml(ctx.t('download_notice')) + '</p>' : '') +
+                (p.verifiedOn ? '<p class="project-verified">' + escHtml(ctx.t('verified_on')) + ' <time datetime="' + escHtml(p.verifiedOn) + '">' + escHtml(p.verifiedOn) + '</time> · ' + escHtml(ctx.t('version_snapshot')) + '</p>' : '') +
                 '</article>';
         }
 
@@ -790,7 +945,7 @@ window.PAGE_RENDER = function(ctx) {
             });
             list.innerHTML = items.map(card).join('\n');
             empty.hidden = items.length !== 0;
-            if (count) count.textContent = ctx.t('count_label').replace('%d', PROJECTS.length);
+            if (count) count.textContent = ctx.t('count_label').replace('%d', items.length);
             /* 占位卡只在一条项目都没有时提醒作者；有内容就让位给正文 */
             placeholder.hidden = PROJECTS.length > 0;
             note.hidden = PROJECTS.length === 0;

@@ -23,8 +23,9 @@ for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.html'))) {
   }
 
   // 2) 站内链接必须落在真实文件上（404.html 用根绝对路径，其余必须相对）
-  for (const l of new Set([...markup.matchAll(/href="([^"]+)"/g)].map(m => m[1]))) {
-    if (/^(https?:|mailto:|data:|tel:|#)/i.test(l)) continue;
+  for (const href of new Set([...markup.matchAll(/href="([^"]+)"/g)].map(m => m[1]))) {
+    if (/^(https?:|mailto:|data:|tel:|#)/i.test(href)) continue;
+    const l = href.split(/[?#]/)[0];
     if (l.startsWith('/')) {
       if (f !== '404.html') { fail(f, `站内链接 "${l}" 是根绝对路径，本地双击打开会失效`); continue; }
       if (!fs.existsSync(path.join(dir, l))) fail(f, `broken link -> ${l}`);

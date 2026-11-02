@@ -20,7 +20,11 @@ var STAGES = [
   { label: 'light-1440', theme: 'light', w: 1440, h: 900 },
   { label: 'dark-1440', theme: 'dark', w: 1440, h: 900 },
   { label: 'light-390', theme: 'light', w: 390, h: 844 },
-  { label: 'dark-390', theme: 'dark', w: 390, h: 844 }
+  { label: 'dark-390', theme: 'dark', w: 390, h: 844 },
+  { label: 'light-320', theme: 'light', w: 320, h: 844 },
+  { label: 'en-320', theme: 'light', lang: 'en', w: 320, h: 844 },
+  { label: 'ja-390', theme: 'dark', lang: 'ja', w: 390, h: 844 },
+  { label: 'tw-390', theme: 'light', lang: 'zh-TW', w: 390, h: 844 }
 ];
 var results = [];
 var stageEl = document.getElementById('stages');
@@ -42,7 +46,7 @@ function check(doc, label, page, stage) {
   if (/&lt;\/?(strong|em|code)&gt;/.test(text)) problems.push('unrendered inline tag');
   var theme = de.getAttribute('data-theme');
   if (theme !== stage.theme) problems.push('theme=' + theme);
-  if (doc.documentElement.lang !== 'zh-CN') problems.push('lang=' + doc.documentElement.lang);
+  if (doc.documentElement.lang !== (stage.lang || 'zh-CN')) problems.push('lang=' + doc.documentElement.lang);
   var revealed = doc.querySelectorAll('.reveal.in').length;
   var total = doc.querySelectorAll('.reveal').length;
   /* 无头环境里 IntersectionObserver 未必被调度，reveal 只作信息展示，不算失败 */
@@ -67,7 +71,7 @@ function check(doc, label, page, stage) {
 
 function runStage(stage, pageIndex, done) {
   localStorage.setItem('preferredTheme', stage.theme);
-  localStorage.setItem('preferredLanguage', 'zh-CN');
+  localStorage.setItem('preferredLanguage', stage.lang || 'zh-CN');
   var wrap = document.createElement('div');
   wrap.className = 'frame-wrap';
   var f = document.createElement('iframe');
@@ -163,6 +167,36 @@ var INTERACTIONS = [
       if (d.querySelectorAll('#projList .project').length === 0) throw 'filter emptied the list unexpectedly';
       if (d.querySelector('#projEmpty').hidden !== true) throw 'empty state shown with results present';
       pills[0].click();
+    } },
+  { page: 'index.html', w: 390, name: 'PDF featured entry', run: function (d) {
+      var card = d.querySelector('.featured-project');
+      if (!card || !card.textContent.includes('6.0.4')) throw 'PDF highlight or version missing';
+      if (card.querySelector('a').getAttribute('href') !== 'projects.html#pdf-tools') throw 'featured link is incorrect';
+    } },
+  { page: 'projects.html#pdf-tools', w: 390, name: 'PDF details and download', run: function (d) {
+      var card = d.getElementById('pdf-tools');
+      if (!card || card.querySelectorAll('.project-features li').length !== 6) throw 'PDF feature list missing';
+      var download = card.querySelector('a[href^="https://pan.baidu.com/"]');
+      if (!download || new URL(download.href).searchParams.get('pwd') !== '2dca') throw 'download destination changed';
+      if (download.target !== '_blank' || !download.rel.includes('noopener')) throw 'unsafe external link';
+      var details = card.querySelector('details');
+      details.querySelector('summary').click();
+      if (!details.open || !details.textContent.includes('非开源')) throw 'license disclosure missing';
+      if (!card.textContent.includes('WebView2') || !card.textContent.includes('2026-10-29')) throw 'requirements or snapshot date missing';
+    } },
+  { page: 'projects.html', w: 390, name: 'project categories and translations', run: function (d) {
+      if (d.querySelectorAll('.project').length !== 2) throw 'expected two actual public projects';
+      d.querySelector('[data-tag="PDF"]').click();
+      if (d.querySelectorAll('.project').length !== 1 || !d.getElementById('pdf-tools')) throw 'PDF filter failed';
+      if (!/1/.test(d.getElementById('projCount').textContent)) throw 'filtered count incorrect';
+      d.querySelector('[data-tag="HTML"]').click();
+      if (!d.getElementById('yunmo-xuan-github-io') || d.getElementById('pdf-tools')) throw 'website filter failed';
+      ['en', 'ja', 'zh-TW', 'zh-CN'].forEach(function (lang) {
+        d.querySelector('[data-lang="' + lang + '"]').click();
+        if (d.querySelectorAll('.project').length !== 2) throw 'language switch lost projects';
+        if (!d.getElementById('pdf-tools').querySelector('.project-usage').textContent.trim()) throw 'usage translation missing';
+        if (d.getElementById('projList').textContent.includes('[object Object]')) throw 'untranslated project name';
+      });
     } },
   { page: 'about.html', w: 1440, name: 'contact links on first load', run: function (d) {
       var expected = [
