@@ -1,6 +1,9 @@
 /* 文章页 */
 'use strict';
 
+/* 6.0.4 主界面截图：构建时内联为 data URI，保持单文件与零外部请求 */
+const UI_SHOT = require('../assets/pdf-toolbox-ui.js');
+
 /* 文章数据：新增一篇 = 在数组开头加一个对象。
    title / summary / body 都按语言存放，取不到当前语言时回退简体中文。 */
 const POSTS = [
@@ -131,8 +134,15 @@ const POSTS = [
         body: {
             'zh-CN': [
                 { p: '两个月前第一次公开 5.0.2 时，页面管理的逻辑是“每改一次就写一个临时文件”。转一页生成一个 `_rotated`，删一页生成一个 `_deleted`，整理完一本书，文件夹里能多出十几个中间产物。' },
+                { img: { src: UI_SHOT.src, w: UI_SHOT.w, h: UI_SHOT.h, alt: UI_SHOT.alt['zh-CN'], cap: UI_SHOT.cap['zh-CN'] } },
                 { h: '先还债，再做新功能' },
                 { p: '6.0.2 修的是重构留下的致命问题：接口报错、保存对话框静默失败、水印角度和字体渲染。6.0.3 补上 32 位安装包，把缩略图改成网格并支持拖拽排序。到 6.0.4，才有余力动页面管理的底层。' },
+                { ul: [
+                    '6.0.1：弃用 Tkinter，界面换成 HTML + CSS + JS + pywebview；',
+                    '6.0.2：修重构留下的致命 Bug、保存对话框、水印角度与字体渲染；',
+                    '6.0.3：32/64 位双安装包、缩略图网格与拖拽排序、修深色模式主题色；',
+                    '6.0.4：页面管理内存化、8 套主题色、性能与内存优化、移除 32 位。'
+                ] },
                 { h: '改很多次，存一次' },
                 { p: '现在转页、删页、抽页、拖拽排序全部在内存里完成；状态栏一直提示「有未保存的改动」；只有点「保存为新文件」时才写入一次，而且原文件永远不动。' },
                 { p: '代价是没保存就关窗口会丢改动。这一点没有做自动恢复——与其悄悄写一个临时文件，不如把提示放在显眼的位置。' },
@@ -151,14 +161,23 @@ const POSTS = [
                     '放大预览与右键菜单；',
                     '只提供 64 位安装包，32 位留在 6.0.3。'
                 ] },
+                { h: '八套主题色怎么不打架' },
+                { p: '启动画面、主界面、设置窗口读同一份本机配置；改完立刻写回，其余窗口在下一次绘制时同步换色。不会出现「主界面换了、设置窗口还是旧的」这种半截状态——5.0.x 时代真的出现过。' },
                 { h: '还没做的' },
                 { p: '缩略图固定 64 DPI、放大预览一次一页、没有快捷键、不支持把文件拖进窗口、PPT 导出是图片型、暂存改动不落盘。这些都在 README 的未来计划里，什么时候做完什么时候算。' },
                 { note: '安装包 82 MB，装完约 256 MB；Windows 10/11 64 位，需要 WebView2 运行时。' }
             ],
             en: [
                 { p: 'When 5.0.2 first went public two months ago, page management worked by writing a temporary file after every edit: rotate a page and get a `_rotated`, delete a page and get a `_deleted`. By the end of one book the folder could hold a dozen leftovers.' },
+                { img: { src: UI_SHOT.src, w: UI_SHOT.w, h: UI_SHOT.h, alt: UI_SHOT.alt.en, cap: UI_SHOT.cap.en } },
                 { h: 'Pay the debt first' },
                 { p: '6.0.2 fixed the fatal problems left by the re-layer: interface errors, the save dialog failing silently, watermark angles and font rendering. 6.0.3 added a 32-bit installer and turned thumbnails into a draggable grid. Only with 6.0.4 was there room to touch the core of page management.' },
+                { ul: [
+                    '6.0.1: Tkinter dropped, interface rebuilt on HTML + CSS + JS + pywebview;',
+                    '6.0.2: fatal re-layer bugs, the save dialog, watermark angles and font rendering;',
+                    '6.0.3: dual 32/64-bit installers, thumbnail grid with drag reorder, dark-mode theme colours;',
+                    '6.0.4: in-memory page management, eight theme colours, performance and memory work, 32-bit removed.'
+                ] },
                 { h: 'Edit many times, save once' },
                 { p: 'Rotating, deleting, extracting and reordering now all happen in memory. The status bar keeps saying there are unsaved changes; a single write happens when «Save as new file» is clicked, and the original is never touched.' },
                 { p: 'The trade-off: closing the window without saving loses the edits. There is no automatic recovery on purpose — rather than quietly writing a temporary file, the warning stays visible.' },
@@ -177,6 +196,8 @@ const POSTS = [
                     'zoom preview and a context menu;',
                     '64-bit installer only, with 32-bit staying on 6.0.3.'
                 ] },
+                { h: 'How eight theme colours stay consistent' },
+                { p: 'The splash screen, the main window and the settings window all read the same local config; a change is written back immediately and every other window picks it up on its next paint. There is no half-switched state where the main window is recoloured but settings are not — which genuinely happened in the 5.0.x days.' },
                 { h: 'Still missing' },
                 { p: 'Thumbnails are fixed at 64 DPI, zoom preview shows one page at a time, there are no keyboard shortcuts or drag-and-drop, PPT export is image-based, and pending edits are not persisted. All of it is in the README roadmap; it ships when it ships.' },
                 { note: 'The installer is 82 MB and installs to about 256 MB. Windows 10/11 64-bit with the WebView2 runtime.' }
@@ -202,13 +223,23 @@ const POSTS = [
                 { h: '重构不是重写' },
                 { p: '底层的 PyMuPDF、pypdf、pdf2docx 都没有换。变的是界面与逻辑的边界：前端只负责显示和交互，后端通过接口接活；缩略图渲染挪到后台线程，主界面不再等它。' },
                 { p: '结果是界面终于能做毛玻璃、过渡动画和主题同步，也终于能在翻三千页的时候不假死。' },
+                { h: 'pywebview 负责什么' },
+                { p: '一个桌面窗口里跑网页：界面是 HTML + CSS + JavaScript，Python 在窗口后面接活。JS 通过 `pywebview.api` 调 Python 的方法，文件对话框、保存、后台线程都留在 Python 侧，界面只拿结果。' },
+                { code: '# Python 侧：把系统对话框暴露给界面\nclass Api:\n    def pick_file(self):\n        return webview.windows[0].create_file_dialog(webview.OPEN_DIALOG)\n\n// 界面侧：像调本地函数一样调用\nconst picked = await pywebview.api.pick_file();' },
+                { p: '这套边界一旦立住，界面想换风格、加动画都不用碰处理逻辑；反过来换处理引擎也不用碰界面。5.0.x 时代这两层是搅在一起的。' },
                 { h: '付出的代价' },
                 { ul: [
                     '多了一个 WebView2 依赖：Windows 11 自带，Windows 10 多数随 Edge 装过，但安装器必须检查并提示；',
                     '文件对话框要经过 pywebview 桥接，第一版偶尔弹不出来；',
                     '重构初期的接口问题比预想多，有些 Bug 直接让程序起不来。'
                 ] },
-                { p: '最影响使用的是保存对话框静默失败——用户以为存了，其实没存。这个问题已经定位，下个版本会一起修。' },
+                { h: '还没修完的' },
+                { ul: [
+                    '保存对话框偶发不弹、静默失败——已定位到桥接线程的问题；',
+                    '水印倾斜角度算错、字体渲染发虚；',
+                    '启动第一帧是白窗，没有骨架屏和进度提示。'
+                ] },
+                { p: '这三条都会进 6.0.2。重构的账单通常不在重构那一版付，而在接下来两版慢慢还。' },
                 { h: '值得吗' },
                 { p: '只看 6.0.1 本身，不值得：它比 5.0.2 更容易崩。但界面层换掉之后，后面每一版都能在同一个地基上加东西，而不是继续跟 Tkinter 的布局和线程较劲。' },
                 { note: '6.0.1 是重构后的第一个版本。如果你要用它处理重要文件，建议等 6.0.2。' }
@@ -219,13 +250,23 @@ const POSTS = [
                 { h: 'A re-layer, not a rewrite' },
                 { p: 'The engines underneath — PyMuPDF, pypdf, pdf2docx — stayed. What changed is the boundary between UI and logic: the front end only displays and handles input, the back end takes jobs over an interface, and thumbnail rendering moved to background threads so the main window no longer waits.' },
                 { p: 'The result: frosted glass, transitions and synchronised themes became possible, and paging through three thousand pages no longer freezes the app.' },
+                { h: 'What pywebview does' },
+                { p: 'A desktop window running a web page: the interface is HTML + CSS + JavaScript, with Python taking the jobs behind it. JavaScript calls Python methods through `pywebview.api`; file dialogs, saving and background threads stay on the Python side and the interface only receives results.' },
+                { code: '# Python side: expose the system dialog to the UI\nclass Api:\n    def pick_file(self):\n        return webview.windows[0].create_file_dialog(webview.OPEN_DIALOG)\n\n// UI side: call it like a local function\nconst picked = await pywebview.api.pick_file();' },
+                { p: 'Once that boundary holds, restyling or animating the interface never touches the processing logic, and swapping an engine never touches the interface. In the 5.0.x days the two layers were tangled together.' },
                 { h: 'The bill' },
                 { ul: [
                     'A new WebView2 dependency: bundled with Windows 11 and usually present on Windows 10 through Edge, but the installer has to check and explain;',
                     'file dialogs now cross the pywebview bridge and occasionally failed to open in the first build;',
                     'early interface bugs were more numerous than expected, some of them fatal at launch.'
                 ] },
-                { p: 'The worst one for daily use was the save dialog failing silently — the user thought the file was saved when it was not. It is located and will be fixed in the next release.' },
+                { h: 'Still broken' },
+                { ul: [
+                    'the save dialog occasionally fails to open and fails silently — traced to the bridge threading;',
+                    'watermark tilt angles computed wrong, fonts rendered blurry;',
+                    'the first frame after launch is a blank window, with no skeleton or progress hint.'
+                ] },
+                { p: 'All three go into 6.0.2. A re-layer\'s bill is rarely paid in the re-layer release; it is settled over the next two.' },
                 { h: 'Was it worth it' },
                 { p: 'Looking only at 6.0.1, no: it crashes more easily than 5.0.2. But with the UI layer replaced, every later release can build on the same foundation instead of fighting Tkinter\'s layout and threading.' },
                 { note: '6.0.1 is the first release after the re-layer. For important documents, wait for 6.0.2.' }
@@ -250,6 +291,12 @@ const POSTS = [
                 { h: '为什么第一个版本是 5.0.2' },
                 { p: '版本号不是从 1.0.0 开始包装出来的。三月写第一行代码时它是 0.0.1，之后每修一个 Bug、每加一个模块就往前走一格。到八月，本地已经滚过二十多个版本，没有一个发出去过。' },
                 { p: '所以第一个公开版本就是 5.0.2。它不完美，但每一个功能都真的跑过。' },
+                { h: 'GitHub 是这个月才有的' },
+                { p: '七月二十三日我才注册 GitHub 账号，八月十四日建了 `PDF-Tools-Update` 仓库。在此之前，所有版本只存在于本地文件夹和移动硬盘里，没有任何公开记录——连更新日志都只写在一个 txt 里。' },
+                { p: '所以这篇发布记录顺便做一件事：把从 v0.0.1 到 v5.0.2 的完整历史一次写清楚。仓库 README 里的更新日志就是同一份。' },
+                { h: '完整版本记录（v0.0.1 → v5.0.2）' },
+                { code: 'v0.0.1  命令行雏形，只能合并\nv1.0.1  第一个图形界面（Tkinter）：合并 + 按页码拆分\nv1.1.x  查看 PDF、印章/签名、PDF 转 PNG\nv2.0.x  侧边栏 + 卡片式 UI；修大文件内存溢出闪退\nv2.1.x  文字水印、压缩（初步）\nv3.0.x  页面管理、加密解密、文档信息编辑\nv3.1.x  批量处理雏形、最近打开、版本更新检查\nv4.0.x  深色模式、四语言界面（简/繁/英/日）\nv4.1-4.3 批量转换、多选操作、压缩三档、水印对角平铺\nv5.0.0  页面管理/水印/压缩/批量/加密齐备，卡片式首页\nv5.0.1  修启动崩溃、水印颜色解析、压缩导致损坏\nv5.0.2  修批量异常、精简合并、水印与压缩提速 ← 第一个公开版本' },
+                { p: '二十多个版本里，大半是在修自己上一版挖的坑。版本号诚实，比宣传语有用。' },
                 { h: '这个版本里有什么' },
                 { ul: [
                     '页面管理：提取、删除、旋转、排序；',
@@ -260,6 +307,8 @@ const POSTS = [
                     '卡片式首页、深色模式、四种界面语言。'
                 ] },
                 { p: 'PDF 的读写、渲染、压缩、转换都在本机完成。只有检查更新、拉取许可协议和更新日志三处联网；断网时除了看不到新版本，其他功能照常。' },
+                { h: '为什么是绿色包' },
+                { p: '这一版不做安装器：PyInstaller 打出来的目录压成 zip，解压就能跑。少一层安装逻辑，就少一类「装不上」的反馈；也顺便避开管理员权限的问题。安装器、32/64 位双包，都是后面 6.0.x 才补的。' },
                 { h: '发布前补的三件事' },
                 { ol: [
                     '打包：用 PyInstaller 做成绿色免安装版，解压就能用；',
@@ -276,6 +325,12 @@ const POSTS = [
                 { h: 'Why the first release is 5.0.2' },
                 { p: 'The version number was not dressed up from 1.0.0. When I wrote the first line in March it was 0.0.1, and it moved forward one notch for every bug fixed and every module added. By August it had rolled past twenty versions locally, none of them published.' },
                 { p: 'So the first public version is 5.0.2. It is not perfect, but every feature in it has actually been used.' },
+                { h: 'GitHub only arrived this month' },
+                { p: 'I registered the GitHub account on 23 July and created the `PDF-Tools-Update` repository on 14 August. Before that, every version lived only in local folders and on an external drive — the changelog was a text file nobody could read.' },
+                { p: 'So this release note does one extra job: write down the complete history from v0.0.1 to v5.0.2 in one place. The README in the repository carries the same list.' },
+                { h: 'Complete version history (v0.0.1 → v5.0.2)' },
+                { code: 'v0.0.1  command-line prototype, merge only\nv1.0.1  first GUI (Tkinter): merge + split by page range\nv1.1.x  PDF viewing, stamps/signatures, PDF to PNG\nv2.0.x  sidebar + card UI; fixed out-of-memory crashes on large files\nv2.1.x  text watermarks, compression (first pass)\nv3.0.x  page management, encryption/decryption, document metadata\nv3.1.x  batch prototype, recent files, update checking\nv4.0.x  dark mode, four UI languages (zh-CN/zh-TW/en/ja)\nv4.1-4.3 batch conversion, multi-select, three compression levels, tiled watermark\nv5.0.0  page management/watermark/compression/batch/encryption complete, card home\nv5.0.1  fixed launch crashes, watermark colour parsing, corruption on compress\nv5.0.2  fixed batch errors, simplified merge, faster watermark and compression <- first public release' },
+                { p: 'Of the twenty-plus versions, most were repairs to holes dug by the version before. An honest version number beats a slogan.' },
                 { h: 'What is inside' },
                 { ul: [
                     'Page management: extract, delete, rotate, reorder;',
@@ -286,6 +341,8 @@ const POSTS = [
                     'a card-based home screen, dark mode and four UI languages.'
                 ] },
                 { p: 'PDF reading, rendering, compression and conversion all happen locally. Only three things reach the network: update checks, the license text and the changelog. Offline, everything works except seeing a new version.' },
+                { h: 'Why a portable build' },
+                { p: 'This release ships no installer: the PyInstaller output is zipped and runs from wherever it is unpacked. One less layer of install logic means one less class of «it will not install» reports — and no administrator rights involved. Installers and dual 32/64-bit packages came later, with 6.0.x.' },
                 { h: 'Three things added before release' },
                 { ol: [
                     'Packaging: a portable build with PyInstaller, unzip and run;',
@@ -322,7 +379,13 @@ const POSTS = [
                     '中文路径和带空格的路径经常读不出来；',
                     '没有预览，拆完才发现页码写反了。'
                 ] },
-                { p: '后来给它套了一个 Tkinter 窗口（v1.0.1），至少有了文件选择框，不用再手打路径。那也是我第一次觉得「这算个软件了」。' },
+                { h: '为什么不用现成的工具' },
+                { ul: [
+                    '在线工具要把文件传上去，换几分钟的免费额度——扫描版整本书动辄上百 MB；',
+                    '桌面软件要开三四个：一个转正、一个合并、一个加水印，中间文件堆一地；',
+                    '广告、弹窗和「升级会员」的按钮比功能按钮还多。'
+                ] },
+                { p: '我要的不是「更好的 PDF 软件」，是「把我手上这堆文件整理完」。这两件事差别很大。' },
                 { h: '当时定下的三条' },
                 { ul: [
                     '不做云存储，文件只在本地；',
@@ -330,7 +393,13 @@ const POSTS = [
                     '一次只干一件事，产物只有一个文件。'
                 ] },
                 { p: '这三条后来一直没有变。页面管理、印章、水印、压缩，都是在这个约束里慢慢加上的。' },
-                { note: '那个周末只做完了合并和拆分。剩下的功能，花了后面五个月。' }
+                { h: '接下来想做的' },
+                { ul: [
+                    '给它套一个窗口，至少别再手打路径；',
+                    '中文路径和带空格的路径要能稳定读出来；',
+                    '拆分之前能看到页码对应的页面，别拆完才发现写反了。'
+                ] },
+                { note: '补记（2026-08-17）：窗口在几天后就有了（Tkinter，v1.0.1）；之后五个月版本号在本地滚到 5.0.2，八月十七日发了第一个公开版本，见 [5.0.2 发布记录](blog.html#/post/pdf-toolbox-5-0-2)。' }
             ],
             en: [
                 { p: 'One weekend in mid-March I had a pile of scanned PDFs: ad pages at the front, a few crooked scans, chapters spread across several files. Existing tools either wanted the file uploaded in exchange for a free quota, or required hopping between three applications.' },
@@ -342,7 +411,13 @@ const POSTS = [
                     'Chinese paths and paths with spaces failed constantly;',
                     'no preview, so a reversed page range was only discovered after the split.'
                 ] },
-                { p: 'Later I wrapped a Tkinter window around it (v1.0.1). At least there was a file picker instead of typed paths. That was the first moment it felt like software.' },
+                { h: 'Why not an existing tool' },
+                { ul: [
+                    'Online tools want the file uploaded in exchange for a few free minutes — a scanned book is easily a hundred megabytes;',
+                    'desktop tools mean three or four apps at once: one to straighten, one to merge, one to watermark, with leftovers everywhere;',
+                    'ads, pop-ups and «upgrade to premium» buttons outnumber the feature buttons.'
+                ] },
+                { p: 'What I needed was not «a better PDF app» but «get this pile of files sorted». Those are very different jobs.' },
                 { h: 'Three rules from that weekend' },
                 { ul: [
                     'No cloud: files stay local;',
@@ -350,7 +425,13 @@ const POSTS = [
                     'one task at a time, one output file.'
                 ] },
                 { p: 'Those rules never changed. Page management, stamps, watermarks and compression were added inside them over the following months.' },
-                { note: 'That weekend only covered merge and split. The rest took five months.' }
+                { h: 'What I want next' },
+                { ul: [
+                    'A window around it, so paths stop being typed by hand;',
+                    'Chinese paths and paths with spaces read reliably;',
+                    'a preview before splitting, so a reversed range is caught early.'
+                ] },
+                { note: 'Added 2026-08-17: the window arrived a few days later (Tkinter, v1.0.1); over the next five months the version number rolled to 5.0.2 locally, and the first public release went out on 17 August — see [the 5.0.2 release note](blog.html#/post/pdf-toolbox-5-0-2).' }
             ]
         }
     }
@@ -408,6 +489,15 @@ module.exports = {
         .post-foot .linkcard span { font-weight: 650; font-size: .95rem; }
         .back-top { font-size: .86rem; color: var(--muted); }
         .divider { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
+
+        /* 文章内插图 */
+        .post-figure { margin: 32px 0; }
+        .post-figure img {
+            display: block; width: 100%; height: auto;
+            border-radius: var(--radius); border: 1px solid var(--line);
+            box-shadow: var(--shadow-1); background: var(--surface);
+        }
+        .post-figure figcaption { margin-top: 10px; font-size: .84rem; line-height: 1.6; color: var(--faint); }
     `,
 
     body: `        <section class="page-head" id="listHead">

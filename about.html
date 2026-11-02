@@ -1132,6 +1132,13 @@ function renderBlocks(blocks) {
         else if (b.note) out.push('<aside class="note">' + inline(b.note) + '</aside>');
         else if (b.ul) out.push('<ul>' + b.ul.map(function (i) { return '<li>' + inline(i) + '</li>'; }).join('') + '</ul>');
         else if (b.ol) out.push('<ol>' + b.ol.map(function (i) { return '<li>' + inline(i) + '</li>'; }).join('') + '</ol>');
+        else if (b.img) out.push('<figure class="post-figure">' +
+            '<img src="' + escHtml(b.img.src) + '" alt="' + escHtml(b.img.alt || '') + '"' +
+            (b.img.w ? ' width="' + Number(b.img.w) + '"' : '') +
+            (b.img.h ? ' height="' + Number(b.img.h) + '"' : '') +
+            ' loading="lazy" decoding="async" />' +
+            (b.img.cap ? '<figcaption>' + inline(b.img.cap) + '</figcaption>' : '') +
+            '</figure>');
     });
     return out.join('\n        ');
 }
