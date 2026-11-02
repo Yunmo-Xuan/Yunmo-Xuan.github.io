@@ -115,6 +115,244 @@ const POSTS = [
                 { p: 'Worth adding while you are there: a `noindex` meta, so search engines do not keep error pages in their index. This page has no business showing up in results.' }
             ]
         }
+    },
+    {
+        slug: 'pdf-toolbox-6-0-4',
+        date: '2026-10-19',
+        tags: ['PDF 工具箱', '发布记录', '性能'],
+        title: {
+            'zh-CN': '6.0.4：改很多次，只存一个文件',
+            en: '6.0.4: edit many times, write one file'
+        },
+        summary: {
+            'zh-CN': '页面管理推倒重做，所有修改先留在内存里，点保存时一次写盘。顺带把主题色加到八套，也把 32 位留在了上一版。',
+            en: 'Page management rebuilt: every edit stays in memory until a single save. Plus eight theme colours — and 32-bit support left behind on the previous release.'
+        },
+        body: {
+            'zh-CN': [
+                { p: '两个月前第一次公开 5.0.2 时，页面管理的逻辑是“每改一次就写一个临时文件”。转一页生成一个 `_rotated`，删一页生成一个 `_deleted`，整理完一本书，文件夹里能多出十几个中间产物。' },
+                { h: '先还债，再做新功能' },
+                { p: '6.0.2 修的是重构留下的致命问题：接口报错、保存对话框静默失败、水印角度和字体渲染。6.0.3 补上 32 位安装包，把缩略图改成网格并支持拖拽排序。到 6.0.4，才有余力动页面管理的底层。' },
+                { h: '改很多次，存一次' },
+                { p: '现在转页、删页、抽页、拖拽排序全部在内存里完成；状态栏一直提示「有未保存的改动」；只有点「保存为新文件」时才写入一次，而且原文件永远不动。' },
+                { p: '代价是没保存就关窗口会丢改动。这一点没有做自动恢复——与其悄悄写一个临时文件，不如把提示放在显眼的位置。' },
+                { h: '数字' },
+                { ul: [
+                    '1200 页文档，0.47 秒出清单和第一批缩略图；',
+                    '第一批 24 张缩略图 0.6–0.7 秒到场；',
+                    '跳到 1000 页之后，1.6–2.1 秒画出当前屏；',
+                    '3000 页里乱跳 6 次，每次 0.18–2.64 秒；',
+                    '1200 页改完保存一次，1.75–2.5 秒。'
+                ] },
+                { p: '内存的做法是只保留离当前页最近的几批缩略图，滚远了的交出去，滚回来再画。所以 3000 页和 300 页的占用差不多。' },
+                { h: '这一版的其他变化' },
+                { ul: [
+                    '8 套主题色：蓝、绿、青、蓝绿、紫、粉、红、橙，启动画面、主界面和设置窗口同步；',
+                    '放大预览与右键菜单；',
+                    '只提供 64 位安装包，32 位留在 6.0.3。'
+                ] },
+                { h: '还没做的' },
+                { p: '缩略图固定 64 DPI、放大预览一次一页、没有快捷键、不支持把文件拖进窗口、PPT 导出是图片型、暂存改动不落盘。这些都在 README 的未来计划里，什么时候做完什么时候算。' },
+                { note: '安装包 82 MB，装完约 256 MB；Windows 10/11 64 位，需要 WebView2 运行时。' }
+            ],
+            en: [
+                { p: 'When 5.0.2 first went public two months ago, page management worked by writing a temporary file after every edit: rotate a page and get a `_rotated`, delete a page and get a `_deleted`. By the end of one book the folder could hold a dozen leftovers.' },
+                { h: 'Pay the debt first' },
+                { p: '6.0.2 fixed the fatal problems left by the re-layer: interface errors, the save dialog failing silently, watermark angles and font rendering. 6.0.3 added a 32-bit installer and turned thumbnails into a draggable grid. Only with 6.0.4 was there room to touch the core of page management.' },
+                { h: 'Edit many times, save once' },
+                { p: 'Rotating, deleting, extracting and reordering now all happen in memory. The status bar keeps saying there are unsaved changes; a single write happens when «Save as new file» is clicked, and the original is never touched.' },
+                { p: 'The trade-off: closing the window without saving loses the edits. There is no automatic recovery on purpose — rather than quietly writing a temporary file, the warning stays visible.' },
+                { h: 'Numbers' },
+                { ul: [
+                    '1,200-page document: list and first thumbnails in 0.47 s;',
+                    'first 24 thumbnails in 0.6–0.7 s;',
+                    'jumping past page 1,000: 1.6–2.1 s to draw the screen;',
+                    'six random jumps in a 3,000-page book: 0.18–2.64 s each;',
+                    'saving 1,200 edited pages: 1.75–2.5 s.'
+                ] },
+                { p: 'Memory works by keeping only the thumbnail batches nearest the current page, releasing the distant ones and redrawing them on return. A 3,000-page book and a 300-page one use roughly the same amount.' },
+                { h: 'Other changes in this release' },
+                { ul: [
+                    'Eight theme colours — blue, green, cyan, teal, purple, pink, red, orange — synchronised across splash, main window and settings;',
+                    'zoom preview and a context menu;',
+                    '64-bit installer only, with 32-bit staying on 6.0.3.'
+                ] },
+                { h: 'Still missing' },
+                { p: 'Thumbnails are fixed at 64 DPI, zoom preview shows one page at a time, there are no keyboard shortcuts or drag-and-drop, PPT export is image-based, and pending edits are not persisted. All of it is in the README roadmap; it ships when it ships.' },
+                { note: 'The installer is 82 MB and installs to about 256 MB. Windows 10/11 64-bit with the WebView2 runtime.' }
+            ]
+        }
+    },
+    {
+        slug: 'pdf-toolbox-6-0-1',
+        date: '2026-09-13',
+        tags: ['PDF 工具箱', '开发日志', 'pywebview'],
+        title: {
+            'zh-CN': '把 Tkinter 换掉：v6.0.1 的一次重构',
+            en: 'Replacing Tkinter: the v6.0.1 re-layer'
+        },
+        summary: {
+            'zh-CN': '5.0.2 发布不到一个月，我做了一个不太划算的决定：把界面层整个推倒，换成 pywebview。',
+            en: 'Less than a month after 5.0.2, I made a questionable decision: tear out the entire UI layer and rebuild it on pywebview.'
+        },
+        body: {
+            'zh-CN': [
+                { p: '5.0.2 发出去之后，反馈里最多的一句是“打开大文件会卡”。卡的不是 PDF 处理，是 Tkinter：缩略图在主线程里一张张画，窗口就跟着假死。' },
+                { p: '修了两次之后我确认，问题不在某一行代码，在界面层选错了。于是有了 6.0.1：保留 Python 的处理逻辑，把界面换成 HTML + CSS + JavaScript，用 pywebview 装进桌面窗口。' },
+                { h: '重构不是重写' },
+                { p: '底层的 PyMuPDF、pypdf、pdf2docx 都没有换。变的是界面与逻辑的边界：前端只负责显示和交互，后端通过接口接活；缩略图渲染挪到后台线程，主界面不再等它。' },
+                { p: '结果是界面终于能做毛玻璃、过渡动画和主题同步，也终于能在翻三千页的时候不假死。' },
+                { h: '付出的代价' },
+                { ul: [
+                    '多了一个 WebView2 依赖：Windows 11 自带，Windows 10 多数随 Edge 装过，但安装器必须检查并提示；',
+                    '文件对话框要经过 pywebview 桥接，第一版偶尔弹不出来；',
+                    '重构初期的接口问题比预想多，有些 Bug 直接让程序起不来。'
+                ] },
+                { p: '最影响使用的是保存对话框静默失败——用户以为存了，其实没存。这个问题已经定位，下个版本会一起修。' },
+                { h: '值得吗' },
+                { p: '只看 6.0.1 本身，不值得：它比 5.0.2 更容易崩。但界面层换掉之后，后面每一版都能在同一个地基上加东西，而不是继续跟 Tkinter 的布局和线程较劲。' },
+                { note: '6.0.1 是重构后的第一个版本。如果你要用它处理重要文件，建议等 6.0.2。' }
+            ],
+            en: [
+                { p: 'After 5.0.2 went out, the most common feedback was «it stutters on large files». The PDF work was not the bottleneck — Tkinter was: thumbnails were drawn one by one on the main thread, and the window froze with them.' },
+                { p: 'After two rounds of fixes I accepted that the problem was not a line of code but the choice of UI layer. That led to 6.0.1: keep the Python processing logic, replace the interface with HTML + CSS + JavaScript, and put it in a desktop window with pywebview.' },
+                { h: 'A re-layer, not a rewrite' },
+                { p: 'The engines underneath — PyMuPDF, pypdf, pdf2docx — stayed. What changed is the boundary between UI and logic: the front end only displays and handles input, the back end takes jobs over an interface, and thumbnail rendering moved to background threads so the main window no longer waits.' },
+                { p: 'The result: frosted glass, transitions and synchronised themes became possible, and paging through three thousand pages no longer freezes the app.' },
+                { h: 'The bill' },
+                { ul: [
+                    'A new WebView2 dependency: bundled with Windows 11 and usually present on Windows 10 through Edge, but the installer has to check and explain;',
+                    'file dialogs now cross the pywebview bridge and occasionally failed to open in the first build;',
+                    'early interface bugs were more numerous than expected, some of them fatal at launch.'
+                ] },
+                { p: 'The worst one for daily use was the save dialog failing silently — the user thought the file was saved when it was not. It is located and will be fixed in the next release.' },
+                { h: 'Was it worth it' },
+                { p: 'Looking only at 6.0.1, no: it crashes more easily than 5.0.2. But with the UI layer replaced, every later release can build on the same foundation instead of fighting Tkinter\'s layout and threading.' },
+                { note: '6.0.1 is the first release after the re-layer. For important documents, wait for 6.0.2.' }
+            ]
+        }
+    },
+    {
+        slug: 'pdf-toolbox-5-0-2',
+        date: '2026-08-17',
+        tags: ['PDF 工具箱', '发布记录', 'Tkinter'],
+        title: {
+            'zh-CN': '5.0.2 发布：第一次把软件交给别人',
+            en: '5.0.2: handing the software to someone else for the first time'
+        },
+        summary: {
+            'zh-CN': '从三月到八月，版本号在本地走到 5.0.2。今天第一次把包传上网盘，反而比写代码还紧张。',
+            en: 'From March to August the version number reached 5.0.2 locally. Uploading the build today was more nerve-racking than writing the code.'
+        },
+        body: {
+            'zh-CN': [
+                { p: '今天下午把 5.0.2 的绿色包传到了网盘。这是 PDF 工具箱第一个公开版本——在此之前，它只在我自己的电脑上运行过。' },
+                { h: '为什么第一个版本是 5.0.2' },
+                { p: '版本号不是从 1.0.0 开始包装出来的。三月写第一行代码时它是 0.0.1，之后每修一个 Bug、每加一个模块就往前走一格。到八月，本地已经滚过二十多个版本，没有一个发出去过。' },
+                { p: '所以第一个公开版本就是 5.0.2。它不完美，但每一个功能都真的跑过。' },
+                { h: '这个版本里有什么' },
+                { ul: [
+                    '页面管理：提取、删除、旋转、排序；',
+                    '文字水印、印章与签名；',
+                    '压缩三档：轻度、中度、重度；',
+                    '拆分、合并、批量处理；',
+                    '加密解密与文档信息编辑；',
+                    '卡片式首页、深色模式、四种界面语言。'
+                ] },
+                { p: 'PDF 的读写、渲染、压缩、转换都在本机完成。只有检查更新、拉取许可协议和更新日志三处联网；断网时除了看不到新版本，其他功能照常。' },
+                { h: '发布前补的三件事' },
+                { ol: [
+                    '打包：用 PyInstaller 做成绿色免安装版，解压就能用；',
+                    '许可：写清楚免费使用，禁止商业售卖和未经授权的二次分发；',
+                    '说明：把系统要求、已知限制和常见问题写进 README，而不是让用户猜。'
+                ] },
+                { h: '比写代码更紧张' },
+                { p: '写代码时出错，浪费的是自己的时间；发出去之后出错，动的是别人的文件。所以发布前拿整本书反复测：一千多页的文档打开、翻页、改页、保存，确认原文件永远不会被覆盖。' },
+                { p: '现在还没人下载。但版本号第一次从「我这儿的 5.0.2」变成了「别人可以拿到的 5.0.2」。' },
+                { note: '这一版基于 Tkinter。小文件够用，但大文件打开时的卡顿已经藏不住了——下一个大版本会动这一层。' }
+            ],
+            en: [
+                { p: 'This afternoon I uploaded the portable 5.0.2 build to the file host. It is the first public release of the PDF Toolbox — until today it had only ever run on my own machine.' },
+                { h: 'Why the first release is 5.0.2' },
+                { p: 'The version number was not dressed up from 1.0.0. When I wrote the first line in March it was 0.0.1, and it moved forward one notch for every bug fixed and every module added. By August it had rolled past twenty versions locally, none of them published.' },
+                { p: 'So the first public version is 5.0.2. It is not perfect, but every feature in it has actually been used.' },
+                { h: 'What is inside' },
+                { ul: [
+                    'Page management: extract, delete, rotate, reorder;',
+                    'text watermarks, stamps and signatures;',
+                    'three compression levels: light, medium, heavy;',
+                    'split, merge and batch processing;',
+                    'encryption/decryption and document metadata;',
+                    'a card-based home screen, dark mode and four UI languages.'
+                ] },
+                { p: 'PDF reading, rendering, compression and conversion all happen locally. Only three things reach the network: update checks, the license text and the changelog. Offline, everything works except seeing a new version.' },
+                { h: 'Three things added before release' },
+                { ol: [
+                    'Packaging: a portable build with PyInstaller, unzip and run;',
+                    'licensing: free to use, no commercial sale or unauthorised redistribution;',
+                    'documentation: system requirements, known limits and FAQ in the README instead of leaving users to guess.'
+                ] },
+                { h: 'More nerve-racking than writing code' },
+                { p: 'A mistake while coding costs my own time; a mistake after release touches someone else\'s files. So I tested with whole books: opened a thousand-page document, paged through it, edited pages, saved, and confirmed the original is never overwritten.' },
+                { p: 'Nobody has downloaded it yet. But the version number has changed from «5.0.2 on my machine» to «5.0.2 someone else can get».' },
+                { note: 'This release is built on Tkinter. It is fine for small files, but the stutter on large documents is no longer hideable — the next major version will change that layer.' }
+            ]
+        }
+    },
+    {
+        slug: 'pdf-toolbox-start',
+        date: '2026-03-15',
+        tags: ['PDF 工具箱', '开发日志', 'Python'],
+        title: {
+            'zh-CN': 'PDF 工具箱的起点：一个只会合并的命令行脚本',
+            en: 'Where the PDF Toolbox started: a command-line script that only merged files'
+        },
+        summary: {
+            'zh-CN': '三月中旬的一个周末，我受够了一堆扫描版 PDF，决定自己写个工具。第一版没有窗口，只能手输路径和页码。',
+            en: 'One weekend in mid-March, tired of wrestling with scanned PDFs, I decided to write my own tool. The first version had no window — just typed paths and page numbers.'
+        },
+        body: {
+            'zh-CN': [
+                { p: '三月中旬的一个周末，手上堆了一批扫描版 PDF：封面是广告、有几页扫歪了、章节还散在几个文件里。找现成工具，要么把文件传到网站换免费额度，要么在三个软件之间来回倒。' },
+                { p: '于是打开编辑器，写了第一个脚本：Python + pypdf，命令行运行，只做两件事——合并、按页码范围拆分。' },
+                { code: 'python pdf_tool.py merge a.pdf b.pdf -o out.pdf\npython pdf_tool.py split book.pdf 1-20,21-64' },
+                { h: '第一版的三个毛病' },
+                { ul: [
+                    '改一次参数就要回去翻代码；',
+                    '中文路径和带空格的路径经常读不出来；',
+                    '没有预览，拆完才发现页码写反了。'
+                ] },
+                { p: '后来给它套了一个 Tkinter 窗口（v1.0.1），至少有了文件选择框，不用再手打路径。那也是我第一次觉得「这算个软件了」。' },
+                { h: '当时定下的三条' },
+                { ul: [
+                    '不做云存储，文件只在本地；',
+                    '不做账号和会员，打开就能用；',
+                    '一次只干一件事，产物只有一个文件。'
+                ] },
+                { p: '这三条后来一直没有变。页面管理、印章、水印、压缩，都是在这个约束里慢慢加上的。' },
+                { note: '那个周末只做完了合并和拆分。剩下的功能，花了后面五个月。' }
+            ],
+            en: [
+                { p: 'One weekend in mid-March I had a pile of scanned PDFs: ad pages at the front, a few crooked scans, chapters spread across several files. Existing tools either wanted the file uploaded in exchange for a free quota, or required hopping between three applications.' },
+                { p: 'So I opened an editor and wrote the first script: Python + pypdf, run from the command line, doing exactly two things — merge, and split by page ranges.' },
+                { code: 'python pdf_tool.py merge a.pdf b.pdf -o out.pdf\npython pdf_tool.py split book.pdf 1-20,21-64' },
+                { h: 'Three problems with v0' },
+                { ul: [
+                    'Changing an argument meant editing the script;',
+                    'Chinese paths and paths with spaces failed constantly;',
+                    'no preview, so a reversed page range was only discovered after the split.'
+                ] },
+                { p: 'Later I wrapped a Tkinter window around it (v1.0.1). At least there was a file picker instead of typed paths. That was the first moment it felt like software.' },
+                { h: 'Three rules from that weekend' },
+                { ul: [
+                    'No cloud: files stay local;',
+                    'no account and no membership — open and use;',
+                    'one task at a time, one output file.'
+                ] },
+                { p: 'Those rules never changed. Page management, stamps, watermarks and compression were added inside them over the following months.' },
+                { note: 'That weekend only covered merge and split. The rest took five months.' }
+            ]
+        }
     }
 ];
 
@@ -434,7 +672,11 @@ module.exports = {
         inLanguage: ['zh-CN', 'zh-TW', 'en', 'ja'],
         blogPost: [
             { '@type': 'BlogPosting', headline: '把个人站推倒重来：五个单文件、零依赖、四种语言', datePublished: '2026-10-28', url: 'https://yunmo-xuan.github.io/blog.html#/post/rewrite-2026' },
-            { '@type': 'BlogPosting', headline: '让 GitHub Pages 的 404 页真正有用', datePublished: '2026-10-26', url: 'https://yunmo-xuan.github.io/blog.html#/post/404-that-works' }
+            { '@type': 'BlogPosting', headline: '让 GitHub Pages 的 404 页真正有用', datePublished: '2026-10-26', url: 'https://yunmo-xuan.github.io/blog.html#/post/404-that-works' },
+            { '@type': 'BlogPosting', headline: '6.0.4：改很多次，只存一个文件', datePublished: '2026-10-19', url: 'https://yunmo-xuan.github.io/blog.html#/post/pdf-toolbox-6-0-4' },
+            { '@type': 'BlogPosting', headline: '把 Tkinter 换掉：v6.0.1 的一次重构', datePublished: '2026-09-13', url: 'https://yunmo-xuan.github.io/blog.html#/post/pdf-toolbox-6-0-1' },
+            { '@type': 'BlogPosting', headline: '5.0.2 发布：第一次把软件交给别人', datePublished: '2026-08-17', url: 'https://yunmo-xuan.github.io/blog.html#/post/pdf-toolbox-5-0-2' },
+            { '@type': 'BlogPosting', headline: 'PDF 工具箱的起点：一个只会合并的命令行脚本', datePublished: '2026-03-15', url: 'https://yunmo-xuan.github.io/blog.html#/post/pdf-toolbox-start' }
         ],
         publisher: { '@type': 'Person', name: '云陌轩', url: 'https://yunmo-xuan.github.io/' }
     }

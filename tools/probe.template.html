@@ -208,7 +208,8 @@ var INTERACTIONS = [
       if (JSON.stringify(links) !== JSON.stringify(expected)) throw 'incorrect contact destinations';
     } },
   { page: 'blog.html', w: 1440, name: 'counts and malformed hash', run: function (d, win, done) {
-      if (!/2/.test(d.getElementById('postCount').textContent)) return done('post count missing');
+      var rows = d.querySelectorAll('#postList .post-row').length;
+      if (!rows || d.getElementById('postCount').textContent.indexOf(String(rows)) < 0) return done('post count missing');
       win.location.hash = '#/post/%E0%A4%A';
       setTimeout(function () {
         if (d.getElementById('listView').hidden) return done('malformed hash hid the article list');
@@ -219,7 +220,8 @@ var INTERACTIONS = [
       ['en', 'ja', 'zh-TW', 'zh-CN'].forEach(function (lang) {
         d.querySelector('[data-lang="' + lang + '"]').click();
       });
-      if (!/2/.test(d.getElementById('postCount').textContent)) return done('post count disappeared');
+      var rows = d.querySelectorAll('#postList .post-row').length;
+      if (!rows || d.getElementById('postCount').textContent.indexOf(String(rows)) < 0) return done('post count disappeared');
       d.querySelector('.post-row').click();
       setTimeout(function () {
         if (d.getElementById('postView').hidden) return done('reader failed after switching languages');
