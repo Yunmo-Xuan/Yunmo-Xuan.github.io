@@ -135,6 +135,7 @@ function header(page) {
 ${item('home', 'index.html', '首页')}
 ${item('projects', 'projects.html', '项目')}
 ${item('blog', 'blog.html', '文章')}
+${item('games', 'games.html', '游戏')}
 ${item('about', 'about.html', '关于')}
                 </ul>
             </nav>
@@ -183,6 +184,7 @@ function footer(page) {
                 <ul class="footer-nav">
                     <li><a href="${p}projects.html" data-i18n="nav_projects">项目</a></li>
                     <li><a href="${p}blog.html" data-i18n="nav_blog">文章</a></li>
+                    <li><a href="${p}games.html" data-i18n="nav_games">游戏</a></li>
                     <li><a href="${p}about.html" data-i18n="nav_about">关于</a></li>
                     <li><a href="https://github.com/Yunmo-Xuan" target="_blank" rel="noopener noreferrer" data-i18n="footer_github">GitHub 主页</a></li>
                     <li><a href="https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io/issues/new" target="_blank" rel="noopener noreferrer" data-i18n="footer_feedback">反馈问题</a></li>

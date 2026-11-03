@@ -22,7 +22,7 @@
         'zh-CN': {
             doc_title: '云陌轩',
             brand: '云陌轩',
-            nav_home: '首页', nav_projects: '项目', nav_blog: '文章', nav_about: '关于',
+            nav_home: '首页', nav_projects: '项目', nav_blog: '文章', nav_games: '游戏', nav_about: '关于',
             a11y_skip: '跳到主要内容', a11y_theme: '切换深浅色主题', a11y_lang: '选择语言',
             a11y_menu: '打开菜单', a11y_menu_close: '关闭菜单', a11y_footer: '页脚',
             footer_tagline: '一个人的静态小站，慢慢更新。',
@@ -34,7 +34,7 @@
         'zh-TW': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: '首頁', nav_projects: '項目', nav_blog: '文章', nav_about: '關於',
+            nav_home: '首頁', nav_projects: '項目', nav_blog: '文章', nav_games: '遊戲', nav_about: '關於',
             a11y_skip: '跳至主要內容', a11y_theme: '切換深淺色主題', a11y_lang: '選擇語言',
             a11y_menu: '開啟選單', a11y_menu_close: '關閉選單', a11y_footer: '頁尾',
             footer_tagline: '一個人的靜態小站，慢慢更新。',
@@ -46,7 +46,7 @@
         'en': {
             doc_title: 'Yunmo-Xuan',
             brand: 'Yunmo-Xuan',
-            nav_home: 'Home', nav_projects: 'Projects', nav_blog: 'Writing', nav_about: 'About',
+            nav_home: 'Home', nav_projects: 'Projects', nav_blog: 'Writing', nav_games: 'Games', nav_about: 'About',
             a11y_skip: 'Skip to main content', a11y_theme: 'Toggle light and dark theme',
             a11y_lang: 'Choose language', a11y_menu: 'Open menu', a11y_menu_close: 'Close menu',
             a11y_footer: 'Footer',
@@ -59,7 +59,7 @@
         'ja': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_blog: 'ノート', nav_about: '概要',
+            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_blog: 'ノート', nav_games: 'ゲーム', nav_about: '概要',
             a11y_skip: '本文へスキップ', a11y_theme: 'ライト／ダークを切替',
             a11y_lang: '言語を選択', a11y_menu: 'メニューを開く', a11y_menu_close: 'メニューを閉じる',
             a11y_footer: 'フッター',

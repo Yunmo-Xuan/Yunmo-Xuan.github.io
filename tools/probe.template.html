@@ -15,7 +15,7 @@
 <script>
 /* 同源探针：把五个页面在各断点/主题下装进 iframe，检查布局与渲染结果。
    用法：node tools/probe.js —— 由脚本写入 site/__probe.html 后无头运行。 */
-var PAGES = ['index.html', 'projects.html', 'blog.html', 'about.html', '404.html', 'blog.html#/post/rewrite-2026'];
+var PAGES = ['index.html', 'projects.html', 'blog.html', 'games.html', 'about.html', '404.html', 'blog.html#/post/rewrite-2026'];
 var STAGES = [
   { label: 'light-1440', theme: 'light', w: 1440, h: 900 },
   { label: 'dark-1440', theme: 'dark', w: 1440, h: 900 },
@@ -232,9 +232,56 @@ var INTERACTIONS = [
         }, 150);
       }, 150);
     } },
+  { page: 'games.html', w: 1440, name: '2048 merge rules', run: function (d, win) {
+      var api = win.G2048_API;
+      if (!api) throw 'game API missing';
+      api.setBoard([[2, 2, 2, 2], [4, 4, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+      api.move('left');
+      var b = api.getBoard();
+      if (b[0][0] !== 4 || b[0][1] !== 4 || b[0][2] !== 0) throw 'row merge wrong: ' + JSON.stringify(b[0]);
+      if (b[1][0] !== 8) throw 'second row merge wrong: ' + JSON.stringify(b[1]);
+      if (api.score() !== 16) throw 'score wrong: ' + api.score();
+      api.setBoard([[2, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+      api.move('right');
+      b = api.getBoard();
+      if (b[0][3] !== 4) throw 'right merge wrong: ' + JSON.stringify(b[0]);
+      api.setBoard([[2, 4, 8, 16], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+      var before = JSON.stringify(api.getBoard());
+      if (api.move('left')) throw 'move reported change on an already-collapsed row';
+      if (JSON.stringify(api.getBoard()) !== before) throw 'board mutated without a valid move';
+      api.setBoard([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 8, 16]]);
+      api.move('up');
+      b = api.getBoard();
+      if (b[0][0] !== 2 || b[0][1] !== 4 || b[0][2] !== 8 || b[0][3] !== 16) throw 'up move wrong: ' + JSON.stringify(b[0]);
+    } },
+  { page: 'games.html', w: 390, name: '2048 keyboard, overlay and language', run: function (d, win) {
+      var api = win.G2048_API;
+      api.reset();
+      api.setBoard([[2, 0, 0, 0], [0, 4, 0, 0], [0, 0, 8, 0], [0, 0, 0, 16]]);
+      var ev = new win.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true });
+      d.dispatchEvent(ev);
+      if (!ev.defaultPrevented) throw 'arrow key not captured (page would scroll)';
+      var b = api.getBoard();
+      if (b[0][0] !== 2 || b[1][0] !== 4 || b[2][0] !== 8 || b[3][0] !== 16) throw 'keyboard left failed: ' + JSON.stringify(b);
+      var snapshot = JSON.stringify(api.getBoard());
+      d.querySelector('[data-lang="en"]').click();
+      if (JSON.stringify(api.getBoard()) !== snapshot) throw 'language switch reset the board';
+      if (d.querySelector('.g-score .k').textContent.indexOf('Score') < 0) throw 'score label not translated';
+      api.setBoard([[2048, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+      var msg = d.getElementById('gMsg');
+      if (!msg.classList.contains('show') || !msg.classList.contains('won')) throw 'win overlay missing';
+      if (d.getElementById('gMsgText').textContent.indexOf('You win') < 0) throw 'win text not translated';
+      d.getElementById('gKeep').click();
+      if (msg.classList.contains('show')) throw 'keep-playing did not dismiss overlay';
+      api.setBoard([[2, 4, 2, 4], [4, 2, 4, 2], [2, 4, 2, 4], [4, 2, 4, 2]]);
+      if (!msg.classList.contains('show') || d.getElementById('gMsgText').textContent.indexOf('Game over') < 0) throw 'game-over overlay missing';
+      d.getElementById('gRetry').click();
+      if (msg.classList.contains('show') || api.score() !== 0) throw 'retry did not restart the game';
+      d.querySelector('[data-lang="zh-CN"]').click();
+    } },
   { page: '404.html', w: 1440, name: 'site map links', run: function (d) {
       var links = d.querySelectorAll('#pageMap a');
-      if (links.length !== 4) throw 'expected 4 map links, got ' + links.length;
+      if (links.length !== 5) throw 'expected 5 map links, got ' + links.length;
       for (var i = 0; i < links.length; i++) {
         if (links[i].getAttribute('href').charAt(0) !== '/') throw 'map link not root-absolute: ' + links[i].getAttribute('href');
       }

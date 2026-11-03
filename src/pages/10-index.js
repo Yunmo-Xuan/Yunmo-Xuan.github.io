@@ -176,6 +176,14 @@ module.exports = {
                             <span class="more"><span data-i18n="card_view_about">了解</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
                         </div>
                     </a>
+                    <a class="tile-link reveal d3" href="games.html">
+                        <div class="card">
+                            <div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg></div>
+                            <h3 data-i18n="card_games_t">小游戏</h3>
+                            <p data-i18n="card_games_d">站内写的 2048：方向键或滑动，合并相同数字，跟着站点一起换主题换语言。</p>
+                            <span class="more"><span data-i18n="card_view_games">玩一局</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
+                        </div>
+                    </a>
                 </div>
             </div>
         </section>
@@ -236,6 +244,8 @@ module.exports = {
             card_blog_t: '文章', card_blog_d: '技术笔记与零散思考，按时间倒序排列，可按标签筛选。',
             card_about_t: '关于', card_about_d: '我是谁、在做什么，以及这个站为什么长这个样子。',
             card_view_projects: '查看', card_view_blog: '阅读', card_view_about: '了解',
+            card_games_t: '小游戏', card_games_d: '站内写的 2048：方向键或滑动，合并相同数字，跟着站点一起换主题换语言。',
+            card_view_games: '玩一局',
             principle_eyebrow: '原则', principle_title: '这个站坚持的几件事',
             p1_t: '能少则少', p1_d: '不引框架、不接统计、不从 CDN 拉字体和图标。页面打开即是全部内容。',
             p2_t: '读得舒服', p2_d: '中文优先的字体栈、克制的行宽与字号，深浅色都保证足够的对比度。',
@@ -257,6 +267,8 @@ module.exports = {
             card_blog_t: '文章', card_blog_d: '技術筆記與零散思考，按時間倒序排列，可按標籤篩選。',
             card_about_t: '關於', card_about_d: '我是誰、在做什麼，以及這個站為什麼長這個樣子。',
             card_view_projects: '查看', card_view_blog: '閱讀', card_view_about: '認識',
+            card_games_t: '小遊戲', card_games_d: '站內寫的 2048：方向鍵或滑動，合併相同數字，跟著網站一起換主題換語言。',
+            card_view_games: '玩一局',
             principle_eyebrow: '原則', principle_title: '這個站堅持的幾件事',
             p1_t: '能少則少', p1_d: '不引框架、不接統計、不從 CDN 拉字型與圖示。頁面開啟即是全部內容。',
             p2_t: '讀得舒服', p2_d: '中文優先的字型堆疊、克制的行寬與字號，深淺色都保證足夠的對比度。',
@@ -278,6 +290,8 @@ module.exports = {
             card_blog_t: 'Writing', card_blog_d: 'Notes and half-formed thoughts, newest first, filterable by tag.',
             card_about_t: 'About', card_about_d: 'Who I am, what I work on, and why this site looks the way it does.',
             card_view_projects: 'Browse', card_view_blog: 'Read', card_view_about: 'Meet',
+            card_games_t: 'Mini game', card_games_d: 'A 2048 written for this site: arrows or swipe, merge equal tiles, and it follows the site theme and language.',
+            card_view_games: 'Play',
             principle_eyebrow: 'Principles', principle_title: 'What this site sticks to',
             p1_t: 'As little as possible', p1_d: 'No framework, no analytics, no fonts or icons from a CDN. Opening the page is the whole thing.',
             p2_t: 'Comfortable to read', p2_d: 'A CJK-first type stack, a restrained measure and size, enough contrast in both themes.',
@@ -299,6 +313,8 @@ module.exports = {
             card_blog_t: 'ノート', card_blog_d: '技術ノートと思いつき。新しい順、タグで絞り込めます。',
             card_about_t: '概要', card_about_d: '私自身と、このサイトがこの形をしている理由について。',
             card_view_projects: '見る', card_view_blog: '読む', card_view_about: '知る',
+            card_games_t: 'ミニゲーム', card_games_d: 'このサイトのために作った 2048。矢印キーかスワイプで同じ数字を合体。サイトのテーマと言語に従います。',
+            card_view_games: '遊ぶ',
             principle_eyebrow: '方針', principle_title: 'このサイトが守っていること',
             p1_t: '少ないほどよい', p1_d: 'フレームワークも解析も、CDN からのフォントやアイコンも使いません。開いた瞬間が中身のすべてです。',
             p2_t: '読みやすさ', p2_d: 'CJK を優先したフォント構成、控えめな行幅と字号、どちらのテーマでも十分なコントラスト。',

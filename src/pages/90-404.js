@@ -8,6 +8,7 @@ const PAGES = [
     { key: 'home', href: '/index.html', zh: '首页', en: 'Home' },
     { key: 'projects', href: '/projects.html', zh: '项目', en: 'Projects' },
     { key: 'blog', href: '/blog.html', zh: '文章', en: 'Writing' },
+    { key: 'games', href: '/games.html', zh: '游戏', en: 'Games' },
     { key: 'about', href: '/about.html', zh: '关于', en: 'About' }
 ];
 
@@ -114,6 +115,7 @@ module.exports = {
             map_desc_home: '一句话说明我是谁、这个站是什么。',
             map_desc_projects: '做过的东西，附上它们解决的问题。',
             map_desc_blog: '技术笔记和踩坑记录，可按标签筛选。',
+            map_desc_games: '站内写的 2048，方向键或滑动都能玩。',
             map_desc_about: '站点自身的来龙去脉，以及怎么找到我。'
         },
         'zh-TW': {
@@ -129,6 +131,7 @@ module.exports = {
             map_desc_home: '一句話說明我是誰、這個站是什麼。',
             map_desc_projects: '做過的東西，附上它們解決的問題。',
             map_desc_blog: '技術筆記和踩坑記錄，可按標籤篩選。',
+            map_desc_games: '站內寫的 2048，方向鍵或滑動都能玩。',
             map_desc_about: '站點自身的來龍去脈，以及怎麼找到我。'
         },
         'en': {
@@ -144,6 +147,7 @@ module.exports = {
             map_desc_home: 'Who I am and what this site is, in one screen.',
             map_desc_projects: 'What I have built, and the problem each one solved.',
             map_desc_blog: 'Technical notes and traps, filterable by tag.',
+            map_desc_games: 'A 2048 written for this site; arrows or swipe.',
             map_desc_about: 'How this site came to be, and how to reach me.'
         },
         'ja': {
@@ -159,6 +163,7 @@ module.exports = {
             map_desc_home: '自分が誰で、このサイトが何かを一文で。',
             map_desc_projects: '作ったものと、それぞれが解決した問題。',
             map_desc_blog: '技術ノートと落とし穴の記録。タグで絞り込めます。',
+            map_desc_games: 'このサイト製の 2048。矢印キーでもスワイプでも遊べます。',
             map_desc_about: 'このサイトの経緯と、連絡のつき方。'
         }
     },
@@ -172,7 +177,7 @@ module.exports = {
         /* 站内地图：把确实存在的四个页面都列出来，比一句「返回首页」有用 */
         var map = document.getElementById('pageMap');
         if (map) {
-            var iconOf = { home: 'i-home', projects: 'i-folder', blog: 'i-book', about: 'i-user' };
+            var iconOf = { home: 'i-home', projects: 'i-folder', blog: 'i-book', games: 'i-zap', about: 'i-user' };
             map.innerHTML = window.PAGE_DATA.map(function (p) {
                 return '<a class="tile-link reveal" href="' + safeUrl(p.href) + '">' +
                     '<div class="card">' +

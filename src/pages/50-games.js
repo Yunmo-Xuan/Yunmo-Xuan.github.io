@@ -1,0 +1,393 @@
+/* 游戏页：2048 */
+'use strict';
+
+module.exports = {
+    file: 'games.html',
+    path: '/games.html',
+    active: 'games',
+    ogType: 'website',
+
+    title: {
+        'zh-CN': '2048 · 云陌轩',
+        'zh-TW': '2048 · 雲陌軒',
+        'en': '2048 · Yunmo-Xuan',
+        'ja': '2048 · 雲陌軒'
+    },
+    desc: {
+        'zh-CN': '站内小游戏：2048。方向键或滑动操作，合并相同数字，支持深浅主题与四种界面语言。',
+        'en': 'A small in-site game: 2048. Arrow keys or swipe, merge equal tiles, with light/dark themes and four interface languages.'
+    },
+
+    styles: `
+        .g-wrap { max-width: 560px; margin: 0 auto; }
+        .g-top { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; gap: 12px; margin: 28px 0 16px; }
+        .g-scores { display: flex; gap: 10px; }
+        .g-score {
+            min-width: 96px; padding: 10px 16px; text-align: center;
+            background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+        }
+        .g-score .k { display: block; font-size: .72rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+        .g-score .v { display: block; margin-top: 2px; font-family: var(--mono); font-size: 1.4rem; font-weight: 700; color: var(--text); }
+        .g-top .btn { align-self: center; }
+
+        .g-board {
+            position: relative; padding: 12px; touch-action: none;
+            background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius);
+            box-shadow: var(--shadow-1);
+        }
+        .g-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .g-cell {
+            aspect-ratio: 1; display: grid; place-items: center;
+            border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line);
+            font-family: var(--mono); font-weight: 700; font-size: clamp(1.05rem, 6.4vw, 1.85rem);
+            color: var(--text); user-select: none;
+        }
+        .g-cell.t2 { background: #eee4da; border-color: #eee4da; color: #6f655c; }
+        .g-cell.t4 { background: #ede0c8; border-color: #ede0c8; color: #6f655c; }
+        .g-cell.t8 { background: #f2b179; border-color: #f2b179; color: #fff; }
+        .g-cell.t16 { background: #f59563; border-color: #f59563; color: #fff; }
+        .g-cell.t32 { background: #f67c5f; border-color: #f67c5f; color: #fff; }
+        .g-cell.t64 { background: #f65e3b; border-color: #f65e3b; color: #fff; }
+        .g-cell.t128 { background: #edcf72; border-color: #edcf72; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
+        .g-cell.t256 { background: #edcc61; border-color: #edcc61; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
+        .g-cell.t512 { background: #edc850; border-color: #edc850; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
+        .g-cell.t1024 { background: #edc53f; border-color: #edc53f; color: #fff; font-size: clamp(.82rem, 4.8vw, 1.35rem); }
+        .g-cell.t2048 { background: #edc22e; border-color: #edc22e; color: #fff; font-size: clamp(.82rem, 4.8vw, 1.35rem); }
+        .g-cell.tsuper { background: #3c3a32; border-color: #3c3a32; color: #fff; font-size: clamp(.72rem, 4.2vw, 1.15rem); }
+
+        .g-msg {
+            position: absolute; inset: 12px; display: none; place-items: center; text-align: center;
+            border-radius: var(--radius-sm); background: rgba(250, 249, 248, .9); backdrop-filter: blur(2px);
+        }
+        [data-theme="dark"] .g-msg { background: rgba(14, 17, 22, .9); }
+        .g-msg.show { display: grid; }
+        .g-msg.won { background: rgba(237, 194, 46, .38); }
+        [data-theme="dark"] .g-msg.won { background: rgba(237, 194, 46, .26); }
+        .g-msg p { margin: 0; font-size: clamp(1.7rem, 7vw, 2.5rem); font-weight: 800; letter-spacing: -.03em; }
+        .g-msg .btn-row { margin-top: 16px; justify-content: center; }
+
+        .g-hint { margin: 14px 2px 0; font-size: .86rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+        .g-hint .icon { color: var(--accent-ink); flex-shrink: 0; }
+        .g-rules { margin-top: 26px; }
+        @media (max-width: 480px) {
+            .g-board { padding: 8px; }
+            .g-grid { gap: 8px; }
+            .g-msg { inset: 8px; }
+            .g-score { min-width: 84px; padding: 8px 12px; }
+        }
+    `,
+
+    body: `        <section class="page-head">
+            <div class="container">
+                <span class="eyebrow" data-i18n="eyebrow">小游戏</span>
+                <h1>2048</h1>
+                <p class="lead" data-i18n="lead">
+                    站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起。
+                </p>
+            </div>
+        </section>
+
+        <section class="section tight">
+            <div class="container">
+                <div class="g-wrap">
+                    <div class="g-top">
+                        <div class="g-scores">
+                            <div class="g-score"><span class="k" data-i18n="g_score">分数</span><span class="v" id="gScore">0</span></div>
+                            <div class="g-score"><span class="k" data-i18n="g_best">最佳</span><span class="v" id="gBest">0</span></div>
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-sm" id="gNew">
+                            <svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg>
+                            <span data-i18n="g_new">新游戏</span>
+                        </button>
+                    </div>
+
+                    <div class="g-board" id="gBoard" data-i18n-aria="g_board" aria-label="2048 棋盘">
+                        <div class="g-grid" id="gGrid"></div>
+                        <div class="g-msg" id="gMsg" role="status">
+                            <div>
+                                <p id="gMsgText"></p>
+                                <div class="btn-row">
+                                    <button type="button" class="btn btn-primary btn-sm" id="gKeep" hidden>
+                                        <span data-i18n="g_keep">继续游戏</span>
+                                    </button>
+                                    <button type="button" class="btn btn-ghost btn-sm" id="gRetry">
+                                        <span data-i18n="g_retry">再试一次</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="g-hint">
+                        <svg class="icon" aria-hidden="true"><use href="#i-terminal" /></svg>
+                        <span data-i18n="g_hint">键盘方向键或 WASD 移动；手机上在棋盘上滑动。</span>
+                    </p>
+
+                    <aside class="note g-rules" data-i18n="g_rules">
+                        规则：每次移动后随机落下一块 2 或 4；相同数字相撞会合并成它们的和，并计入分数。
+                        合成 2048 即获胜，之后可以继续挑战更大的数字；棋盘填满且无处可合时游戏结束。
+                    </aside>
+                </div>
+            </div>
+        </section>
+`,
+
+    i18n: {
+        'zh-CN': {
+            meta_description: '站内小游戏：2048。方向键或滑动操作，合并相同数字，支持深浅主题与四种界面语言。',
+            eyebrow: '小游戏',
+            lead: '站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起。',
+            g_score: '分数', g_best: '最佳', g_new: '新游戏',
+            g_keep: '继续游戏', g_retry: '再试一次',
+            g_win: '你赢了！', g_over: '游戏结束',
+            g_hint: '键盘方向键或 WASD 移动；手机上在棋盘上滑动。',
+            g_rules: '规则：每次移动后随机落下一块 2 或 4；相同数字相撞会合并成它们的和，并计入分数。合成 2048 即获胜，之后可以继续挑战更大的数字；棋盘填满且无处可合时游戏结束。',
+            g_board: '2048 棋盘'
+        },
+        'zh-TW': {
+            meta_description: '站內小遊戲：2048。方向鍵或滑動操作，合併相同數字，支援深淺主題與四種介面語言。',
+            eyebrow: '小遊戲',
+            lead: '站裡唯一會開口勸你再玩一局的東西。方向鍵或滑動，把相同的數字合在一起。',
+            g_score: '分數', g_best: '最佳', g_new: '新遊戲',
+            g_keep: '繼續遊戲', g_retry: '再試一次',
+            g_win: '你贏了！', g_over: '遊戲結束',
+            g_hint: '鍵盤方向鍵或 WASD 移動；手機上在棋盤上滑動。',
+            g_rules: '規則：每次移動後隨機落下一塊 2 或 4；相同數字相撞會合併成它們的和，並計入分數。合成 2048 即獲勝，之後可以繼續挑戰更大的數字；棋盤填滿且無處可合時遊戲結束。',
+            g_board: '2048 棋盤'
+        },
+        'en': {
+            meta_description: 'A small in-site game: 2048. Arrow keys or swipe, merge equal tiles, with light/dark themes and four interface languages.',
+            eyebrow: 'Mini game',
+            lead: 'The only thing on this site that talks you into one more round. Arrows or swipe, merge equal numbers.',
+            g_score: 'Score', g_best: 'Best', g_new: 'New game',
+            g_keep: 'Keep going', g_retry: 'Try again',
+            g_win: 'You win!', g_over: 'Game over',
+            g_hint: 'Arrow keys or WASD to move; swipe on the board on touch screens.',
+            g_rules: 'Rules: every move drops a random 2 or 4; equal tiles that collide merge into their sum and add to the score. Reaching 2048 wins, and you can keep going for bigger tiles; the game ends when the board is full with no possible merge.',
+            g_board: '2048 board'
+        },
+        'ja': {
+            meta_description: 'サイト内のミニゲーム：2048。矢印キーまたはスワイプで同じ数字を合体。ライト/ダークテーマと4言語UIに対応。',
+            eyebrow: 'ミニゲーム',
+            lead: 'このサイトで唯一「もう一局」と囁いてくるもの。矢印キーかスワイプで同じ数字を合わせます。',
+            g_score: 'スコア', g_best: 'ベスト', g_new: '新しいゲーム',
+            g_keep: '続行', g_retry: 'もう一度',
+            g_win: '勝利！', g_over: 'ゲームオーバー',
+            g_hint: '矢印キーまたは WASD で移動、タッチ端末では盤面をスワイプ。',
+            g_rules: 'ルール：手を動かすごとに 2 か 4 がランダムに出現。同じ数字がぶつかると合計値に合体し、スコアに加算されます。2048 を作れば勝利、その後もより大きなタイルに挑戦できます。盤面が埋まり合体できなくなったら終了です。',
+            g_board: '2048 盤面'
+        }
+    },
+
+    render: function render(ctx) {
+        var grid = document.getElementById('gGrid');
+        if (!grid) return;
+
+        /* ── 纯逻辑：一行滑动 = 去零 → 相邻同值合并一次 → 再去零 → 补零 ── */
+        function slide(line) {
+            var row = line.filter(function (v) { return v !== 0; });
+            var gained = 0;
+            for (var i = 0; i < row.length - 1; i++) {
+                if (row[i] === row[i + 1]) {
+                    row[i] *= 2;
+                    gained += row[i];
+                    row[i + 1] = 0;
+                }
+            }
+            row = row.filter(function (v) { return v !== 0; });
+            while (row.length < 4) row.push(0);
+            return { line: row, gained: gained };
+        }
+
+        function linesOf(board, dir) {
+            /* 返回 [取行函数, 写回函数]：把四个方向都归一成「向左滑」 */
+            if (dir === 'left') return [function (b, i) { return b[i].slice(); }, function (b, i, l) { b[i] = l; }];
+            if (dir === 'right') return [function (b, i) { return b[i].slice().reverse(); }, function (b, i, l) { b[i] = l.reverse(); }];
+            if (dir === 'up') return [function (b, i) { return [b[0][i], b[1][i], b[2][i], b[3][i]]; }, function (b, i, l) { for (var r = 0; r < 4; r++) b[r][i] = l[r]; }];
+            return [function (b, i) { return [b[3][i], b[2][i], b[1][i], b[0][i]]; }, function (b, i, l) { for (var r = 0; r < 4; r++) b[3 - r][i] = l[r]; }];
+        }
+
+        function emptyBoard() {
+            return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        }
+
+        function cloneBoard(b) {
+            return b.map(function (r) { return r.slice(); });
+        }
+
+        function sameBoard(a, b) {
+            for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) if (a[i][j] !== b[i][j]) return false;
+            return true;
+        }
+
+        function movesAvailable(b) {
+            for (var i = 0; i < 4; i++) {
+                for (var j = 0; j < 4; j++) {
+                    if (b[i][j] === 0) return true;
+                    if (j < 3 && b[i][j] === b[i][j + 1]) return true;
+                    if (i < 3 && b[i][j] === b[i + 1][j]) return true;
+                }
+            }
+            return false;
+        }
+
+        function applyMove(board, dir) {
+            var io = linesOf(board, dir);
+            var out = emptyBoard();
+            var gained = 0;
+            for (var i = 0; i < 4; i++) {
+                var res = slide(io[0](board, i));
+                gained += res.gained;
+                io[1](out, i, res.line);
+            }
+            return { board: out, gained: gained, moved: !sameBoard(board, out) };
+        }
+
+        /* ── 状态：挂在 window 上，切语言重跑 render 时不丢局 ── */
+        var S = window.G2048;
+        if (!S) {
+            S = window.G2048 = { board: emptyBoard(), score: 0, best: 0, won: false, over: false, kept: false, cells: [] };
+            try { S.best = Number(localStorage.getItem('best2048')) || 0; } catch (e) { S.best = 0; }
+
+            for (var c = 0; c < 16; c++) {
+                var cell = document.createElement('div');
+                cell.className = 'g-cell';
+                grid.appendChild(cell);
+                S.cells.push(cell);
+            }
+
+            function drop() {
+                var free = [];
+                for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) if (S.board[i][j] === 0) free.push([i, j]);
+                if (!free.length) return;
+                var spot = free[Math.floor(Math.random() * free.length)];
+                S.board[spot[0]][spot[1]] = Math.random() < 0.9 ? 2 : 4;
+            }
+
+            function saveBest() {
+                try { localStorage.setItem('best2048', String(S.best)); } catch (e) { /* 隐私模式下记不住就算了 */ }
+            }
+
+            S.reset = function () {
+                S.board = emptyBoard();
+                S.score = 0;
+                S.won = false;
+                S.over = false;
+                S.kept = false;
+                drop();
+                drop();
+                paint();
+            };
+
+            S.move = function (dir) {
+                if (S.over) return false;
+                var res = applyMove(S.board, dir);
+                if (!res.moved) return false;
+                S.board = res.board;
+                S.score += res.gained;
+                if (S.score > S.best) { S.best = S.score; saveBest(); }
+                drop();
+                paint();
+                return true;
+            };
+
+            function paint() {
+                /* 先判胜负，再决定覆盖层，保证任何入口移动后界面都同步 */
+                if (!S.won) {
+                    for (var r = 0; r < 4; r++) for (var q = 0; q < 4; q++) if (S.board[r][q] === 2048) S.won = true;
+                }
+                if (!S.over && !movesAvailable(S.board)) S.over = true;
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        var v = S.board[i][j];
+                        var el = S.cells[i * 4 + j];
+                        el.className = v > 2048 ? 'g-cell tsuper' : ('g-cell' + (v ? ' t' + v : ''));
+                        el.textContent = v || '';
+                    }
+                }
+                document.getElementById('gScore').textContent = String(S.score);
+                document.getElementById('gBest').textContent = String(S.best);
+
+                var msg = document.getElementById('gMsg');
+                var text = document.getElementById('gMsgText');
+                var keep = document.getElementById('gKeep');
+                var t = window.SITE_RUNTIME ? window.SITE_RUNTIME.t : function (k) { return k; };
+                if (S.over) {
+                    msg.className = 'g-msg show';
+                    text.textContent = t('g_over');
+                    keep.hidden = true;
+                } else if (S.won && !S.kept) {
+                    msg.className = 'g-msg show won';
+                    text.textContent = t('g_win');
+                    keep.hidden = false;
+                } else {
+                    msg.className = 'g-msg';
+                }
+            }
+
+            document.getElementById('gNew').addEventListener('click', S.reset);
+            document.getElementById('gRetry').addEventListener('click', S.reset);
+            document.getElementById('gKeep').addEventListener('click', function () {
+                S.kept = true;
+                paint();
+            });
+
+            var KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', A: 'left', D: 'right', W: 'up', S: 'down' };
+            document.addEventListener('keydown', function (e) {
+                if (e.altKey || e.ctrlKey || e.metaKey) return;
+                var tag = (e.target && e.target.tagName) || '';
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+                var dir = KEYS[e.key];
+                if (!dir) return;
+                e.preventDefault();
+                S.move(dir);
+            });
+
+            var sx = 0, sy = 0, tracking = false;
+            var boardEl = document.getElementById('gBoard');
+            boardEl.addEventListener('touchstart', function (e) {
+                tracking = true;
+                sx = e.touches[0].clientX;
+                sy = e.touches[0].clientY;
+            }, { passive: true });
+            boardEl.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+            boardEl.addEventListener('touchend', function (e) {
+                if (!tracking) return;
+                tracking = false;
+                var dx = e.changedTouches[0].clientX - sx;
+                var dy = e.changedTouches[0].clientY - sy;
+                if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+                if (Math.abs(dx) > Math.abs(dy)) S.move(dx > 0 ? 'right' : 'left');
+                else S.move(dy > 0 ? 'down' : 'up');
+            }, { passive: true });
+
+            /* 给自动化测试用的确定性入口 */
+            window.G2048_API = {
+                setBoard: function (b) { S.board = cloneBoard(b); S.over = false; S.won = false; S.kept = false; paint(); },
+                getBoard: function () { return cloneBoard(S.board); },
+                move: function (dir) { return S.move(dir); },
+                score: function () { return S.score; },
+                reset: S.reset
+            };
+
+            S.reset();
+        }
+
+        /* 切语言时只重画文案与覆盖层，不动棋局 */
+        var msg = document.getElementById('gMsg');
+        if (msg.classList.contains('show')) {
+            document.getElementById('gMsgText').textContent = ctx.t(S.over ? 'g_over' : 'g_win');
+        }
+    },
+
+    data: [],
+
+    jsonld: {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: '2048 · 云陌轩',
+        url: 'https://yunmo-xuan.github.io/games.html',
+        inLanguage: ['zh-CN', 'zh-TW', 'en', 'ja']
+    }
+};
