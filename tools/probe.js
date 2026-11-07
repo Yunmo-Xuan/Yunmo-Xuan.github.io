@@ -26,7 +26,7 @@ try {
         '--headless=new', '--disable-gpu',
         '--user-data-dir=' + path.join(root, 'tools', '.chrome-probe'),
         '--window-size=1560,1200', '--hide-scrollbars',
-        '--virtual-time-budget=30000',
+        '--virtual-time-budget=120000',
         '--dump-dom', 'http://127.0.0.1:' + port + '/__probe.html'
     ], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 } catch (e) {

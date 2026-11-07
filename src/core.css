@@ -357,6 +357,15 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
     .filterbar .count { width: 100%; margin-inline-start: 0; }
 }
 
+/* 手势与滚动：关掉下拉刷新与滚动链，滚动条用站点自己的配色 */
+html, body { overscroll-behavior-y: none; }
+body { touch-action: manipulation; }
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) var(--surface-2); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--surface-2); }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 99px; border: 2px solid var(--surface-2); }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }

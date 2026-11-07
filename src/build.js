@@ -42,6 +42,8 @@ const ICONS = `<svg class="sprite" aria-hidden="true" focusable="false"><defs>
         <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.5 12.5L12 21l-8.5-8.5V4h8.5z" /><circle cx="8" cy="8" r="1.3" /></symbol>
         <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 4l2.3 5.2 5.7.5-4.3 3.8 1.3 5.5L12 16.9 7 19.8l1.3-5.5L4 10.5l5.7-.5z" /></symbol>
         <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5c0 5-7 9.5-7 9.5z" /></symbol>
+        <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z" /><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" /></symbol>
+        <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z" /><path d="M17 9l5 6M22 9l-5 6" /></symbol>
     </defs></svg>`;
 
 function read(name) {

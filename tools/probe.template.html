@@ -24,7 +24,11 @@ var STAGES = [
   { label: 'light-320', theme: 'light', w: 320, h: 844 },
   { label: 'en-320', theme: 'light', lang: 'en', w: 320, h: 844 },
   { label: 'ja-390', theme: 'dark', lang: 'ja', w: 390, h: 844 },
-  { label: 'tw-390', theme: 'light', lang: 'zh-TW', w: 390, h: 844 }
+  { label: 'tw-390', theme: 'light', lang: 'zh-TW', w: 390, h: 844 },
+  { label: 'tab-768', theme: 'light', w: 768, h: 1024 },
+  { label: 'tabland-1024', theme: 'dark', w: 1024, h: 768 },
+  { label: 'phoneland-740', theme: 'light', w: 740, h: 360 },
+  { label: 'wide-1920', theme: 'light', w: 1920, h: 1080 }
 ];
 var results = [];
 var stageEl = document.getElementById('stages');
@@ -279,6 +283,52 @@ var INTERACTIONS = [
       if (msg.classList.contains('show') || api.score() !== 0) throw 'retry did not restart the game';
       d.querySelector('[data-lang="zh-CN"]').click();
     } },
+  { page: 'games.html', w: 390, name: '2048 gesture lock, swipe and sound', run: function (d, win) {
+      var api = win.G2048_API;
+      var board = d.getElementById('gBoard');
+      if (win.getComputedStyle(board).touchAction !== 'none') throw 'board touch-action is not none (browser gestures would steal swipes)';
+      if (win.getComputedStyle(d.body).overscrollBehaviorY !== 'none') throw 'page overscroll not locked (pull-to-refresh possible)';
+      api.setBoard([[2, 0, 0, 0], [0, 4, 0, 0], [0, 0, 8, 0], [0, 0, 0, 16]]);
+      var r = board.getBoundingClientRect();
+      var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      board.dispatchEvent(new win.PointerEvent('pointerdown', { pointerId: 7, clientX: cx + 60, clientY: cy, bubbles: true }));
+      board.dispatchEvent(new win.PointerEvent('pointerup', { pointerId: 7, clientX: cx - 60, clientY: cy, bubbles: true }));
+      var b = api.getBoard();
+      if (b[0][0] !== 2 || b[1][0] !== 4 || b[2][0] !== 8 || b[3][0] !== 16) throw 'pointer swipe left failed: ' + JSON.stringify(b);
+      var sb = d.getElementById('gSound');
+      var before = sb.getAttribute('aria-pressed');
+      sb.click();
+      if (sb.getAttribute('aria-pressed') === before) throw 'sound toggle did not flip';
+      if (sb.querySelector('.i-off').style.display === 'none') throw 'mute icon not shown when off';
+      sb.click();
+      if (sb.getAttribute('aria-pressed') !== before) throw 'sound toggle did not restore';
+    } },
+  { page: 'games.html', w: 390, name: '2048 save survives reload', run: function (d, win, done) {
+      var api = win.G2048_API;
+      api.setBoard([[8, 8, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+      api.move('left');
+      var expect = JSON.stringify(api.getBoard());
+      var score = api.score();
+      /* 用嵌套的新 iframe 模拟「下次打开」，避免重载 runner 自己的 iframe */
+      var f2 = d.createElement('iframe');
+      f2.style.width = '390px';
+      f2.style.height = '600px';
+      f2.addEventListener('load', function () {
+        setTimeout(function () {
+          var w2 = f2.contentWindow, d2 = f2.contentDocument;
+          var api2 = w2.G2048_API;
+          var problem = '';
+          if (!api2) problem = 'game did not boot in a fresh frame';
+          else if (JSON.stringify(api2.getBoard()) !== expect) problem = 'board not restored: ' + JSON.stringify(api2.getBoard());
+          else if (api2.score() !== score) problem = 'score not restored: ' + api2.score();
+          else if (d2.getElementById('gRestored').hidden) problem = 'restored notice missing';
+          f2.remove();
+          done(problem || undefined);
+        }, 220);
+      }, { once: true });
+      d.body.appendChild(f2);
+      f2.src = 'games.html';
+    } },
   { page: '404.html', w: 1440, name: 'site map links', run: function (d) {
       var links = d.querySelectorAll('#pageMap a');
       if (links.length !== 5) throw 'expected 5 map links, got ' + links.length;
@@ -318,7 +368,7 @@ function runInteraction(job, done) {
       catch (e) { finish(e.message || e); return; }
       setTimeout(function () {
         finish(job.run.length >= 3 ? 'interaction timed out' : undefined);
-      }, 700);
+      }, 1600);
     }, 240);
   });
   f.src = job.page;
