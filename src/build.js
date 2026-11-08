@@ -272,27 +272,32 @@ function body(page) {
             lock(false);
             setTimeout(function () {
                 el.remove();
-                document.documentElement.classList.remove('intro-on', 'booting');
+                document.documentElement.classList.remove('intro-on', 'booting', 'intro-roll');
+                /* 入场动画交给页面自己演，别在弹层背后白白跑完 */
+                try { document.dispatchEvent(new CustomEvent('yunmo:intro-closed')); } catch (e) {}
                 if (lastFocus && lastFocus.focus) lastFocus.focus();
             }, 420);
         }
         video.addEventListener('ended', done);
         video.addEventListener('error', done);
         video.addEventListener('timeupdate', function () {
-            if (bar && video.duration) bar.style.transform = 'scaleX(' + (video.currentTime / video.duration) + ')';
+            /* MediaRecorder 出的 fragmented mp4 里 mvhd 时长偏短，比值必须夹住，否则进度条会冲过头 */
+            if (bar && video.duration) bar.style.transform = 'scaleX(' + Math.min(1, video.currentTime / video.duration) + ')';
         });
-        /* 真的画出画面才算“看过”，只是 play() 被允许不算 */
+        /* 真的画出画面才算“看过”，只是 play() 被允许不算；同时把视频淡进来 */
         video.addEventListener('playing', function () {
             started = true;
+            document.documentElement.classList.add('intro-roll');
             try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
         });
         skip.addEventListener('click', done);
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
         var playing = video.play();
         if (playing && playing.then) playing.catch(done);
-        /* 慢网络下不能让人对着加载动画干等：两秒还连一帧数据都没拿到就直接进站，下次再试。
-           只看 readyState，不看 started——解码慢是正常现象，不该把动画掐掉。 */
-        setTimeout(function () { if (!started && video.readyState < 2) done(); }, 2500);
+        /* 开场是一段"品牌节拍"，不是视频的等待页：
+           2.2 秒内画不出首帧就带着动效收场（4G 实测首帧约 1.5 秒，这个窗口够它进来），
+           绝不让人对着一张静止图干等。慢网络下不写 seen，下次还会再试。 */
+        setTimeout(function () { if (!started) done(); }, 2200);
         setTimeout(done, 7000);
     })();
     </script>

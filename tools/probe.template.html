@@ -246,12 +246,12 @@ var INTERACTIONS = [
         else if (d2.documentElement.scrollWidth > d2.documentElement.clientWidth + 2) first = '弹层把页面顶出了横向滚动';
         else if (!d2.querySelector('.intro-name').textContent.trim()) first = '品牌落款是空的';
         if (first) { w2.sessionStorage.setItem('yunmo.intro.seen', '1'); done(first); return; }
-        /* 只有真的画出首帧才算“看过”，所以先等它播起来，再验“同会话不重播” */
-        var waits = 0;
-        (function untilSeen() {
-          if (w2.sessionStorage.getItem('yunmo.intro.seen') === '1') return finish(d2, w2);
-          if (waits++ > 80) { done('开场视频始终没画出首帧（poster 与画面都验证过了，但 seen 没置上）'); return; }
-          setTimeout(untilSeen, 100);
+        /* 视频必须真的淡进来（intro-roll），否则用户看到的只是一张静止的品牌图 */
+        var rolls = 0;
+        (function untilRoll() {
+          if (w2.document.documentElement.classList.contains('intro-roll')) return finish(d2, w2);
+          if (rolls++ > 30) { done('视频首帧始终没淡入（intro-roll 没置上），开场只剩一张静止图'); return; }
+          setTimeout(untilRoll, 100);
         })();
       }
       function finish(d2, w2) {

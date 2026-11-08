@@ -25,6 +25,9 @@ const puppeteer = require('puppeteer-core');
     fs.writeFileSync(path.join(out, 'favicon.png'), Buffer.from(images.icon, 'base64'));
     fs.writeFileSync(path.join(out, 'logo.webp'), Buffer.from(images.logo, 'base64'));
     fs.copyFileSync(path.join(input, 'Start video.mp4'), path.join(out, 'intro.mp4'));
+    /* 导出的 mp4 通常把 moov 放在文件尾，浏览器必须整段下完才开播；就地重排成 faststart */
+    const { execFileSync } = require('node:child_process');
+    execFileSync(process.execPath, [path.join(__dirname, 'mp4-faststart.cjs'), path.join(out, 'intro.mp4')], { stdio: 'inherit' });
     await page.goto(pathToFileURL(path.join(out, 'intro.mp4')).href);
     const meta = await page.evaluate(async () => { const v = document.querySelector('video'); if (v.readyState < 1) await new Promise(r => v.addEventListener('loadedmetadata', r, { once: true })); return { duration: v.duration, width: v.videoWidth, height: v.videoHeight }; });
     console.log(JSON.stringify({ ...meta, assets: fs.readdirSync(out).map(name => ({ name, bytes: fs.statSync(path.join(out, name)).size })) }, null, 2));

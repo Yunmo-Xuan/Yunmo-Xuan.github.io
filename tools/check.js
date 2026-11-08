@@ -113,6 +113,15 @@ for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.html'))) {
 for (const rel of ['assets/intro.mp4', 'assets/favicon.png', 'assets/logo-mark.webp']) {
   if (!fs.existsSync(path.join(dir, rel))) fail(dir, `缺少站点素材 ${rel}`);
 }
+/* 开场视频必须 faststart（moov 在 mdat 之前），否则浏览器要整段下完才开播，动画就卡死在等待 */
+const introFile = path.join(dir, 'assets', 'intro.mp4');
+if (fs.existsSync(introFile)) {
+  const { topLevel } = require('./mp4-faststart.cjs');
+  const boxes = topLevel(fs.readFileSync(introFile));
+  const moov = boxes.find(b => b.type === 'moov'), mdat = boxes.find(b => b.type === 'mdat');
+  if (!moov || !mdat) fail(introFile, '不是预期的 MP4（找不到 moov/mdat）');
+  else if (moov.start > mdat.start) fail(introFile, 'moov 在 mdat 之后，未做 faststart：' + boxes.map(b => b.type).join(' '));
+}
 const gamesDir = path.join(dir, 'assets', 'games');
 if (fs.existsSync(gamesDir)) {
   for (const f of fs.readdirSync(gamesDir).filter(x => x.endsWith('.html'))) {

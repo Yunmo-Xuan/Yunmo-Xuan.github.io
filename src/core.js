@@ -241,6 +241,8 @@
        IntersectionObserver 只负责屏外元素，另加两次兜底重扫，
        避免任何调度问题把整页留在 opacity:0 */
     function revealInViewport() {
+        /* 开场弹层还盖着时不要放行入场动画：那样等内容露出来时已经演完了，交接会很生硬 */
+        if (root.classList.contains('intro-on')) return 0;
         var vh = window.innerHeight || root.clientHeight;
         var shown = 0;
         Array.prototype.forEach.call(document.querySelectorAll('.reveal:not(.in)'), function (el) {
@@ -257,6 +259,7 @@
         }
         revealInViewport();
         var io = new IntersectionObserver(function (entries) {
+            if (root.classList.contains('intro-on')) return;
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('in');
@@ -268,6 +271,7 @@
         /* 兜底：回调被节流或延迟时，仍在视口内的内容必须出现 */
         setTimeout(revealInViewport, 400);
         window.addEventListener('load', revealInViewport);
+        document.addEventListener('yunmo:intro-closed', revealInViewport);
     }
 
     window.SITE = SITE;

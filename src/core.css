@@ -160,25 +160,39 @@ button { font: inherit; color: inherit; }
     box-shadow: 0 30px 80px -30px color-mix(in srgb, var(--accent) 55%, transparent),
                 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent);
     display: grid;
-    animation: intro-in .55s cubic-bezier(.2, .75, .2, 1) both;
 }
 .intro-frame > * { grid-area: 1 / 1; }
-.intro-video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.intro-brand { display: grid; place-content: center; gap: 12px; justify-items: center; color: var(--muted); }
+/* 首帧真的画出来才淡入视频，避免 poster 与画面之间硬切。
+   z-index 是必需的：占位品牌带 infinite 动画会自成层叠上下文，同格绘制时会压在视频上面。 */
+.intro-video { width: 100%; height: 100%; object-fit: cover; display: block; position: relative; z-index: 1;
+    opacity: 0; transition: opacity .5s ease; }
+.intro-roll .intro-video { opacity: 1; }
+/* 慢网时占位品牌保持呼吸，弹层不会变成一张静止的图 */
+.intro-brand { display: grid; place-content: center; gap: 12px; justify-items: center; color: var(--muted);
+    animation: intro-breathe 2.6s ease-in-out infinite; }
 .intro-brand img { border-radius: 12px; }
 .intro-side { display: flex; flex-direction: column; align-items: center; gap: clamp(9px, 1.8vh, 14px); width: min(max(92vw, 54vh), 620px); }
 .intro-progress { width: 100%; height: 3px; border-radius: 2px; overflow: hidden;
     background: color-mix(in srgb, var(--text) 14%, transparent); }
-.intro-progress i { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+.intro-progress i { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left;
+    animation: intro-beat 1.4s linear both; }
+/* 视频真的播起来了，进度才交给 currentTime，不再走这段占位节拍 */
+.intro-roll .intro-progress i { animation: none; }
+@keyframes intro-beat { from { transform: scaleX(0) } to { transform: scaleX(1) } }
 .intro-name { margin: 0; font-size: clamp(1.1rem, 3vh, 1.5rem); font-weight: 700; letter-spacing: -.02em; color: var(--text); }
 .intro-tag { margin: 0; font-size: clamp(.76rem, 1.7vh, .88rem); letter-spacing: .12em; color: var(--muted); }
-.intro-side { animation: intro-up .5s .16s cubic-bezier(.2, .75, .2, 1) both; }
 .intro-skip { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right));
     min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
 .intro-skip kbd { font: inherit; font-size: .72rem; opacity: .6; }
 @keyframes intro-in { from { opacity: 0; transform: scale(.94) } to { opacity: 1; transform: none } }
 @keyframes intro-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
-.intro-out { opacity: 0; transition: opacity .4s ease; }
+@keyframes intro-breathe { 0%, 100% { opacity: .72; transform: translateY(0) scale(1) } 50% { opacity: 1; transform: translateY(-6px) scale(1.03) } }
+/* 入场动画用 backwards 填充：结束后把 transform 交还给普通样式，退场才做得动微调缩放 */
+.intro-frame { animation: intro-in .55s cubic-bezier(.2, .75, .2, 1) backwards; }
+.intro-side { animation: intro-up .5s .16s cubic-bezier(.2, .75, .2, 1) backwards; }
+.intro-out { opacity: 0; transition: opacity .42s ease; }
+.intro-out .intro-frame { transform: scale(.985); transition: transform .42s ease; }
+.intro-out .intro-side { opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s ease; }
 html.intro-on, html.intro-on body { overflow: hidden; }
 @media (pointer:coarse) { .intro-skip kbd { display: none } }
 /* 矮屏（横屏手机）：落款改到画框右侧，画面就能长高而不是被文字挤扁 */
