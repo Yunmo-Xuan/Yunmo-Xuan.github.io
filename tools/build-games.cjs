@@ -115,6 +115,49 @@ const THEMES = {
 };
 const themeOf = name => THEMES[name] || THEMES.default;
 
+const TRIMS = {
+  'gomoku.html': ['.masthead .brand'],
+  'minesweeper.html': ['.bar .brand'],
+  'xiangqi.html': ['.bar .brand'],
+  'simdesk.html': ['#topbar .brand']
+};
+
+/* 嵌入站点时的界面修正（游戏本体文件不改）：
+   1. 游戏头部的品牌标题与外壳标题栏重复，而且白吃掉一屏里最贵的几十像素，只摘标题不摘控件；
+   2. 窄屏布局塌成单列后，棋盘会跟着长页面滚走——把棋盘钉在顶部，控件在下方滚动，
+      手机上才不用在棋盘和按钮之间来回翻页。 */
+const EMBED_CSS = {
+  'planet-merge.html': [
+    '@media (max-width:940px){',
+    /* 用 flex 而不是 block：游戏靠 order 把棋盘提到最前，block 会让 order 失效， */
+    /* 于是计分面板压到棋盘上面，layoutView 算出的可用高度只剩 240px。 */
+    '  html.in-embed #app{display:flex;flex-direction:column}',
+    '  html.in-embed .stage-wrap{position:sticky;top:0;z-index:4;width:min(100%,480px);margin:0 auto}',
+    '}',
+    /* 触屏上没有键盘，这行快捷键提示只是白占一行 */
+    '@media (pointer:coarse){ html.in-embed #app footer{display:none} }'
+  ],
+  'gomoku.html': [
+    '@media (max-width:1000px){',
+    '  html.in-embed .stage{display:block}',
+    '  html.in-embed .board-shell{position:sticky;top:0;z-index:6;background:var(--page);padding-block:6px}',
+    '  html.in-embed .panel{margin-top:14px}',
+    '}'
+  ],
+  /* 扫雷不做布局改写：它的 main.stage 是 1fr 网格，棋盘在自己的滚动容器里；
+     改成 block 会让 flex 父项的 min-width:auto 被棋盘撑破，整份文档横向溢出。 */
+  'minesweeper.html': [],
+  'xiangqi.html': [
+    '@media (max-width:1040px){',
+    '  html.in-embed .stage{display:block}',
+    '  html.in-embed .board-side{position:sticky;top:0;z-index:6;background:var(--bg);padding-block:6px}',
+    '  html.in-embed .panel{margin-top:14px}',
+    '}'
+  ],
+  'simdesk.html': []
+};
+const brandHide = name => (TRIMS[name] || []).map(sel => `  html.in-embed ${sel} { display: none !important; }`).join('\n');
+
 function bridgeCss(name) {
   const map = MAPS[name];
   if (!map) return '';
@@ -144,7 +187,11 @@ ${fonts}
 ${fonts}
   }
   html, body { font-family: var(--site-font); }
-</style>`;
+  ${brandHide(name)}
+  ${(EMBED_CSS[name] || []).join('\n')}
+</style>
+<script>/* 站点里以 iframe 嵌入时，游戏自带的品牌标题与外壳重复，让位给整屏游戏区 */
+if (window.top !== window.self) document.documentElement.classList.add('in-embed');</script>`;
 }
 
 /* 站点主题桥：外壳页面负责深浅色，游戏内部控件仍然可用 */

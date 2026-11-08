@@ -212,11 +212,18 @@ function footer(page) {
 function body(page) {
     const skip = `    <a class="skip-link" href="#main" data-i18n="a11y_skip" data-i18n-aria="a11y_skip">跳到主要内容</a>`;
     const intro = `
-    <div class="intro" id="introSplash" role="dialog" aria-modal="true" aria-label="Site intro" hidden>
-        <div class="intro-stage">
-            <div class="intro-brand"><img src="${page.prefix}assets/logo-mark.webp" alt="" width="36" height="36" /><span data-i18n="brand">云陌轩</span></div>
+    <div class="intro" id="introSplash" role="dialog" aria-modal="true" data-i18n-aria="a11y_intro" aria-label="站点开场动画" hidden>
+        <div class="intro-inner">
+            <div class="intro-frame" id="introFrame">
+                <div class="intro-brand"><img src="${page.prefix}assets/logo-mark.webp" alt="" width="44" height="44" /><span data-i18n="brand">云陌轩</span></div>
+            </div>
+            <div class="intro-side">
+                <div class="intro-progress" aria-hidden="true"><i id="introBar"></i></div>
+                <p class="intro-name" data-i18n="brand">云陌轩</p>
+                <p class="intro-tag" data-i18n="intro_tag">个人作品与小游戏</p>
+            </div>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip">跳过</button>
+        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip"><span data-i18n="intro_skip">跳过</span><kbd>Esc</kbd></button>
     </div>
 
     <script>
@@ -235,12 +242,10 @@ function body(page) {
         video.playsInline = true;
         video.preload = 'auto';
         video.setAttribute('aria-hidden', 'true');
+        /* 首帧解码前先用品牌图顶着，不是一段黑 */
+        video.poster = '${page.prefix}assets/logo.webp';
         video.src = '${page.prefix}assets/intro.mp4';
-        el.querySelector('.intro-stage').prepend(video);
-        var lang = 'zh-CN';
-        try { lang = localStorage.getItem('preferredLanguage') || lang; } catch (e) {}
-        var skipText = { 'zh-CN': '跳过', 'zh-TW': '跳過', en: 'Skip', ja: 'スキップ' }[lang] || '跳过';
-        el.querySelector('#introSkip').textContent = skipText;
+        document.getElementById('introFrame').append(video);
         el.hidden = false;
         document.documentElement.classList.add('intro-on', 'booting');
         /* 弹层期间背景不可交互也不可 Tab 进去，结束后把焦点还给原处。
@@ -259,6 +264,8 @@ function body(page) {
         var skip = document.getElementById('introSkip');
         /* 焦点必须进入弹层，否则 inert 只是把背景锁成谁也碰不到 */
         skip.focus();
+        var bar = document.getElementById('introBar');
+        var started = false;
         function done() {
             if (closed) return; closed = true;
             el.classList.add('intro-out');
@@ -271,22 +278,26 @@ function body(page) {
         }
         video.addEventListener('ended', done);
         video.addEventListener('error', done);
+        video.addEventListener('timeupdate', function () {
+            if (bar && video.duration) bar.style.transform = 'scaleX(' + (video.currentTime / video.duration) + ')';
+        });
+        /* 真的画出画面才算“看过”，只是 play() 被允许不算 */
+        video.addEventListener('playing', function () {
+            started = true;
+            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+        });
         skip.addEventListener('click', done);
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
         var playing = video.play();
-        if (playing && playing.then) {
-            playing.then(function () {
-                /* 播成功才算"看过"，被拦截时下次还能再试 */
-                try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
-            }).catch(done);
-        } else {
-            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
-        }
+        if (playing && playing.then) playing.catch(done);
+        /* 慢网络下不能让人对着加载动画干等：两秒还连一帧数据都没拿到就直接进站，下次再试。
+           只看 readyState，不看 started——解码慢是正常现象，不该把动画掐掉。 */
+        setTimeout(function () { if (!started && video.readyState < 2) done(); }, 2500);
         setTimeout(done, 7000);
     })();
     </script>
 `;
-    return `<body>
+    return `<body${page.bodyClass ? ` class="${page.bodyClass}"` : ''}>
 ${skip}
 ${intro}
 

@@ -189,19 +189,57 @@ button { font: inherit; color: inherit; }
 .logo:hover .logo-mark { transform: rotate(-6deg) scale(1.04); }
 
 /* ---------- 启动动画（同一标签页只播一次，可跳过） ---------- */
-.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: #05070f; }
-.intro[hidden] { display: none !important; }
-.intro-stage { position: relative; width: min(88vw, 62vh); aspect-ratio: 1; }
-.intro-video { width: 100%; height: 100%; object-fit: contain; border-radius: 24px; }
-.intro-brand {
-    position: absolute; left: 0; bottom: -52px; display: flex; align-items: center; gap: 10px;
-    color: #eaf1ff; font-weight: 700; letter-spacing: -.01em;
+/* ---------- 开场动画 ---------- */
+/* 视频本身就是 960×960 的方形，所以画框也做成方形：object-fit 不再产生黑边或裁切。
+   底色用站点令牌而不是写死的夜空色，浅色主题下不会一大块黑压在米白页面上。 */
+.intro {
+    position: fixed; inset: 0; z-index: 300; display: grid; place-items: center;
+    padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+             max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    background:
+        radial-gradient(110% 80% at 50% 4%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 62%),
+        radial-gradient(90% 70% at 50% 104%, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 60%),
+        var(--bg);
 }
-.intro-brand img { border-radius: 10px; }
-.intro-skip { position: absolute; right: 22px; bottom: 22px; }
+.intro[hidden] { display: none !important; }
+.intro-inner { display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 2.2vh, 20px); }
+/* 竖屏时允许画框略宽于屏幕，由视口裁掉两边各几十像素：
+   源画面是居中的方形，裁的是外圈轨道线，主体不动，但整块画面大了约四分之一。 */
+.intro-frame {
+    position: relative; width: min(max(92vw, 54vh), 620px); aspect-ratio: 1; overflow: hidden;
+    border-radius: clamp(18px, 3.4vh, 30px); background: var(--surface);
+    box-shadow: 0 30px 80px -30px color-mix(in srgb, var(--accent) 55%, transparent),
+                0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent);
+    display: grid;
+    animation: intro-in .55s cubic-bezier(.2, .75, .2, 1) both;
+}
+.intro-frame > * { grid-area: 1 / 1; }
+.intro-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.intro-brand { display: grid; place-content: center; gap: 12px; justify-items: center; color: var(--muted); }
+.intro-brand img { border-radius: 12px; }
+.intro-side { display: flex; flex-direction: column; align-items: center; gap: clamp(9px, 1.8vh, 14px); width: min(max(92vw, 54vh), 620px); }
+.intro-progress { width: 100%; height: 3px; border-radius: 2px; overflow: hidden;
+    background: color-mix(in srgb, var(--text) 14%, transparent); }
+.intro-progress i { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+.intro-name { margin: 0; font-size: clamp(1.1rem, 3vh, 1.5rem); font-weight: 700; letter-spacing: -.02em; color: var(--text); }
+.intro-tag { margin: 0; font-size: clamp(.76rem, 1.7vh, .88rem); letter-spacing: .12em; color: var(--muted); }
+.intro-side { animation: intro-up .5s .16s cubic-bezier(.2, .75, .2, 1) both; }
+.intro-skip { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right));
+    min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+.intro-skip kbd { font: inherit; font-size: .72rem; opacity: .6; }
+@keyframes intro-in { from { opacity: 0; transform: scale(.94) } to { opacity: 1; transform: none } }
+@keyframes intro-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
 .intro-out { opacity: 0; transition: opacity .4s ease; }
 html.intro-on, html.intro-on body { overflow: hidden; }
-@media (max-height: 560px) { .intro-stage { width: min(58vw, 84vh); } .intro-brand { display: none; } }
+@media (pointer:coarse) { .intro-skip kbd { display: none } }
+/* 矮屏（横屏手机）：落款改到画框右侧，画面就能长高而不是被文字挤扁 */
+@media (max-height: 560px) {
+    .intro-inner { flex-direction: row; gap: clamp(18px, 4vw, 34px); }
+    .intro-frame { width: min(56vw, 80vh, 420px); }
+    .intro-side { width: auto; align-items: flex-start; gap: 8px; }
+    .intro-progress { display: none; }
+}
+@media (prefers-reduced-motion:reduce) { .intro-frame, .intro-side { animation: none } }
 
 .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
 .nav-links a {
@@ -445,21 +483,49 @@ body { touch-action: manipulation; }
 
 /* ---------- 本页专用样式 ---------- */
 
-      .embed-head { padding: 40px 0 18px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
-      .embed-head h1 { font-size: clamp(1.7rem, 3.6vw, 2.4rem); letter-spacing: -.035em; }
-      .embed-head p { color: var(--muted); margin-top: 8px; max-width: 62ch; }
-      .embed-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-      .embed-frame { position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); box-shadow: var(--shadow-1); overflow: hidden; }
-      .embed-frame iframe { display: block; width: 100%; height: min(80vh, 860px); border: 0; background: var(--surface); }
-      .embed-frame.is-full { position: fixed; inset: 0; z-index: 200; border-radius: 0; border: 0; }
-      .embed-frame.is-full iframe { height: 100dvh; }
-      .embed-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); background: var(--surface-2); font-size: .92rem; }
-      .embed-foot { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: baseline; color: var(--muted); font-size: .86rem; padding: 16px 2px 56px; }
-      .embed-foot strong { color: var(--text); font-weight: 650; }
+      .embed-app { display: flex; flex-direction: column; min-height: 100dvh; }
+      .embed-app .site-header { flex: none; }
+      .embed-app .site-footer { display: none; }
+      .embed-app main { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+      .embed-bar { position: relative; flex: none; display: flex; flex-wrap: wrap; align-items: center;
+          justify-content: space-between; gap: 10px 16px; padding-block: 10px 11px;
+          background: var(--bg); border-bottom: 1px solid var(--line); }
+      .embed-id { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+      .embed-id .eyebrow { white-space: nowrap; }
+      .embed-id h1 { font-size: clamp(1.05rem, 2.4vw, 1.35rem); letter-spacing: -.03em; margin: 0; }
+      .embed-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .embed-notes { position: relative; }
+      .embed-notes > summary { list-style: none; cursor: pointer; font-size: .84rem; font-weight: 600;
+          color: var(--muted); padding: 7px 12px; border: 1px solid var(--line); border-radius: var(--radius-pill);
+          background: var(--surface); }
+      .embed-notes > summary::-webkit-details-marker { display: none; }
+      .embed-notes > summary:hover { color: var(--text); border-color: var(--line-strong); }
+      .embed-notes-body { position: absolute; right: 0; top: calc(100% + 8px); z-index: 70;
+          width: min(420px, calc(100vw - 32px)); max-height: 56dvh; overflow: auto;
+          padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius);
+          background: var(--surface); box-shadow: var(--shadow-2); font-size: .88rem; color: var(--muted); }
+      .embed-notes-body p { margin: 0 0 8px; }
+      .embed-notes-body p:last-child { margin-bottom: 0; }
+      .embed-notes-body strong { color: var(--text); font-weight: 650; }
+      .embed-frame { position: relative; flex: 1 1 0; min-height: 320px; background: var(--surface-2); }
+      .embed-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--surface); }
+      .embed-frame.is-full { position: fixed; inset: 0; z-index: 200; min-height: 0; }
+      .embed-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted);
+          background: var(--surface-2); font-size: .92rem; z-index: 2; }
       body.embed-full { overflow: hidden; }
+      /* 横屏手机只有 390px 高：压缩标题栏，游戏区保底 300px，
+         再多一寸棋盘就多一寸可点，外层最多多出几像素的滚动，可以接受。 */
+      @media (max-height: 560px) {
+          .embed-bar { padding-block: 4px 5px; }
+          .embed-frame { min-height: 300px; }
+      }
       @media (max-width: 620px) {
-          .embed-head { padding-top: 26px; }
-          .embed-frame iframe { height: calc(100dvh - 320px); min-height: 380px; }
+          .embed-bar { padding-block: 8px 9px; }
+          .embed-id .eyebrow { display: none; }
+          /* 三个按钮挤一行会把标题顶出屏幕，返回只留箭头（名称走 aria-label） */
+          .embed-back span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+          .embed-back { padding-inline: 9px; }
+          .embed-frame { min-height: 340px; }
       }
 
     </style>
@@ -486,14 +552,21 @@ body { touch-action: manipulation; }
 }
     </script>
 </head>
-<body>
+<body class="embed-app">
     <a class="skip-link" href="#main" data-i18n="a11y_skip" data-i18n-aria="a11y_skip">跳到主要内容</a>
 
-    <div class="intro" id="introSplash" role="dialog" aria-modal="true" aria-label="Site intro" hidden>
-        <div class="intro-stage">
-            <div class="intro-brand"><img src="assets/logo-mark.webp" alt="" width="36" height="36" /><span data-i18n="brand">云陌轩</span></div>
+    <div class="intro" id="introSplash" role="dialog" aria-modal="true" data-i18n-aria="a11y_intro" aria-label="站点开场动画" hidden>
+        <div class="intro-inner">
+            <div class="intro-frame" id="introFrame">
+                <div class="intro-brand"><img src="assets/logo-mark.webp" alt="" width="44" height="44" /><span data-i18n="brand">云陌轩</span></div>
+            </div>
+            <div class="intro-side">
+                <div class="intro-progress" aria-hidden="true"><i id="introBar"></i></div>
+                <p class="intro-name" data-i18n="brand">云陌轩</p>
+                <p class="intro-tag" data-i18n="intro_tag">个人作品与小游戏</p>
+            </div>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip">跳过</button>
+        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip"><span data-i18n="intro_skip">跳过</span><kbd>Esc</kbd></button>
     </div>
 
     <script>
@@ -512,12 +585,10 @@ body { touch-action: manipulation; }
         video.playsInline = true;
         video.preload = 'auto';
         video.setAttribute('aria-hidden', 'true');
+        /* 首帧解码前先用品牌图顶着，不是一段黑 */
+        video.poster = 'assets/logo.webp';
         video.src = 'assets/intro.mp4';
-        el.querySelector('.intro-stage').prepend(video);
-        var lang = 'zh-CN';
-        try { lang = localStorage.getItem('preferredLanguage') || lang; } catch (e) {}
-        var skipText = { 'zh-CN': '跳过', 'zh-TW': '跳過', en: 'Skip', ja: 'スキップ' }[lang] || '跳过';
-        el.querySelector('#introSkip').textContent = skipText;
+        document.getElementById('introFrame').append(video);
         el.hidden = false;
         document.documentElement.classList.add('intro-on', 'booting');
         /* 弹层期间背景不可交互也不可 Tab 进去，结束后把焦点还给原处。
@@ -536,6 +607,8 @@ body { touch-action: manipulation; }
         var skip = document.getElementById('introSkip');
         /* 焦点必须进入弹层，否则 inert 只是把背景锁成谁也碰不到 */
         skip.focus();
+        var bar = document.getElementById('introBar');
+        var started = false;
         function done() {
             if (closed) return; closed = true;
             el.classList.add('intro-out');
@@ -548,17 +621,21 @@ body { touch-action: manipulation; }
         }
         video.addEventListener('ended', done);
         video.addEventListener('error', done);
+        video.addEventListener('timeupdate', function () {
+            if (bar && video.duration) bar.style.transform = 'scaleX(' + (video.currentTime / video.duration) + ')';
+        });
+        /* 真的画出画面才算“看过”，只是 play() 被允许不算 */
+        video.addEventListener('playing', function () {
+            started = true;
+            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+        });
         skip.addEventListener('click', done);
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
         var playing = video.play();
-        if (playing && playing.then) {
-            playing.then(function () {
-                /* 播成功才算"看过"，被拦截时下次还能再试 */
-                try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
-            }).catch(done);
-        } else {
-            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
-        }
+        if (playing && playing.then) playing.catch(done);
+        /* 慢网络下不能让人对着加载动画干等：两秒还连一帧数据都没拿到就直接进站，下次再试。
+           只看 readyState，不看 started——解码慢是正常现象，不该把动画掐掉。 */
+        setTimeout(function () { if (!started && video.readyState < 2) done(); }, 2500);
         setTimeout(done, 7000);
     })();
     </script>
@@ -643,26 +720,27 @@ body { touch-action: manipulation; }
             <p class="noscript-note">项目与游戏列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
                 站点源码公开：<a href="https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io">Yunmo-Xuan.github.io</a>。</p>
         </noscript>
-        <div class="container">
-            <div class="embed-head">
-                <div>
-                    <span class="eyebrow" data-i18n="eyebrow">游戏室</span>
-                    <h1 data-i18n="game_name">扫雷</h1>
-                    <p data-i18n="game_tag">每个数字都是线索。先圈出危险，再一口气打开安全区域。</p>
-                </div>
-                <div class="embed-actions">
-                    <a class="btn btn-ghost btn-sm" href="games.html"><span data-i18n="back">返回游戏室</span></a>
-                    <button type="button" class="btn btn-ghost btn-sm" id="embedFull" aria-pressed="false"><span data-i18n="fullscreen">放大</span></button>
-                </div>
+        <div class="container embed-bar">
+            <div class="embed-id">
+                <span class="eyebrow" data-i18n="eyebrow">游戏室</span>
+                <h1 data-i18n="game_name">扫雷</h1>
             </div>
-            <div class="embed-frame" id="embedFrame">
-                <div class="embed-loading" id="embedLoading" data-i18n="loading">正在装载游戏…</div>
-                <iframe id="embedGame" src="assets/games/minesweeper.html" title="扫雷" referrerpolicy="no-referrer"></iframe>
+            <div class="embed-actions">
+                <details class="embed-notes" id="embedNotes">
+                    <summary data-i18n="notes">玩法与说明</summary>
+                    <div class="embed-notes-body">
+                        <p><strong data-i18n="rules">操作</strong> · <span data-i18n="game_how">左键翻开，右键标旗；数字与旗数一致时可快捷展开周围格子。</span></p>
+                        <p><strong data-i18n="notice">说明</strong> · <span data-i18n="game_tag">每个数字都是线索。先圈出危险，再一口气打开安全区域。</span></p>
+                        <p data-i18n="tip"></p>
+                    </div>
+                </details>
+                <a class="btn btn-ghost btn-sm embed-back" href="games.html" data-i18n-aria="back" aria-label="返回游戏室"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left" /></svg><span data-i18n="back">返回游戏室</span></a>
+                <button type="button" class="btn btn-ghost btn-sm" id="embedFull" aria-pressed="false"><span data-i18n="fullscreen">放大</span></button>
             </div>
-            <div class="embed-foot">
-                <span><strong data-i18n="rules">操作</strong> · <span data-i18n="game_how">左键翻开，右键标旗；数字与旗数一致时可快捷展开周围格子。</span></span>
-                <span><strong data-i18n="notice">说明</strong> · <span data-i18n="tip"></span></span>
-            </div>
+        </div>
+        <div class="embed-frame" id="embedFrame">
+            <div class="embed-loading" id="embedLoading" data-i18n="loading">正在装载游戏…</div>
+            <iframe id="embedGame" src="assets/games/minesweeper.html" title="扫雷" referrerpolicy="no-referrer"></iframe>
         </div>
     </main>
 
@@ -709,6 +787,7 @@ window.PAGE_I18N = {
     "loading": "正在装载游戏…",
     "rules": "操作",
     "notice": "说明",
+    "notes": "玩法与说明",
     "tip": "若游戏没有响应，请刷新页面；进度与纪录保存在本机浏览器。",
     "frame_label": "%s 游戏画面",
     "game_name": "扫雷",
@@ -725,6 +804,7 @@ window.PAGE_I18N = {
     "loading": "正在載入遊戲…",
     "rules": "操作",
     "notice": "說明",
+    "notes": "玩法與說明",
     "tip": "若遊戲沒有回應，請重新整理頁面；進度與紀錄保存在本機瀏覽器。",
     "frame_label": "%s 遊戲畫面",
     "game_name": "掃雷",
@@ -741,6 +821,7 @@ window.PAGE_I18N = {
     "loading": "Loading the game…",
     "rules": "Controls",
     "notice": "Note",
+    "notes": "How to play",
     "tip": "If the game stops responding, reload the page. Progress and records stay in this browser.",
     "frame_label": "%s game screen",
     "game_name": "Minesweeper",
@@ -757,6 +838,7 @@ window.PAGE_I18N = {
     "loading": "ゲームを読み込み中…",
     "rules": "操作",
     "notice": "補足",
+    "notes": "遊び方と補足",
     "tip": "ゲームが反応しない場合は再読み込みしてください。進捗と記録はこのブラウザに保存されます。",
     "frame_label": "%s のゲーム画面",
     "game_name": "マインスイーパー",
@@ -859,7 +941,8 @@ window.PAGE_RENDER = function(ctx) {
             footer_copyright: '© 2026 云陌轩 · 保留所有权利',
             footer_github: 'GitHub 主页', footer_source: '站点源码', footer_feedback: '反馈问题',
             c_github: 'GitHub', c_back_home: '返回首页', c_all: '全部', c_read_more: '继续阅读',
-            c_updated: '更新于', c_min_read: '分钟阅读', c_empty: '这里还空着。', c_tags: '标签'
+            c_updated: '更新于', c_min_read: '分钟阅读', c_empty: '这里还空着。', c_tags: '标签',
+            intro_tag: '个人作品与小游戏', intro_skip: '跳过', a11y_intro: '站点开场动画'
         },
         'zh-TW': {
             doc_title: '雲陌軒',
@@ -871,7 +954,8 @@ window.PAGE_RENDER = function(ctx) {
             footer_copyright: '© 2026 雲陌軒 · 保留所有權利',
             footer_github: 'GitHub 主頁', footer_source: '網站原始碼', footer_feedback: '反應問題',
             c_github: 'GitHub', c_back_home: '返回首頁', c_all: '全部', c_read_more: '繼續閱讀',
-            c_updated: '更新於', c_min_read: '分鐘閱讀', c_empty: '這裡還空著。', c_tags: '標籤'
+            c_updated: '更新於', c_min_read: '分鐘閱讀', c_empty: '這裡還空著。', c_tags: '標籤',
+            intro_tag: '個人作品與小遊戲', intro_skip: '跳過', a11y_intro: '網站開場動畫'
         },
         'en': {
             doc_title: 'Yunmo-Xuan',
@@ -884,7 +968,8 @@ window.PAGE_RENDER = function(ctx) {
             footer_copyright: '© 2026 Yunmo-Xuan · All rights reserved',
             footer_github: 'GitHub profile', footer_source: 'Site source', footer_feedback: 'Report an issue',
             c_github: 'GitHub', c_back_home: 'Back to home', c_all: 'All', c_read_more: 'Keep reading',
-            c_updated: 'Updated', c_min_read: 'min read', c_empty: 'Nothing here yet.', c_tags: 'Tags'
+            c_updated: 'Updated', c_min_read: 'min read', c_empty: 'Nothing here yet.', c_tags: 'Tags',
+            intro_tag: 'Side projects and small games', intro_skip: 'Skip', a11y_intro: 'Site intro animation'
         },
         'ja': {
             doc_title: '雲陌軒',
@@ -897,7 +982,8 @@ window.PAGE_RENDER = function(ctx) {
             footer_copyright: '© 2026 雲陌軒 · 無断転載を禁じます',
             footer_github: 'GitHub', footer_source: 'サイトのソース', footer_feedback: '問題を報告',
             c_github: 'GitHub', c_back_home: 'ホームへ', c_all: 'すべて', c_read_more: '続きを読む',
-            c_updated: '更新日', c_min_read: '分で読了', c_empty: 'まだ何もありません。', c_tags: 'タグ'
+            c_updated: '更新日', c_min_read: '分で読了', c_empty: 'まだ何もありません。', c_tags: 'タグ',
+            intro_tag: '個人プロジェクトとミニゲーム', intro_skip: 'スキップ', a11y_intro: 'サイトのイントロ'
         }
     };
     var LANGS = ['zh-CN', 'zh-TW', 'en', 'ja'];

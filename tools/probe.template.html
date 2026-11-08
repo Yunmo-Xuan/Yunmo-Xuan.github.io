@@ -129,6 +129,49 @@ STAGES.forEach(function (s) {
 });
 
 /* ---------- 交互阶段：真的点一遍，验证 JS 行为 ---------- */
+/* 嵌入页的界面契约：外层不滚、游戏区拿到整屏、棋盘钉住、说明可展开、内部不横向溢出 */
+function embedUiJob(page, boardSel, minRatio) {
+  return { page: page, w: 390, slow: true, name: 'embed ui contract ' + page, run: function (d, win, done) {
+      var frame = d.getElementById('embedGame');
+      setTimeout(function () {
+        var problems = [];
+        var de = d.documentElement;
+        if (de.scrollHeight > win.innerHeight + 2) problems.push('外层页面自己还在滚 (' + de.scrollHeight + '>' + win.innerHeight + ')');
+        var fr = frame.getBoundingClientRect();
+        if (fr.height < win.innerHeight * (minRatio || 0.62)) problems.push('游戏区太矮 ' + Math.round(fr.height) + '/' + win.innerHeight);
+        var idoc = frame.contentDocument, iw = frame.contentWindow;
+        if (!idoc || !idoc.body) { done('游戏文档没加载'); return; }
+        if (idoc.documentElement.scrollWidth > idoc.clientWidth + 2) {
+          problems.push('游戏内横向溢出 ' + idoc.documentElement.scrollWidth + '>' + idoc.clientWidth);
+        }
+        if (idoc.querySelector('.brand') && idoc.querySelector('.brand').getBoundingClientRect().height > 0) {
+          problems.push('游戏自带品牌标题没让位给外壳');
+        }
+        var notes = d.getElementById('embedNotes');
+        notes.open = true;
+        var sheet = notes.querySelector('.embed-notes-body');
+        if (!sheet || !sheet.textContent.trim()) problems.push('说明面板是空的');
+        if (sheet && sheet.getBoundingClientRect().height > win.innerHeight * 0.9) problems.push('说明面板高过视口');
+        notes.open = false;
+        var board = boardSel ? idoc.querySelector(boardSel) : null;
+        if (board) {
+          var top = board.getBoundingClientRect().top;
+          iw.scrollTo(0, idoc.documentElement.scrollHeight);
+          setTimeout(function () {
+            var r = board.getBoundingClientRect();
+            if (idoc.documentElement.scrollHeight - iw.innerHeight > 40 && (r.bottom <= 0 || r.top >= iw.innerHeight)) {
+              problems.push('滚到控件时棋盘整个滚出画面（' + Math.round(r.top) + '~' + Math.round(r.bottom) + '）');
+            }
+            iw.scrollTo(0, 0);
+            done(problems.length ? problems.join('; ') : undefined);
+          }, 320);
+        } else {
+          done(problems.length ? problems.join('; ') : undefined);
+        }
+      }, 1400);
+    } };
+}
+
 var INTERACTIONS = [
   { page: 'index.html', w: 1440, name: 'theme toggle', run: function (d) {
       var before = d.documentElement.getAttribute('data-theme');
@@ -164,60 +207,80 @@ var INTERACTIONS = [
       var f2 = d.createElement('iframe');
       f2.style.width = '1280px';
       f2.style.height = '800px';
-      var first = '', phase = 0;
+      var first = '', reloaded = false;
       f2.addEventListener('load', function () {
+        if (reloaded) return;
+        reloaded = true;
+        /* 就在子帧自己的会话里清掉标记再重载一次，这才是干净的“第一次访问” */
+        var w2 = f2.contentWindow;
+        w2.sessionStorage.removeItem('yunmo.intro.seen');
+        w2.location.reload();
+      });
+      /* 断言不能等子帧的 load：load 要等 15MB 视频下载完，那时动画早播完了。
+         改成轮询：弹层出现且解析完成（readyState 离开 loading，等于 DOMContentLoaded 已补锁）就量。 */
+      var tries = 0;
+      (function poll() {
         var d2 = f2.contentDocument;
-        if (!d2 || !d2.defaultView) { done('splash frame disappeared before it booted'); return; }
-        if (phase === 0) {
-          /* 就在子帧自己的会话里清掉标记再重载一次，这才是干净的“第一次访问” */
-          phase = 1;
-          d2.defaultView.sessionStorage.removeItem('yunmo.intro.seen');
-          d2.defaultView.location.reload();
+        var splash = d2 && d2.getElementById('introSplash');
+        if (splash && !splash.hidden && d2.readyState !== 'loading') { check(d2); return; }
+        if (tries++ > 60) {
+          done('first visit showed no splash (seen=' + (d2 && d2.defaultView.sessionStorage.getItem('yunmo.intro.seen')) +
+            ', reduced=' + (d2 && d2.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches) + ')');
           return;
         }
-        if (phase >= 2) return;
-        phase = 2;
-        var seen2 = 0;
-        (function wait2() {
-          var splash = d2.getElementById('introSplash');
-          if (splash && d2.readyState !== 'complete' && seen2++ < 16) { setTimeout(wait2, 120); return; }
-          if (!splash) first = 'first visit showed no splash (seen=' + d2.defaultView.sessionStorage.getItem('yunmo.intro.seen') +
-            ', reduced=' + d2.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches + ')';
-          else if (splash.hidden) first = 'splash stayed hidden';
-          else if (!d2.getElementById('introVideo')) first = 'splash has no video';
-          else if (!d2.getElementById('main').inert) first = 'background stayed reachable during the splash';
-          else if (d2.activeElement !== d2.getElementById('introSkip')) first = 'focus never entered the splash';
-          else {
-            var skip = d2.getElementById('introSkip');
-            skip.click();
-            setTimeout(function () {
-              var still = d2.getElementById('introSplash');
-              if (still && !still.classList.contains('intro-out')) first = 'skip did not dismiss the splash';
-              if (still && d2.getElementById('main').inert) first = first || 'background stayed locked after the splash';
-              var f3 = d2.createElement('iframe');
-              f3.style.width = '1280px';
-              f3.style.height = '800px';
-              f3.addEventListener('load', function () {
-                var seen3 = 0;
-                (function wait3() {
-                  var d3 = f3.contentDocument;
-                  if (!d3) { first = first || 'reopened splash frame vanished'; f3.remove(); done(first); return; }
-                  /* 没解析完的文档当然没有弹层，那不能算“只播一次” */
-                  if (d3.readyState !== 'complete' && seen3++ < 16) { setTimeout(wait3, 120); return; }
-                  var again = d3.getElementById('introSplash');
-                  if (again) first = first || 'splash replayed in the same session';
-                  f3.remove();
-                  try { d2.defaultView.sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
-                  done(first || undefined);
-                })();
-              });
-              d2.body.appendChild(f3);
-              f3.src = 'index.html';
-            }, 520);
-          }
-          if (first) { try { d2.defaultView.sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {} done(first); }
+        setTimeout(poll, 100);
+      })();
+      function check(d2) {
+        var w2 = d2.defaultView;
+        var iw2 = w2;
+        var frameBox = d2.querySelector('.intro-frame').getBoundingClientRect();
+        var skipBox = d2.getElementById('introSkip').getBoundingClientRect();
+        var poster = (d2.getElementById('introVideo') || {}).poster || '';
+        if (!d2.getElementById('introVideo')) first = 'splash has no video';
+        else if (!d2.getElementById('introBar')) first = 'splash has no progress line';
+        else if (!d2.getElementById('main').inert) first = 'background stayed reachable during the splash';
+        else if (d2.activeElement !== d2.getElementById('introSkip')) first = 'focus never entered the splash';
+        else if (frameBox.width < Math.min(iw2.innerWidth, iw2.innerHeight) * 0.55) first = '开场画面太小 ' + Math.round(frameBox.width) + '/' + iw2.innerWidth + 'x' + iw2.innerHeight;
+        else if (skipBox.height < 44) first = '跳过按钮只有 ' + Math.round(skipBox.height) + 'px 高，手指点不准';
+        else if (!/logo/.test(poster)) first = '视频没有 poster，首帧前是一段黑';
+        else if (d2.documentElement.scrollWidth > d2.documentElement.clientWidth + 2) first = '弹层把页面顶出了横向滚动';
+        else if (!d2.querySelector('.intro-name').textContent.trim()) first = '品牌落款是空的';
+        if (first) { w2.sessionStorage.setItem('yunmo.intro.seen', '1'); done(first); return; }
+        /* 只有真的画出首帧才算“看过”，所以先等它播起来，再验“同会话不重播” */
+        var waits = 0;
+        (function untilSeen() {
+          if (w2.sessionStorage.getItem('yunmo.intro.seen') === '1') return finish(d2, w2);
+          if (waits++ > 80) { done('开场视频始终没画出首帧（poster 与画面都验证过了，但 seen 没置上）'); return; }
+          setTimeout(untilSeen, 100);
         })();
-      });
+      }
+      function finish(d2, w2) {
+        var skip = d2.getElementById('introSkip');
+        if (skip) skip.click();
+        setTimeout(function () {
+          var still = d2.getElementById('introSplash');
+          if (still && !still.classList.contains('intro-out')) first = 'skip did not dismiss the splash';
+          if (still && d2.getElementById('main').inert) first = first || 'background stayed locked after the splash';
+          var f3 = d2.createElement('iframe');
+          f3.style.width = '1280px';
+          f3.style.height = '800px';
+          f3.addEventListener('load', function () {
+            var seen3 = 0;
+            (function wait3() {
+              var d3 = f3.contentDocument;
+              if (!d3) { first = first || 'reopened splash frame vanished'; f3.remove(); done(first); return; }
+              /* 没解析完的文档当然没有弹层，那不能算“只播一次” */
+              if (d3.readyState !== 'complete' && seen3++ < 16) { setTimeout(wait3, 120); return; }
+              var again = d3.getElementById('introSplash');
+              if (again) first = first || 'splash replayed in the same session';
+              f3.remove();
+              done(first || undefined);
+            })();
+          });
+          d2.body.appendChild(f3);
+          f3.src = 'index.html';
+        }, 520);
+      }
       d.body.appendChild(f2);
       f2.src = 'index.html';
     } },
@@ -441,7 +504,7 @@ var INTERACTIONS = [
           button.click();
           if (!d.getElementById('embedFrame').classList.contains('is-full')) problems.push('cannot re-enter fullscreen');
           d.querySelector('[data-lang="ja"]').click();
-          if (!/ゲーム/.test(d.querySelector('.embed-foot').textContent)) problems.push('embed copy not translated');
+          if (!/ゲーム/.test(d.querySelector('.embed-notes').textContent)) problems.push('embed copy not translated');
           if (!d.getElementById('embedFrame').classList.contains('is-full')) problems.push('fullscreen lost after language switch');
           if (button.querySelector('span').textContent.indexOf('拡大') < 0) problems.push('fullscreen label wrong while fullscreen');
           button.click();
@@ -588,6 +651,14 @@ var INTERACTIONS = [
       if (d.querySelector('#pageMap a[href="/blog.html"]')) throw '404 map still lists the retired blog';
     } }
 ];
+
+INTERACTIONS.push(
+  embedUiJob('planet-merge.html', '.stage-wrap'),
+  embedUiJob('gomoku.html', '.board-shell'),
+  embedUiJob('minesweeper.html', '.board-wrap'),
+  embedUiJob('xiangqi.html', '.board-side'),
+  embedUiJob('simdesk.html', null, 0.55)
+);
 
 if (!TOTAL_STAGES) TOTAL_STAGES = queue.length + INTERACTIONS.length;
 

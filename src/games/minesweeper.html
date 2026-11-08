@@ -210,7 +210,7 @@ header.bar{
 .icon-btn svg{width:18px;height:18px}
 
 main.stage{
-  display:grid; grid-template-columns:1fr var(--side-w); gap:var(--sp-4);
+  display:grid; grid-template-columns:minmax(0,1fr) var(--side-w); gap:var(--sp-4);
   padding:var(--sp-4) var(--pad-page) var(--pad-page); min-height:0; overflow:hidden;
 }
 
@@ -301,7 +301,7 @@ main.stage{
    BOARD
    ============================================================ */
 .board-wrap{
-  flex:1; min-height:0; overflow:auto; border-radius:var(--rad-xl); padding:var(--sp-4);
+  flex:1; min-height:0; min-width:0; overflow:auto; border-radius:var(--rad-xl); padding:var(--sp-4);
   background:var(--panel);
   border:1px solid var(--line); box-shadow:var(--shadow-far);
   scrollbar-width:thin; scrollbar-color:var(--line) transparent;
@@ -496,11 +496,11 @@ input[type=checkbox]{accent-color:var(--accent);width:20px;height:20px;cursor:po
 /* ============================================================
    RESPONSIVE  (must stay last so it can override the base rules)
    ============================================================ */
-@media (max-width:1180px){ main.stage{grid-template-columns:1fr 250px} }
+@media (max-width:1180px){ main.stage{grid-template-columns:minmax(0,1fr) 250px} }
 @media (max-width:880px){
   body{overflow:auto}
   .app{height:auto;min-height:100%}
-  main.stage{grid-template-columns:1fr;gap:var(--sp-3);padding:var(--sp-3);overflow:visible}
+  main.stage{grid-template-columns:minmax(0,1fr);gap:var(--sp-3);padding:var(--sp-3);overflow:visible}
   .side{overflow:visible;gap:var(--sp-3)}
   header.bar{padding:var(--sp-2) var(--sp-4);gap:var(--sp-3)}
   .brand{width:100%}
@@ -513,7 +513,7 @@ input[type=checkbox]{accent-color:var(--accent);width:20px;height:20px;cursor:po
   html[data-view="fit"] body, html[data-view="auto"] body{overflow-y:auto;overflow-x:hidden}
   html[data-view="fit"] .app, html[data-view="auto"] .app{height:auto;min-height:100%}
   html[data-view="fit"] main.stage, html[data-view="auto"] main.stage{
-    grid-template-columns:1fr;grid-template-rows:auto auto;overflow:visible;min-height:0;
+    grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;overflow:visible;min-height:0;
   }
   html[data-view="fit"] .side, html[data-view="auto"] .side{
     display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--sp-2);overflow:visible}
@@ -532,6 +532,13 @@ html[data-view="fit"] .cell{min-width:0;min-height:0}
   .readout{flex:1 1 auto}
   .card{padding:var(--sp-4) var(--sp-4)}
   .grid2{grid-template-columns:1fr}
+  /* 难度按钮换行会把棋盘顶到折叠线以下，改成一行横向滑动 */
+  /* min-width:0 是关键：flex 项默认 min-width:auto，不写就会用按钮总宽顶宽整份文档 */
+  .seg{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0;max-width:100%}
+  .seg::-webkit-scrollbar{display:none}
+  .seg button{flex:none}
+  header.bar,.game{min-width:0}
+  header.bar>*{min-width:0}
 }
 @media (pointer:coarse){
   .seg button,.ghost{min-height:var(--target)}
@@ -833,7 +840,9 @@ function applyView(){
 function setViewPx(px){
   V.px = px; V.manual = true; saveView(); applyView();
   toast(`视图：${viewName(px)}`);
-  announce(`视图已切换为${viewName(px)}${px===0?"，整盘在一屏内完整可见，无需滚动页面":""}`);
+  announce(`视图已切换为${viewName(px)}` +
+    (px === 0 ? (fitReallyShowsAll() ? "，整盘在一屏内完整可见，无需滚动页面"
+                                       : "，格子已放大到可点的尺寸，整盘超出部分在雷区内拖动查看") : ""));
 }
 function toggleFit(){ setViewPx(V.px===0 ? -1 : 0); }
 function zoomView(dir){
@@ -1273,7 +1282,11 @@ function boardFit(){                               /* 恰好放下整盘的边�
       Math.floor((availW - (S.cols-1)*gap - 8) / S.cols),
       Math.floor((availH - (S.rows-1)*gap - 8) / S.rows));
 }
-function currentFitPx(){ return Math.max(6, boardFit()); }
+/* 全览的边长下限：手机上「整盘塞进一屏」会把 30×16 压成 6px 的点，谁也点不准。
+   放不下就让它在本容器里平移，格子尺寸优先保证可读可点。 */
+const FIT_FLOOR = () => COARSE.matches ? 30 : 16;
+function currentFitPx(){ return Math.max(FIT_FLOOR(), boardFit()); }
+function fitReallyShowsAll(){ return boardFit() >= FIT_FLOOR(); }
 function sizeBoard(){
   const fit = boardFit();
   let px;

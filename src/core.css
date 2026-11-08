@@ -138,19 +138,57 @@ button { font: inherit; color: inherit; }
 .logo:hover .logo-mark { transform: rotate(-6deg) scale(1.04); }
 
 /* ---------- 启动动画（同一标签页只播一次，可跳过） ---------- */
-.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: #05070f; }
-.intro[hidden] { display: none !important; }
-.intro-stage { position: relative; width: min(88vw, 62vh); aspect-ratio: 1; }
-.intro-video { width: 100%; height: 100%; object-fit: contain; border-radius: 24px; }
-.intro-brand {
-    position: absolute; left: 0; bottom: -52px; display: flex; align-items: center; gap: 10px;
-    color: #eaf1ff; font-weight: 700; letter-spacing: -.01em;
+/* ---------- 开场动画 ---------- */
+/* 视频本身就是 960×960 的方形，所以画框也做成方形：object-fit 不再产生黑边或裁切。
+   底色用站点令牌而不是写死的夜空色，浅色主题下不会一大块黑压在米白页面上。 */
+.intro {
+    position: fixed; inset: 0; z-index: 300; display: grid; place-items: center;
+    padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+             max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    background:
+        radial-gradient(110% 80% at 50% 4%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 62%),
+        radial-gradient(90% 70% at 50% 104%, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 60%),
+        var(--bg);
 }
-.intro-brand img { border-radius: 10px; }
-.intro-skip { position: absolute; right: 22px; bottom: 22px; }
+.intro[hidden] { display: none !important; }
+.intro-inner { display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 2.2vh, 20px); }
+/* 竖屏时允许画框略宽于屏幕，由视口裁掉两边各几十像素：
+   源画面是居中的方形，裁的是外圈轨道线，主体不动，但整块画面大了约四分之一。 */
+.intro-frame {
+    position: relative; width: min(max(92vw, 54vh), 620px); aspect-ratio: 1; overflow: hidden;
+    border-radius: clamp(18px, 3.4vh, 30px); background: var(--surface);
+    box-shadow: 0 30px 80px -30px color-mix(in srgb, var(--accent) 55%, transparent),
+                0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent);
+    display: grid;
+    animation: intro-in .55s cubic-bezier(.2, .75, .2, 1) both;
+}
+.intro-frame > * { grid-area: 1 / 1; }
+.intro-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.intro-brand { display: grid; place-content: center; gap: 12px; justify-items: center; color: var(--muted); }
+.intro-brand img { border-radius: 12px; }
+.intro-side { display: flex; flex-direction: column; align-items: center; gap: clamp(9px, 1.8vh, 14px); width: min(max(92vw, 54vh), 620px); }
+.intro-progress { width: 100%; height: 3px; border-radius: 2px; overflow: hidden;
+    background: color-mix(in srgb, var(--text) 14%, transparent); }
+.intro-progress i { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+.intro-name { margin: 0; font-size: clamp(1.1rem, 3vh, 1.5rem); font-weight: 700; letter-spacing: -.02em; color: var(--text); }
+.intro-tag { margin: 0; font-size: clamp(.76rem, 1.7vh, .88rem); letter-spacing: .12em; color: var(--muted); }
+.intro-side { animation: intro-up .5s .16s cubic-bezier(.2, .75, .2, 1) both; }
+.intro-skip { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right));
+    min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+.intro-skip kbd { font: inherit; font-size: .72rem; opacity: .6; }
+@keyframes intro-in { from { opacity: 0; transform: scale(.94) } to { opacity: 1; transform: none } }
+@keyframes intro-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
 .intro-out { opacity: 0; transition: opacity .4s ease; }
 html.intro-on, html.intro-on body { overflow: hidden; }
-@media (max-height: 560px) { .intro-stage { width: min(58vw, 84vh); } .intro-brand { display: none; } }
+@media (pointer:coarse) { .intro-skip kbd { display: none } }
+/* 矮屏（横屏手机）：落款改到画框右侧，画面就能长高而不是被文字挤扁 */
+@media (max-height: 560px) {
+    .intro-inner { flex-direction: row; gap: clamp(18px, 4vw, 34px); }
+    .intro-frame { width: min(56vw, 80vh, 420px); }
+    .intro-side { width: auto; align-items: flex-start; gap: 8px; }
+    .intro-progress { display: none; }
+}
+@media (prefers-reduced-motion:reduce) { .intro-frame, .intro-side { animation: none } }
 
 .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
 .nav-links a {

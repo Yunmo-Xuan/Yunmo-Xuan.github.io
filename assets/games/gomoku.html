@@ -462,7 +462,15 @@ footer span{color:var(--muted)}
     --ff-num: var(--site-mono);
   }
   html, body { font-family: var(--site-font); }
+    html.in-embed .masthead .brand { display: none !important; }
+  @media (max-width:1000px){
+  html.in-embed .stage{display:block}
+  html.in-embed .board-shell{position:sticky;top:0;z-index:6;background:var(--page);padding-block:6px}
+  html.in-embed .panel{margin-top:14px}
+}
 </style>
+<script>/* 站点里以 iframe 嵌入时，游戏自带的品牌标题与外壳重复，让位给整屏游戏区 */
+if (window.top !== window.self) document.documentElement.classList.add('in-embed');</script>
 </head>
 <body>
 <div class="app">

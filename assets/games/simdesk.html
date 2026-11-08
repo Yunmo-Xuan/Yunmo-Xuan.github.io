@@ -1143,7 +1143,11 @@ h1,h2,h3{margin:0;font-weight:700;line-height:1.2}
     --mono: var(--site-mono);
   }
   html, body { font-family: var(--site-font); }
+    html.in-embed #topbar .brand { display: none !important; }
+  
 </style>
+<script>/* 站点里以 iframe 嵌入时，游戏自带的品牌标题与外壳重复，让位给整屏游戏区 */
+if (window.top !== window.self) document.documentElement.classList.add('in-embed');</script>
 </head>
 <body>
 <div class="bgfx"></div>

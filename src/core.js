@@ -29,7 +29,8 @@
             footer_copyright: '© 2026 云陌轩 · 保留所有权利',
             footer_github: 'GitHub 主页', footer_source: '站点源码', footer_feedback: '反馈问题',
             c_github: 'GitHub', c_back_home: '返回首页', c_all: '全部', c_read_more: '继续阅读',
-            c_updated: '更新于', c_min_read: '分钟阅读', c_empty: '这里还空着。', c_tags: '标签'
+            c_updated: '更新于', c_min_read: '分钟阅读', c_empty: '这里还空着。', c_tags: '标签',
+            intro_tag: '个人作品与小游戏', intro_skip: '跳过', a11y_intro: '站点开场动画'
         },
         'zh-TW': {
             doc_title: '雲陌軒',
@@ -41,7 +42,8 @@
             footer_copyright: '© 2026 雲陌軒 · 保留所有權利',
             footer_github: 'GitHub 主頁', footer_source: '網站原始碼', footer_feedback: '反應問題',
             c_github: 'GitHub', c_back_home: '返回首頁', c_all: '全部', c_read_more: '繼續閱讀',
-            c_updated: '更新於', c_min_read: '分鐘閱讀', c_empty: '這裡還空著。', c_tags: '標籤'
+            c_updated: '更新於', c_min_read: '分鐘閱讀', c_empty: '這裡還空著。', c_tags: '標籤',
+            intro_tag: '個人作品與小遊戲', intro_skip: '跳過', a11y_intro: '網站開場動畫'
         },
         'en': {
             doc_title: 'Yunmo-Xuan',
@@ -54,7 +56,8 @@
             footer_copyright: '© 2026 Yunmo-Xuan · All rights reserved',
             footer_github: 'GitHub profile', footer_source: 'Site source', footer_feedback: 'Report an issue',
             c_github: 'GitHub', c_back_home: 'Back to home', c_all: 'All', c_read_more: 'Keep reading',
-            c_updated: 'Updated', c_min_read: 'min read', c_empty: 'Nothing here yet.', c_tags: 'Tags'
+            c_updated: 'Updated', c_min_read: 'min read', c_empty: 'Nothing here yet.', c_tags: 'Tags',
+            intro_tag: 'Side projects and small games', intro_skip: 'Skip', a11y_intro: 'Site intro animation'
         },
         'ja': {
             doc_title: '雲陌軒',
@@ -67,7 +70,8 @@
             footer_copyright: '© 2026 雲陌軒 · 無断転載を禁じます',
             footer_github: 'GitHub', footer_source: 'サイトのソース', footer_feedback: '問題を報告',
             c_github: 'GitHub', c_back_home: 'ホームへ', c_all: 'すべて', c_read_more: '続きを読む',
-            c_updated: '更新日', c_min_read: '分で読了', c_empty: 'まだ何もありません。', c_tags: 'タグ'
+            c_updated: '更新日', c_min_read: '分で読了', c_empty: 'まだ何もありません。', c_tags: 'タグ',
+            intro_tag: '個人プロジェクトとミニゲーム', intro_skip: 'スキップ', a11y_intro: 'サイトのイントロ'
         }
     };
     var LANGS = ['zh-CN', 'zh-TW', 'en', 'ja'];

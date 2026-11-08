@@ -456,7 +456,15 @@ textarea.fen {
     --font-title: var(--site-font);
   }
   html, body { font-family: var(--site-font); }
+    html.in-embed .bar .brand { display: none !important; }
+  @media (max-width:1040px){
+  html.in-embed .stage{display:block}
+  html.in-embed .board-side{position:sticky;top:0;z-index:6;background:var(--bg);padding-block:6px}
+  html.in-embed .panel{margin-top:14px}
+}
 </style>
+<script>/* 站点里以 iframe 嵌入时，游戏自带的品牌标题与外壳重复，让位给整屏游戏区 */
+if (window.top !== window.self) document.documentElement.classList.add('in-embed');</script>
 </head>
 <body>
 <div class="app">
