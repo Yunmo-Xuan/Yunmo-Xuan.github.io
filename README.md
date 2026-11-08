@@ -15,6 +15,8 @@
 - `src/extra/`：robots.txt、sitemap.xml 与 .nojekyll。
 - `assets/`：站点图标、Logo 与启动视频，随产物一起部署。
 - `tools/`：构建、质检与浏览器实测脚本；`site/` 为本地构建输出，不提交。
+  开场视频的加工链在 `prepare-branding.cjs` → `reencode-intro.cjs`（Chrome 内置编码器压缩）
+  → `mp4-toprogressive.cjs`（分片合并为单段，浏览器一次顺序读即可起播），全程不依赖 ffmpeg。
 
 需要 Node.js；以下命令在仓库根目录运行：
 
