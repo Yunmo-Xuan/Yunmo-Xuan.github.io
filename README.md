@@ -25,8 +25,10 @@ npm run check          # 静态质检
 npm run preview        # http://127.0.0.1:8777/ 本地预览
 npm run test:browser   # Chrome 无头实测（先启动 preview）
 npm run test:2048      # 2048 规则与存档回归
+npm run test:gomoku    # 五子棋引擎、禁手与浏览器回归
 npm run test:simdesk   # 股市模拟数值回归
-npm run test:xiangqi   # 象棋规则引擎与 AI 测试
+npm run test:xiangqi   # 象棋规则引擎、AI、局面一致性与浏览器回归
+npm run sync           # 把 site/ 产物同步到仓库根目录（--dry 只看计划）
 ```
 
 浏览器一律使用本机 Google Chrome，不会回退到 Edge。
