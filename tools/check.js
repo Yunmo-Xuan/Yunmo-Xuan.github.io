@@ -113,14 +113,20 @@ for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.html'))) {
 for (const rel of ['assets/intro.mp4', 'assets/favicon.png', 'assets/logo-mark.webp']) {
   if (!fs.existsSync(path.join(dir, rel))) fail(dir, `缺少站点素材 ${rel}`);
 }
-/* 开场视频必须 faststart（moov 在 mdat 之前），否则浏览器要整段下完才开播，动画就卡死在等待 */
+/* 开场视频必须是「单个 mdat + moov 在前」的 progressive 文件。
+   分片（fMP4）会让 Chrome 为索引反复发 Range 请求，线上实测首帧要 1.8~2.5 秒；
+   重排 + 合并后一次顺序读就能起播。 */
 const introFile = path.join(dir, 'assets', 'intro.mp4');
 if (fs.existsSync(introFile)) {
   const { topLevel } = require('./mp4-faststart.cjs');
   const boxes = topLevel(fs.readFileSync(introFile));
-  const moov = boxes.find(b => b.type === 'moov'), mdat = boxes.find(b => b.type === 'mdat');
-  if (!moov || !mdat) fail(introFile, '不是预期的 MP4（找不到 moov/mdat）');
-  else if (moov.start > mdat.start) fail(introFile, 'moov 在 mdat 之后，未做 faststart：' + boxes.map(b => b.type).join(' '));
+  const types = boxes.map(b => b.type);
+  const moov = boxes.find(b => b.type === 'moov');
+  const mdats = boxes.filter(b => b.type === 'mdat');
+  if (!moov || !mdats.length) fail(introFile, '不是预期的 MP4（找不到 moov/mdat）');
+  else if (types.includes('moof')) fail(introFile, '仍是分片封装（有 moof），浏览器要多趟 Range 才起播：' + types.join(' '));
+  else if (mdats.length > 1) fail(introFile, `mdat 有 ${mdats.length} 段，应为单段 progressive`);
+  else if (moov.start > mdats[0].start) fail(introFile, 'moov 在 mdat 之后，未做 faststart：' + types.join(' '));
 }
 const gamesDir = path.join(dir, 'assets', 'games');
 if (fs.existsSync(gamesDir)) {
