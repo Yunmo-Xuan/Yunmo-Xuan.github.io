@@ -651,10 +651,11 @@ body { touch-action: manipulation; }
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
         var playing = video.play();
         if (playing && playing.then) playing.catch(done);
-        /* 开场是一段"品牌节拍"，不是视频的等待页：
-           2.2 秒内画不出首帧就带着动效收场（4G 实测首帧约 1.5 秒，这个窗口够它进来），
-           绝不让人对着一张静止图干等。慢网络下不写 seen，下次还会再试。 */
-        setTimeout(function () { if (!started) done(); }, 2200);
+        /* 开场是一段"品牌节拍"，不是视频的等待页：3 秒内画不出首帧就带着动效收场。
+           为什么是 3 秒：线上实测 fragmented mp4 要发 3 次 Range 请求才起播（1.7~2.8 秒），
+           而这 3 秒里占位品牌在呼吸、进度线在走，不是对着静止图干等。
+           没播起来就不写 seen，下次还会再试。 */
+        setTimeout(function () { if (!started) done(); }, 3000);
         setTimeout(done, 7000);
     })();
     </script>

@@ -88,11 +88,20 @@ function faststart(buf) {
 if (require.main === module) {
   const file = process.argv[2];
   const dry = process.argv.includes('--dry');
-  if (!file) { console.error('用法：node tools/mp4-faststart.cjs <文件> [--dry]'); process.exit(2); }
-  const src = fs.readFileSync(file);
+  const stripMfra = process.argv.includes('--strip-mfra');
+  if (!file) { console.error('用法：node tools/mp4-faststart.cjs <文件> [--dry] [--strip-mfra]'); process.exit(2); }
+  let src = fs.readFileSync(file);
+  if (stripMfra) {
+    /* mfra（随机访问索引）在文件尾，Chrome 会为了读它专门跳一次 Range；
+       5 秒的开场动画根本不需要索引，去掉它能少一次往返 */
+    const kept = Buffer.concat(topLevel(src).filter(b => b.type !== 'mfra').map(b => src.subarray(b.start, b.start + b.size)));
+    if (kept.length !== src.length) console.log(`  · 去掉 mfra 索引，省掉一次尾部 Range：${(src.length / 1024).toFixed(0)}KB → ${(kept.length / 1024).toFixed(0)}KB`);
+    src = kept;
+    if (!dry) fs.writeFileSync(file, src);
+  }
   const out = faststart(src);
   const before = topLevel(src).map(b => b.type).join(' ');
-  if (!out.moved) { console.log(`  · ${file} 已经是 faststart（${before}）`); process.exit(0); }
+  if (!out.moved) { console.log(`  · ${file} 已经是 faststart（${before}）`); if (!dry && stripMfra) fs.writeFileSync(file, out.buf); process.exit(0); }
   const afterBoxes = topLevel(out.buf).map(b => b.type).join(' ');
   console.log(`  · ${file}\n    ${before}\n    → ${afterBoxes}\n    偏移整体 +${out.delta} 字节，${(src.length / 1048576).toFixed(1)}MB`);
   if (!dry) fs.writeFileSync(file, out.buf);

@@ -89,7 +89,7 @@ function serve(file) {
     fs.writeFileSync(OUT, Buffer.from(out.b64, 'base64'));
     console.log(`  · 源 ${out.src.w}x${out.src.h} ${out.src.dur.toFixed(2)}s → ${SIZE}px @${KBPS}kbps（${out.mime.split(';')[0]}）`);
     console.log(`  · 采集 ${out.frames} 帧，写出 ${(fs.statSync(OUT).size / 1048576).toFixed(2)}MB`);
-    execFileSync(process.execPath, [path.join(__dirname, 'mp4-faststart.cjs'), OUT], { stdio: 'inherit' });
+    execFileSync(process.execPath, [path.join(__dirname, 'mp4-faststart.cjs'), OUT, '--strip-mfra'], { stdio: 'inherit' });
   } finally {
     await browser.close();
     srv.close();
