@@ -13,8 +13,10 @@ module.exports = {
         'ja': '雲陌軒 · パーソナルサイト'
     },
     desc: {
-        'zh-CN': '云陌轩的个人空间：纯手写的静态小站，记录做过的项目与笔记。零框架、零依赖、零外部请求。',
-        'en': 'Yunmo-Xuan\'s corner of the internet: a hand-written static site with projects and notes. No framework, no dependencies, no external requests.'
+        'zh-CN': '云陌轩的个人空间：纯手写的静态小站，展示实用项目与六款小游戏。零框架、零依赖、零外部请求。',
+        'zh-TW': '雲陌軒的個人空間：純手寫的靜態小站，展示實用項目與六款小遊戲。零框架、零相依、零外部請求。',
+        'en': 'Yunmo-Xuan\'s corner of the internet: a hand-written static site with practical projects and six games. No framework, no dependencies, no external requests.',
+        'ja': '雲陌軒の個人空間。手書きの静的サイトで、実用的なプロジェクトと6つのミニゲームを紹介しています。フレームワークなし、依存なし、外部リクエストなし。'
     },
 
     styles: `
@@ -96,16 +98,16 @@ module.exports = {
                         <span class="grad" data-i18n="hero_title_2">云陌轩</span>
                     </h1>
                     <p class="lead reveal d2" data-i18n="hero_desc">
-                        这里展示我做的实用工具与项目；从 PDF 工具箱到个人站，把想法做成能用的东西。
+                        这里展示我做的实用工具、项目与小游戏；从 PDF 工具箱到六款游戏，把想法做成能用、能玩的东西。
                     </p>
                     <div class="hero-actions btn-row reveal d3">
                         <a class="btn btn-primary" href="projects.html">
                             <svg class="icon" aria-hidden="true"><use href="#i-folder" /></svg>
                             <span data-i18n="cta_projects">看看项目</span>
                         </a>
-                        <a class="btn btn-ghost" href="blog.html">
-                            <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
-                            <span data-i18n="cta_blog">读读文章</span>
+                        <a class="btn btn-ghost" href="games.html">
+                            <svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg>
+                            <span data-i18n="cta_games">玩玩游戏</span>
                         </a>
                         <a class="btn btn-ghost" href="https://github.com/Yunmo-Xuan" target="_blank" rel="noopener noreferrer">
                             <svg class="icon" aria-hidden="true"><use href="#i-github" /></svg>
@@ -148,7 +150,7 @@ module.exports = {
                 <div class="reveal">
                     <span class="eyebrow" data-i18n="guide_eyebrow">导览</span>
                     <h2 class="section-title" data-i18n="guide_title">想去哪儿？</h2>
-                    <p class="section-sub" data-i18n="guide_sub">看看做过的项目，读读开发笔记，或了解这个站背后的人。</p>
+                    <p class="section-sub" data-i18n="guide_sub">看看做过的项目，挑一款游戏，或了解这个站背后的人。</p>
                 </div>
 
                 <div class="card-grid grid-3">
@@ -160,15 +162,7 @@ module.exports = {
                             <span class="more"><span data-i18n="card_view_projects">查看</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
                         </div>
                     </a>
-                    <a class="tile-link reveal d1" href="blog.html">
-                        <div class="card">
-                            <div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg></div>
-                            <h3 data-i18n="card_blog_t">文章</h3>
-                            <p data-i18n="card_blog_d">技术笔记与零散思考，按时间倒序排列，可按标签筛选。</p>
-                            <span class="more"><span data-i18n="card_view_blog">阅读</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
-                        </div>
-                    </a>
-                    <a class="tile-link reveal d2" href="about.html">
+                    <a class="tile-link reveal d1" href="about.html">
                         <div class="card">
                             <div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#i-user" /></svg></div>
                             <h3 data-i18n="card_about_t">关于</h3>
@@ -176,11 +170,11 @@ module.exports = {
                             <span class="more"><span data-i18n="card_view_about">了解</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
                         </div>
                     </a>
-                    <a class="tile-link reveal d3" href="games.html">
+                    <a class="tile-link reveal d2" href="games.html">
                         <div class="card">
                             <div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg></div>
                             <h3 data-i18n="card_games_t">小游戏</h3>
-                            <p data-i18n="card_games_d">站内写的 2048：方向键或滑动，合并相同数字，跟着站点一起换主题换语言。</p>
+                            <p data-i18n="card_games_d">2048、星核合成、象棋、五子棋、扫雷、股市模拟：六款作品，体验合成、对弈、推理与模拟。</p>
                             <span class="more"><span data-i18n="card_view_games">玩一局</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
                         </div>
                     </a>
@@ -218,7 +212,7 @@ module.exports = {
                             <span class="num">03</span>
                             <div>
                                 <h3 data-i18n="p3_t">可持续更新</h3>
-                                <p data-i18n="p3_d">文章和项目各集中在页面里的一个数组，加一条内容不必改布局。</p>
+                                <p data-i18n="p3_d">项目介绍与游戏页面分开维护，让内容和玩法都能持续打磨。</p>
                             </div>
                         </div>
                     </div>
@@ -229,96 +223,92 @@ module.exports = {
 
     i18n: {
         'zh-CN': {
-            meta_description: '云陌轩的个人空间：纯手写的静态小站，记录做过的项目与笔记。零框架、零依赖、零外部请求。',
+            meta_description: '云陌轩的个人空间：纯手写的静态小站，展示实用项目与六款小游戏。零框架、零依赖、零外部请求。',
             hero_badge: '在线维护中',
             hero_title_1: '你好，我是', hero_title_2: '云陌轩',
-            hero_desc: '这里展示我做的实用工具与项目；从 PDF 工具箱到个人站，把想法做成能用的东西。',
-            cta_projects: '看看项目', cta_blog: '读读文章',
+            hero_desc: '这里展示我做的实用工具、项目与小游戏；从 PDF 工具箱到六款游戏，把想法做成能用、能玩的东西。',
+            cta_projects: '看看项目', cta_games: '玩玩游戏',
             featured_label: '精选项目', featured_title: 'PDF 工具箱',
             featured_desc: '在本地查看、整理与处理 PDF，让常用文档操作集中在一个工具箱里。',
             featured_split: '拆分合并', featured_sign: '签名水印', featured_convert: '格式转换',
             featured_cta: '探索 PDF 工具箱', featured_note: '下载与使用条款见项目页。',
             guide_eyebrow: '导览', guide_title: '想去哪儿？',
-            guide_sub: '看看做过的项目，读读开发笔记，或了解这个站背后的人。',
+            guide_sub: '看看做过的项目，挑一款游戏，或了解这个站背后的人。',
             card_projects_t: '项目', card_projects_d: '从 PDF 工具箱到个人站，了解功能、使用方式与项目进展。',
-            card_blog_t: '文章', card_blog_d: '技术笔记与零散思考，按时间倒序排列，可按标签筛选。',
             card_about_t: '关于', card_about_d: '我是谁、在做什么，以及这个站为什么长这个样子。',
-            card_view_projects: '查看', card_view_blog: '阅读', card_view_about: '了解',
-            card_games_t: '小游戏', card_games_d: '站内写的 2048：方向键或滑动，合并相同数字，跟着站点一起换主题换语言。',
+            card_view_projects: '查看', card_view_about: '了解',
+            card_games_t: '小游戏', card_games_d: '2048、星核合成、象棋、五子棋、扫雷、股市模拟：六款作品，体验合成、对弈、推理与模拟。',
             card_view_games: '玩一局',
             principle_eyebrow: '原则', principle_title: '这个站坚持的几件事',
             p1_t: '能少则少', p1_d: '不引框架、不接统计、不从 CDN 拉字体和图标。页面打开即是全部内容。',
             p2_t: '读得舒服', p2_d: '中文优先的字体栈、克制的行宽与字号，深浅色都保证足够的对比度。',
-            p3_t: '可持续更新', p3_d: '文章和项目各集中在页面里的一个数组，加一条内容不必改布局。'
+            p3_t: '可持续更新', p3_d: '项目介绍与游戏页面分开维护，让内容和玩法都能持续打磨。'
         },
         'zh-TW': {
-            meta_description: '雲陌軒的個人空間：純手寫的靜態小站，記錄做過的項目與筆記。零框架、零相依、零外部請求。',
+            meta_description: '雲陌軒的個人空間：純手寫的靜態小站，展示實用項目與六款小遊戲。零框架、零相依、零外部請求。',
             hero_badge: '線上維護中',
             hero_title_1: '你好，我是', hero_title_2: '雲陌軒',
-            hero_desc: '這裡展示我做的實用工具與項目；從 PDF 工具箱到個人站，把想法做成能用的東西。',
-            cta_projects: '看看項目', cta_blog: '讀讀文章',
+            hero_desc: '這裡展示我做的實用工具、項目與小遊戲；從 PDF 工具箱到六款遊戲，把想法做成能用、能玩的東西。',
+            cta_projects: '看看項目', cta_games: '玩玩遊戲',
             featured_label: '精選項目', featured_title: 'PDF 工具箱',
             featured_desc: '在本機檢視、整理與處理 PDF，讓常用文件操作集中在一個工具箱裡。',
             featured_split: '分割合併', featured_sign: '簽名浮水印', featured_convert: '格式轉換',
             featured_cta: '探索 PDF 工具箱', featured_note: '下載與使用條款見項目頁。',
             guide_eyebrow: '導覽', guide_title: '想去哪裡？',
-            guide_sub: '看看做過的項目，讀讀開發筆記，或認識這個站背後的人。',
+            guide_sub: '看看做過的項目，挑一款遊戲，或認識這個站背後的人。',
             card_projects_t: '項目', card_projects_d: '從 PDF 工具箱到個人站，了解功能、使用方式與項目進展。',
-            card_blog_t: '文章', card_blog_d: '技術筆記與零散思考，按時間倒序排列，可按標籤篩選。',
             card_about_t: '關於', card_about_d: '我是誰、在做什麼，以及這個站為什麼長這個樣子。',
-            card_view_projects: '查看', card_view_blog: '閱讀', card_view_about: '認識',
-            card_games_t: '小遊戲', card_games_d: '站內寫的 2048：方向鍵或滑動，合併相同數字，跟著網站一起換主題換語言。',
+            card_view_projects: '查看', card_view_about: '認識',
+            card_games_t: '小遊戲', card_games_d: '2048、星核合成、象棋、五子棋、踩地雷、股市模擬：六款作品，體驗合成、對弈、推理與模擬。',
             card_view_games: '玩一局',
             principle_eyebrow: '原則', principle_title: '這個站堅持的幾件事',
             p1_t: '能少則少', p1_d: '不引框架、不接統計、不從 CDN 拉字型與圖示。頁面開啟即是全部內容。',
             p2_t: '讀得舒服', p2_d: '中文優先的字型堆疊、克制的行寬與字號，深淺色都保證足夠的對比度。',
-            p3_t: '可持續更新', p3_d: '文章和項目各集中在頁面裡的一個陣列，加一條內容不必改佈局。'
+            p3_t: '可持續更新', p3_d: '項目介紹與遊戲頁面分開維護，讓內容和玩法都能持續打磨。'
         },
         'en': {
-            meta_description: 'Yunmo-Xuan\'s corner of the internet: a hand-written static site with projects and notes. No framework, no dependencies, no external requests.',
+            meta_description: 'Yunmo-Xuan\'s corner of the internet: a hand-written static site with practical projects and six games. No framework, no dependencies, no external requests.',
             hero_badge: 'Actively maintained',
             hero_title_1: 'Hi, I\'m', hero_title_2: 'Yunmo-Xuan',
-            hero_desc: 'Here are the practical tools and projects I build — from PDF Toolbox to this personal site, turning ideas into things you can use.',
-            cta_projects: 'See projects', cta_blog: 'Read the notes',
+            hero_desc: 'Here are the practical tools, projects and games I build — from PDF Toolbox to six games, turning ideas into things you can use and play.',
+            cta_projects: 'See projects', cta_games: 'Play games',
             featured_label: 'SELECTED PROJECT', featured_title: 'PDF Toolbox',
             featured_desc: 'View, organize and process PDFs locally, with everyday document tasks together in one toolbox.',
             featured_split: 'Split & merge', featured_sign: 'Sign & watermark', featured_convert: 'Format conversion',
             featured_cta: 'Explore PDF Toolbox', featured_note: 'Downloads and terms of use are on the project page.',
             guide_eyebrow: 'Navigate', guide_title: 'Where to next?',
-            guide_sub: 'Explore my projects, read development notes, or meet the person behind this site.',
+            guide_sub: 'Explore my projects, pick a game, or meet the person behind this site.',
             card_projects_t: 'Projects', card_projects_d: 'From PDF Toolbox to this personal site: features, how to use them, and project updates.',
-            card_blog_t: 'Writing', card_blog_d: 'Notes and half-formed thoughts, newest first, filterable by tag.',
             card_about_t: 'About', card_about_d: 'Who I am, what I work on, and why this site looks the way it does.',
-            card_view_projects: 'Browse', card_view_blog: 'Read', card_view_about: 'Meet',
-            card_games_t: 'Mini game', card_games_d: 'A 2048 written for this site: arrows or swipe, merge equal tiles, and it follows the site theme and language.',
+            card_view_projects: 'Browse', card_view_about: 'Meet',
+            card_games_t: 'Mini games', card_games_d: '2048, Planet Merge, Xiangqi, Gomoku, Minesweeper and Stock Market Simulator: six games spanning merging, strategy, logic and simulation.',
             card_view_games: 'Play',
             principle_eyebrow: 'Principles', principle_title: 'What this site sticks to',
             p1_t: 'As little as possible', p1_d: 'No framework, no analytics, no fonts or icons from a CDN. Opening the page is the whole thing.',
             p2_t: 'Comfortable to read', p2_d: 'A CJK-first type stack, a restrained measure and size, enough contrast in both themes.',
-            p3_t: 'Easy to keep alive', p3_d: 'Posts and projects each live in one array inside the page — adding an entry never touches the layout.'
+            p3_t: 'Easy to keep alive', p3_d: 'Project descriptions and game pages are maintained separately, so both content and gameplay can keep improving.'
         },
         'ja': {
-            meta_description: '雲陌軒の個人空間。手書きの静的サイトで、作ったものとノートを記録しています。フレームワークなし、依存なし、外部リクエストなし。',
+            meta_description: '雲陌軒の個人空間。手書きの静的サイトで、実用的なプロジェクトと6つのミニゲームを紹介しています。フレームワークなし、依存なし、外部リクエストなし。',
             hero_badge: '更新中',
             hero_title_1: 'こんにちは、', hero_title_2: '雲陌軒です',
-            hero_desc: '自作の実用ツールやプロジェクトを紹介しています。PDF ツールボックスからこの個人サイトまで、アイデアを使えるものに。',
-            cta_projects: 'プロジェクトを見る', cta_blog: 'ノートを読む',
+            hero_desc: '自作の実用ツール、プロジェクト、ミニゲームを紹介しています。PDF ツールボックスから6つのゲームまで、アイデアを使えるもの、遊べるものに。',
+            cta_projects: 'プロジェクトを見る', cta_games: 'ゲームで遊ぶ',
             featured_label: '注目のプロジェクト', featured_title: 'PDF ツールボックス',
             featured_desc: 'PDF の閲覧・整理・処理をローカルで。日常の文書作業をひとつのツールボックスにまとめました。',
             featured_split: '分割・結合', featured_sign: '署名・透かし', featured_convert: '形式変換',
             featured_cta: 'PDF ツールボックスを見る', featured_note: 'ダウンロードと利用規約はプロジェクトページをご覧ください。',
             guide_eyebrow: 'ガイド', guide_title: 'どこへ行く？',
-            guide_sub: '制作したプロジェクトや開発ノート、このサイトの作者について紹介します。',
+            guide_sub: 'プロジェクトを見る、ゲームを選ぶ、このサイトの作者を知る。気になるところからどうぞ。',
             card_projects_t: 'プロジェクト', card_projects_d: 'PDF ツールボックスから個人サイトまで、機能や使い方、進捗を紹介します。',
-            card_blog_t: 'ノート', card_blog_d: '技術ノートと思いつき。新しい順、タグで絞り込めます。',
             card_about_t: '概要', card_about_d: '私自身と、このサイトがこの形をしている理由について。',
-            card_view_projects: '見る', card_view_blog: '読む', card_view_about: '知る',
-            card_games_t: 'ミニゲーム', card_games_d: 'このサイトのために作った 2048。矢印キーかスワイプで同じ数字を合体。サイトのテーマと言語に従います。',
+            card_view_projects: '見る', card_view_about: '知る',
+            card_games_t: 'ミニゲーム', card_games_d: '2048、星核合成、シャンチー、五目並べ、マインスイーパー、株式市場シミュレーター。合成・対局・推理・シミュレーションを楽しむ6作品。',
             card_view_games: '遊ぶ',
             principle_eyebrow: '方針', principle_title: 'このサイトが守っていること',
             p1_t: '少ないほどよい', p1_d: 'フレームワークも解析も、CDN からのフォントやアイコンも使いません。開いた瞬間が中身のすべてです。',
             p2_t: '読みやすさ', p2_d: 'CJK を優先したフォント構成、控えめな行幅と字号、どちらのテーマでも十分なコントラスト。',
-            p3_t: '続けやすい更新', p3_d: 'ノートもプロジェクトもページ内の一つの配列に集約。追加でレイアウトは変わりません。'
+            p3_t: '続けやすい更新', p3_d: 'プロジェクトの紹介とゲームのページを分けて管理し、内容も遊び方も少しずつ磨いていきます。'
         }
     },
 

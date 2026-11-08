@@ -4,7 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const port = Number(process.argv[2] || 8777);
 const root = path.resolve(__dirname, '..', 'site');
-const types = { '.html': 'text/html; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml' };
+const types = {
+  '.html': 'text/html; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml',
+  '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4', '.js': 'text/javascript; charset=utf-8'
+};
 http.createServer((req, res) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }

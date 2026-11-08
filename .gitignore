@@ -1,0 +1,5 @@
+node_modules/
+site/
+tools/.chrome-*/
+tools/shots/
+tools/reports/

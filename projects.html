@@ -21,23 +21,29 @@
     <meta name="twitter:title" content="项目 · 云陌轩" />
     <meta name="twitter:description" content="云陌轩做过的东西：站点、工具与小实验，连同它们踩过的坑一起留档。" />
 
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b63f6'/%3E%3Cpath d='M16 6.5l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z' fill='%23fff'/%3E%3C/svg%3E" />
+    <link rel="icon" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/favicon.png" />
+    <meta property="og:image" content="https://yunmo-xuan.github.io/assets/logo.webp" />
 
     <script>
         /* 首屏前确定主题与语言，避免闪烁（FOUC） */
         (function () {
             var r = document.documentElement;
             r.className += ' js';
+            var forced = /[?&]theme=(light|dark)/.exec(location.search);
             try {
-                var t = localStorage.getItem('preferredTheme');
-                if (t !== 'light' && t !== 'dark') {
-                    t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                if (forced) { r.setAttribute('data-theme', forced[1]); }
+                else {
+                    var t = localStorage.getItem('preferredTheme');
+                    if (t !== 'light' && t !== 'dark') {
+                        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                    }
+                    r.setAttribute('data-theme', t);
                 }
-                r.setAttribute('data-theme', t);
                 var l = localStorage.getItem('preferredLanguage');
                 if (l) r.setAttribute('lang', l);
             } catch (e) {
-                r.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                r.setAttribute('data-theme', forced ? forced[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
             }
         })();
     </script>
@@ -175,13 +181,27 @@ button { font: inherit; color: inherit; }
     font-size: 1.18rem; font-weight: 750; letter-spacing: -.02em;
     text-decoration: none; color: var(--text);
 }
-.logo .spark {
-    width: 24px; height: 24px; border-radius: 7px; background: var(--grad);
-    display: grid; place-items: center; color: #fff; font-size: 14px;
-    box-shadow: 0 4px 12px rgba(11, 99, 246, .28);
+.logo-mark {
+    width: 28px; height: 28px; border-radius: 9px; object-fit: cover;
+    box-shadow: 0 4px 12px rgba(11, 99, 246, .24);
     transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
 }
-.logo:hover .spark { transform: rotate(-8deg); }
+.logo:hover .logo-mark { transform: rotate(-6deg) scale(1.04); }
+
+/* ---------- 启动动画（同一标签页只播一次，可跳过） ---------- */
+.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: #05070f; }
+.intro[hidden] { display: none !important; }
+.intro-stage { position: relative; width: min(88vw, 62vh); aspect-ratio: 1; }
+.intro-video { width: 100%; height: 100%; object-fit: contain; border-radius: 24px; }
+.intro-brand {
+    position: absolute; left: 0; bottom: -52px; display: flex; align-items: center; gap: 10px;
+    color: #eaf1ff; font-weight: 700; letter-spacing: -.01em;
+}
+.intro-brand img { border-radius: 10px; }
+.intro-skip { position: absolute; right: 22px; bottom: 22px; }
+.intro-out { opacity: 0; transition: opacity .4s ease; }
+html.intro-on, html.intro-on body { overflow: hidden; }
+@media (max-height: 560px) { .intro-stage { width: min(58vw, 84vh); } .intro-brand { display: none; } }
 
 .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
 .nav-links a {
@@ -500,6 +520,81 @@ body { touch-action: manipulation; }
 <body>
     <a class="skip-link" href="#main" data-i18n="a11y_skip" data-i18n-aria="a11y_skip">跳到主要内容</a>
 
+    <div class="intro" id="introSplash" role="dialog" aria-modal="true" aria-label="Site intro" hidden>
+        <div class="intro-stage">
+            <div class="intro-brand"><img src="assets/logo-mark.webp" alt="" width="36" height="36" /><span data-i18n="brand">云陌轩</span></div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip">跳过</button>
+    </div>
+
+    <script>
+    (function () {
+        var el = document.getElementById('introSplash');
+        if (!el) return;
+        var seen = false, reduced = false;
+        try { seen = sessionStorage.getItem('yunmo.intro.seen') === '1'; } catch (e) {}
+        try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (seen || reduced || /[?&]nosplash/.test(location.search)) { el.remove(); return; }
+        /* 只有真的要播时才建 <video>，避免回访用户白拉一次素材 */
+        var video = document.createElement('video');
+        video.className = 'intro-video';
+        video.id = 'introVideo';
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.setAttribute('aria-hidden', 'true');
+        video.src = 'assets/intro.mp4';
+        el.querySelector('.intro-stage').prepend(video);
+        var lang = 'zh-CN';
+        try { lang = localStorage.getItem('preferredLanguage') || lang; } catch (e) {}
+        var skipText = { 'zh-CN': '跳过', 'zh-TW': '跳過', en: 'Skip', ja: 'スキップ' }[lang] || '跳过';
+        el.querySelector('#introSkip').textContent = skipText;
+        el.hidden = false;
+        document.documentElement.classList.add('intro-on', 'booting');
+        /* 弹层期间背景不可交互也不可 Tab 进去，结束后把焦点还给原处。
+           这段脚本在解析中途执行，#main 此刻还不存在，所以补一次 DOMContentLoaded 后再锁 */
+        var LOCK = ['.site-header', '#main', '.site-footer'];
+        var lastFocus = document.activeElement;
+        var closed = false;
+        function lock(on) {
+            LOCK.forEach(function (sel) {
+                var node = document.querySelector(sel);
+                if (node) node.inert = on;
+            });
+        }
+        lock(true);
+        document.addEventListener('DOMContentLoaded', function () { if (!closed) lock(true); });
+        var skip = document.getElementById('introSkip');
+        /* 焦点必须进入弹层，否则 inert 只是把背景锁成谁也碰不到 */
+        skip.focus();
+        function done() {
+            if (closed) return; closed = true;
+            el.classList.add('intro-out');
+            lock(false);
+            setTimeout(function () {
+                el.remove();
+                document.documentElement.classList.remove('intro-on', 'booting');
+                if (lastFocus && lastFocus.focus) lastFocus.focus();
+            }, 420);
+        }
+        video.addEventListener('ended', done);
+        video.addEventListener('error', done);
+        skip.addEventListener('click', done);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
+        var playing = video.play();
+        if (playing && playing.then) {
+            playing.then(function () {
+                /* 播成功才算"看过"，被拦截时下次还能再试 */
+                try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+            }).catch(done);
+        } else {
+            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+        }
+        setTimeout(done, 7000);
+    })();
+    </script>
+
+
     <svg class="sprite" aria-hidden="true" focusable="false"><defs>
             <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></symbol>
             <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></symbol>
@@ -533,7 +628,7 @@ body { touch-action: manipulation; }
     <header class="site-header">
         <div class="container header-inner">
             <a class="logo" href="index.html">
-                <span class="spark" aria-hidden="true">✦</span>
+                <img class="logo-mark" src="assets/logo.webp" alt="" width="28" height="28" />
                 <span data-i18n="brand">云陌轩</span>
             </a>
 
@@ -541,7 +636,6 @@ body { touch-action: manipulation; }
                 <ul class="nav-links">
                     <li><a href="index.html" data-i18n="nav_home">首页</a></li>
                     <li><a href="projects.html" data-i18n="nav_projects" aria-current="page">项目</a></li>
-                    <li><a href="blog.html" data-i18n="nav_blog">文章</a></li>
                     <li><a href="games.html" data-i18n="nav_games">游戏</a></li>
                     <li><a href="about.html" data-i18n="nav_about">关于</a></li>
                 </ul>
@@ -577,7 +671,7 @@ body { touch-action: manipulation; }
 
     <main id="main">
         <noscript>
-            <p class="noscript-note">文章与项目列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
+            <p class="noscript-note">项目与游戏列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
                 站点源码公开：<a href="https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io">Yunmo-Xuan.github.io</a>。</p>
         </noscript>
         <section class="page-head">
@@ -620,14 +714,13 @@ body { touch-action: manipulation; }
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a class="logo" href="index.html">
-                        <span class="spark" aria-hidden="true">✦</span>
+                        <img class="logo-mark" src="assets/logo.webp" alt="" width="28" height="28" />
                         <span data-i18n="brand">云陌轩</span>
                     </a>
                     <p data-i18n="footer_tagline">一个人的静态小站，慢慢更新。</p>
                 </div>
                 <ul class="footer-nav">
                     <li><a href="projects.html" data-i18n="nav_projects">项目</a></li>
-                    <li><a href="blog.html" data-i18n="nav_blog">文章</a></li>
                     <li><a href="games.html" data-i18n="nav_games">游戏</a></li>
                     <li><a href="about.html" data-i18n="nav_about">关于</a></li>
                     <li><a href="https://github.com/Yunmo-Xuan" target="_blank" rel="noopener noreferrer" data-i18n="footer_github">GitHub 主页</a></li>
@@ -755,7 +848,7 @@ window.PAGE_I18N = {
 
     <script>
 /* ============================================================
-   本页内容数据 —— 想加一条文章/项目，从这里开始
+   本页内容数据 —— 想加一条项目或游戏，从这里开始
    ============================================================ */
 window.PAGE_DATA = [
   {
@@ -863,42 +956,149 @@ window.PAGE_DATA = [
       "GitHub Pages"
     ],
     "desc": {
-      "zh-CN": "你正在看的个人站：展示实用工具、项目和笔记。五个自包含页面，支持深浅色与四语言界面，不加载外部字体、图标或运行时脚本。",
-      "zh-TW": "你正在看的個人站：展示實用工具、專案和筆記。五個獨立頁面，支援深淺色與四語言介面，不載入外部字型、圖示或執行階段腳本。",
-      "en": "This personal site showcases practical tools, projects and notes. Five self-contained pages with light and dark themes, four interface languages and no external fonts, icons or runtime scripts.",
-      "ja": "実用ツール、プロジェクト、ノートを紹介するこの個人サイト。5 つの独立したページ、明暗テーマ、4 言語の UI を備え、外部フォント・アイコン・実行用スクリプトは読み込みません。"
+      "zh-CN": "你正在看的个人站：展示实用工具、项目与六款小游戏。页面自包含，支持深浅色与四语言界面，不加载外部字体、图标或运行时脚本。",
+      "zh-TW": "你正在看的個人站：展示實用工具、項目與六款小遊戲。頁面自包含，支援深淺色與四語言介面，不載入外部字型、圖示或執行階段腳本。",
+      "en": "This personal site showcases practical tools, projects and six games. Self-contained pages with light and dark themes, four interface languages and no external fonts, icons or runtime scripts.",
+      "ja": "実用ツール、プロジェクト、6つのミニゲームを紹介するこの個人サイト。自己完結したページ、明暗テーマ、4言語の UI を備え、外部フォント・アイコン・実行用スクリプトは読み込みません。"
     },
-    "blocks": [
-      {
-        "p": "这个站点原先是几个手写页面，改着改着开始出现三类问题：导航指向了并不存在的 `blog.html`、文章与首页互不相干、新增一条内容要同时改五处版式。现在这几件事都被收拾干净了。"
-      },
-      {
-        "h": "结构"
-      },
-      {
-        "p": "五个页面各自独立：首页、项目、文章、关于、404。每个文件里都带着自己的样式与脚本，**上传单个文件就等于上线一次改动**，不存在改一处忘一处的共享资源。"
-      },
-      {
-        "p": "公共部分（配色、导航、页脚、多语言、主题切换）在 `src/` 里维护一份，由 [build.js](https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io) 展开进每个页面。源码与产物分开，产物彼此独立。"
-      },
-      {
-        "h": "界面"
-      },
-      {
-        "ul": [
-          "浅色与深色两套主题，跟随系统偏好，也可以手动固定，选择记在 localStorage 里",
-          "简体中文、繁體中文、English、日本語四套界面文案",
-          "图标是内联 SVG，字体用系统字体栈 —— 页面打开后不再有任何网络请求",
-          "尊重 `prefers-reduced-motion`，也保留了无 JS 时的降级表现"
-        ]
-      },
-      {
-        "h": "想改内容"
-      },
-      {
-        "p": "文章写在 `blog.html` 顶部的 `POSTS` 数组里，项目写在本页顶部的 `PROJECTS` 数组里。列表、标签筛选、阅读时长、上下一篇文章这些都会自动生成。"
-      }
-    ]
+    "blocks": {
+      "zh-CN": [
+        {
+          "p": "这个站集中展示实用项目与小游戏。项目页介绍工具和使用方式，[游戏中心](games.html)汇集六款作品的入口。"
+        },
+        {
+          "h": "结构"
+        },
+        {
+          "p": "首页、项目、游戏中心、游戏详情、关于与 404 各有对应页面。每个页面带着自己的样式与脚本，源码与产物分开。"
+        },
+        {
+          "p": "公共部分（配色、导航、页脚、多语言、主题切换）在 `src/` 里维护一份，构建时展开进各个页面。"
+        },
+        {
+          "h": "界面"
+        },
+        {
+          "ul": [
+            "浅色与深色两套主题，跟随系统偏好，也可以手动固定，选择记在 localStorage 里",
+            "简体中文、繁體中文、English、日本語四套界面文案",
+            "图标是内联 SVG，字体使用系统字体栈",
+            "尊重 `prefers-reduced-motion`，也保留无 JS 时的降级表现"
+          ]
+        },
+        {
+          "h": "项目与游戏"
+        },
+        {
+          "p": "项目资料在 `src/pages/20-projects.js` 的 `PROJECTS` 数组中维护；游戏中心与各游戏页面分别维护。"
+        },
+        {
+          "p": "六款游戏：[2048](2048.html)、[星核合成](planet-merge.html)、[象棋](xiangqi.html)、[五子棋](gomoku.html)、[扫雷](minesweeper.html)、[股市模拟](simdesk.html)。"
+        }
+      ],
+      "zh-TW": [
+        {
+          "p": "這個站集中展示實用項目與小遊戲。項目頁介紹工具和使用方式，[遊戲中心](games.html)匯集六款作品的入口。"
+        },
+        {
+          "h": "結構"
+        },
+        {
+          "p": "首頁、項目、遊戲中心、遊戲詳情、關於與 404 各有對應頁面。每個頁面帶著自己的樣式與腳本，原始碼與產物分開。"
+        },
+        {
+          "p": "公共部分（配色、導覽、頁尾、多語言、主題切換）在 `src/` 裡維護一份，建置時展開進各個頁面。"
+        },
+        {
+          "h": "介面"
+        },
+        {
+          "ul": [
+            "淺色與深色兩套主題，跟隨系統偏好，也可以手動固定，選擇記在 localStorage 裡",
+            "簡體中文、繁體中文、English、日本語四套介面文案",
+            "圖示是行內 SVG，字型使用系統字型堆疊",
+            "尊重 `prefers-reduced-motion`，也保留無 JS 時的降級表現"
+          ]
+        },
+        {
+          "h": "項目與遊戲"
+        },
+        {
+          "p": "項目資料在 `src/pages/20-projects.js` 的 `PROJECTS` 陣列中維護；遊戲中心與各遊戲頁面分別維護。"
+        },
+        {
+          "p": "六款遊戲：[2048](2048.html)、[星核合成](planet-merge.html)、[象棋](xiangqi.html)、[五子棋](gomoku.html)、[踩地雷](minesweeper.html)、[股市模擬](simdesk.html)。"
+        }
+      ],
+      "en": [
+        {
+          "p": "This site brings together practical projects and games. The projects page explains the tools and how to use them; the [games hub](games.html) links to six games."
+        },
+        {
+          "h": "Structure"
+        },
+        {
+          "p": "Home, projects, the games hub, individual games, about and 404 each have their own pages. Each page includes its styles and scripts, with source files separate from generated output."
+        },
+        {
+          "p": "Shared colors, navigation, footer, translations and theme switching are maintained once in `src/` and included in each page at build time."
+        },
+        {
+          "h": "Interface"
+        },
+        {
+          "ul": [
+            "Light and dark themes follow the system preference or a manual choice saved in localStorage",
+            "Interface copy in Simplified Chinese, Traditional Chinese, English and Japanese",
+            "Inline SVG icons and a system font stack",
+            "Respects `prefers-reduced-motion` and retains fallbacks when JavaScript is unavailable"
+          ]
+        },
+        {
+          "h": "Projects and games"
+        },
+        {
+          "p": "Project information is maintained in the `PROJECTS` array in `src/pages/20-projects.js`; the games hub and individual game pages are maintained separately."
+        },
+        {
+          "p": "Six games: [2048](2048.html), [Planet Merge](planet-merge.html), [Xiangqi](xiangqi.html), [Gomoku](gomoku.html), [Minesweeper](minesweeper.html) and [Stock Market Simulator](simdesk.html)."
+        }
+      ],
+      "ja": [
+        {
+          "p": "実用的なプロジェクトとミニゲームをまとめたサイトです。プロジェクトページではツールと使い方を紹介し、[ゲーム一覧](games.html)には6作品への入口をまとめています。"
+        },
+        {
+          "h": "構成"
+        },
+        {
+          "p": "ホーム、プロジェクト、ゲーム一覧、個別ゲーム、概要、404 にそれぞれページがあります。各ページにスタイルとスクリプトを含め、ソースと生成物を分けています。"
+        },
+        {
+          "p": "共通の配色・ナビゲーション・フッター・翻訳・テーマ切替は `src/` で一元管理し、ビルド時に各ページへ展開します。"
+        },
+        {
+          "h": "インターフェース"
+        },
+        {
+          "ul": [
+            "明暗テーマはシステム設定に従い、手動で選んだ設定は localStorage に保存",
+            "簡体字中国語・繁体字中国語・英語・日本語の4言語の UI",
+            "インライン SVG アイコンとシステムフォント",
+            "`prefers-reduced-motion` に対応し、JavaScript が使えない場合の代替表示も維持"
+          ]
+        },
+        {
+          "h": "プロジェクトとゲーム"
+        },
+        {
+          "p": "プロジェクト情報は `src/pages/20-projects.js` の `PROJECTS` 配列で管理し、ゲーム一覧と個別ゲームのページは分けて管理しています。"
+        },
+        {
+          "p": "6つのゲーム：[2048](2048.html)、[星核合成](planet-merge.html)、[シャンチー](xiangqi.html)、[五目並べ](gomoku.html)、[マインスイーパー](minesweeper.html)、[株式市場シミュレーター](simdesk.html)。"
+        }
+      ]
+    }
   }
 ];
 
@@ -1016,7 +1216,7 @@ window.PAGE_RENDER = function(ctx) {
         'zh-CN': {
             doc_title: '云陌轩',
             brand: '云陌轩',
-            nav_home: '首页', nav_projects: '项目', nav_blog: '文章', nav_games: '游戏', nav_about: '关于',
+            nav_home: '首页', nav_projects: '项目', nav_games: '游戏', nav_about: '关于',
             a11y_skip: '跳到主要内容', a11y_theme: '切换深浅色主题', a11y_lang: '选择语言',
             a11y_menu: '打开菜单', a11y_menu_close: '关闭菜单', a11y_footer: '页脚',
             footer_tagline: '一个人的静态小站，慢慢更新。',
@@ -1028,7 +1228,7 @@ window.PAGE_RENDER = function(ctx) {
         'zh-TW': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: '首頁', nav_projects: '項目', nav_blog: '文章', nav_games: '遊戲', nav_about: '關於',
+            nav_home: '首頁', nav_projects: '項目', nav_games: '遊戲', nav_about: '關於',
             a11y_skip: '跳至主要內容', a11y_theme: '切換深淺色主題', a11y_lang: '選擇語言',
             a11y_menu: '開啟選單', a11y_menu_close: '關閉選單', a11y_footer: '頁尾',
             footer_tagline: '一個人的靜態小站，慢慢更新。',
@@ -1040,7 +1240,7 @@ window.PAGE_RENDER = function(ctx) {
         'en': {
             doc_title: 'Yunmo-Xuan',
             brand: 'Yunmo-Xuan',
-            nav_home: 'Home', nav_projects: 'Projects', nav_blog: 'Writing', nav_games: 'Games', nav_about: 'About',
+            nav_home: 'Home', nav_projects: 'Projects', nav_games: 'Games', nav_about: 'About',
             a11y_skip: 'Skip to main content', a11y_theme: 'Toggle light and dark theme',
             a11y_lang: 'Choose language', a11y_menu: 'Open menu', a11y_menu_close: 'Close menu',
             a11y_footer: 'Footer',
@@ -1053,7 +1253,7 @@ window.PAGE_RENDER = function(ctx) {
         'ja': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_blog: 'ノート', nav_games: 'ゲーム', nav_about: '概要',
+            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_games: 'ゲーム', nav_about: '概要',
             a11y_skip: '本文へスキップ', a11y_theme: 'ライト／ダークを切替',
             a11y_lang: '言語を選択', a11y_menu: 'メニューを開く', a11y_menu_close: 'メニューを閉じる',
             a11y_footer: 'フッター',
@@ -1303,7 +1503,7 @@ function inline(s) {
 
 function isExternal(u) { return /^(https?:|mailto:)/i.test(String(u || '')); }
 
-/* 由结构化段落生成 HTML，供文章与项目描述复用 */
+/* 由结构化段落生成 HTML，供正文与项目描述复用 */
 function renderBlocks(blocks) {
     if (!blocks) return '';
     var out = [];

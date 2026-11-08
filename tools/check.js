@@ -23,11 +23,14 @@ for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.html'))) {
   }
 
   // 2) 站内链接必须落在真实文件上（404.html 用根绝对路径，其余必须相对）
-  for (const href of new Set([...markup.matchAll(/href="([^"]+)"/g)].map(m => m[1]))) {
-    if (/^(https?:|mailto:|data:|tel:|#)/i.test(href)) continue;
-    const l = href.split(/[?#]/)[0];
+  for (const ref of new Set([
+    ...markup.matchAll(/href="([^"]+)"/g),
+    ...markup.matchAll(/src="(?!data:|https?:)([^"]+)"/g)
+  ].map(m => m[1]))) {
+    if (/^(https?:|mailto:|data:|tel:|#)/i.test(ref)) continue;
+    const l = ref.split(/[?#]/)[0];
     if (l.startsWith('/')) {
-      if (f !== '404.html') { fail(f, `站内链接 "${l}" 是根绝对路径，本地双击打开会失效`); continue; }
+      if (f !== '404.html') { fail(f, `站内引用 "${l}" 是根绝对路径，本地双击打开会失效`); continue; }
       if (!fs.existsSync(path.join(dir, l))) fail(f, `broken link -> ${l}`);
       continue;
     }
@@ -37,6 +40,16 @@ for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.html'))) {
   // 3) 零外部请求
   for (const ext of ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'unpkg.com', 'cdn.jsdelivr.net', 'google-analytics', 'googletagmanager', 'font-awesome']) {
     if (full.includes(ext)) fail(f, `外部依赖 ${ext}`);
+  }
+
+  // 3b) iframe 与素材引用必须落在真实文件上（游戏与站点素材都在仓库内）
+  for (const ref of new Set([
+    ...markup.matchAll(/<iframe[^>]+src="([^"]+)"/g),
+    ...markup.matchAll(/<(?:img|video|source)[^>]+src="([^"]+)"/g),
+    ...markup.matchAll(/<link[^>]+href="(assets\/[^"]+)"/g)
+  ].map(m => m[1]))) {
+    if (/^(https?:|data:|blob:)/i.test(ref)) continue;
+    if (!fs.existsSync(path.join(dir, ref.split(/[?#]/)[0]))) fail(f, `broken asset -> ${ref}`);
   }
 
   // 4) 占位符只能出现在正文叙述里（文章会引用旧站的坏写法），链接属性里不许有
@@ -94,6 +107,33 @@ for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.html'))) {
   }
 
   console.log(`  · ${f}  ${(full.length / 1024).toFixed(1)} KB  ${scripts.length} 段内联脚本`);
+}
+
+/* 站点素材与游戏注入：这些引用只出现在脚本字符串里，主循环扫不到，单独查 */
+for (const rel of ['assets/intro.mp4', 'assets/favicon.png', 'assets/logo-mark.webp']) {
+  if (!fs.existsSync(path.join(dir, rel))) fail(dir, `缺少站点素材 ${rel}`);
+}
+const gamesDir = path.join(dir, 'assets', 'games');
+if (fs.existsSync(gamesDir)) {
+  for (const f of fs.readdirSync(gamesDir).filter(x => x.endsWith('.html'))) {
+    const label = `assets/games/${f}`;
+    const html = fs.readFileSync(path.join(gamesDir, f), 'utf8');
+    if (!html.includes('id="site-bridge"')) fail(label, '未注入 site-bridge，配色与主题不会统一');
+    for (const ext of ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'unpkg.com', 'cdn.jsdelivr.net']) {
+      if (html.includes(ext)) fail(label, `外部依赖 ${ext}`);
+    }
+    /* 静态标记里不能有重复 id；分支模板里的同名 id 互斥出现，由探针在运行时查 */
+    const gameMarkup = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+    const ids = [...gameMarkup.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+    const dup = [...new Set(ids.filter((v, i) => ids.indexOf(v) !== i))];
+    if (dup.length) fail(label, `重复 id: ${dup.slice(0, 5).join(', ')}`);
+    for (const m of [...html.matchAll(/<script(?![^>]*src=)([^>]*)>([\s\S]*?)<\/script>/gi)]) {
+      try { new Function(m[2]); } catch (e) { fail(label, `JS 语法错误 — ${e.message}`); }
+    }
+    console.log(`  · ${label}  ${(html.length / 1024).toFixed(1)} KB  (游戏本体)`);
+  }
+} else {
+  fail(dir, '缺少 assets/games/ 目录（先跑 npm run build）');
 }
 
 console.log(bad === 0 ? '  ✓ 全部通过' : `  ${bad} 处问题`);

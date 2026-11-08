@@ -1,570 +1,167 @@
-/* 游戏页：2048 */
+/* 游戏室：六款游戏的入口页（列表、分类、续玩提示） */
 'use strict';
 
+const CATALOG = require('../game-catalog');
+
+const UI = {
+  'zh-CN': {
+    eyebrow: '游戏室 / PLAY ROOM', title: '留一点时间，玩一局。',
+    lead: '从两分钟的扫雷，到一盘认真的对弈。六款小作品，不用安装，点开就能玩。',
+    local: '本机记录，不用注册', play: '开始游戏', minutes: '分钟一局', count: '%d 款游戏',
+    all: '全部', puzzle: '数字与推理', casual: '轻松合成', strategy: '棋盘对弈', simulation: '策略模拟',
+    recent: '上次玩过', resume: '再来一局', empty: '这个分类暂时没有游戏。',
+    tip: '难度与规则都在游戏里；部分游戏的界面为简体中文。股市模拟只使用虚拟资金，不构成投资建议。'
+  },
+  'zh-TW': {
+    eyebrow: '遊戲室 / PLAY ROOM', title: '留一點時間，玩一局。',
+    lead: '從兩分鐘的掃雷，到一盤認真對弈。六款小作品，不用安裝，點開就能玩。',
+    local: '本機紀錄，不用註冊', play: '開始遊戲', minutes: '分鐘一局', count: '%d 款遊戲',
+    all: '全部', puzzle: '數字與推理', casual: '輕鬆合成', strategy: '棋盤對弈', simulation: '策略模擬',
+    recent: '上次玩過', resume: '再來一局', empty: '這個分類暫時沒有遊戲。',
+    tip: '難度與規則都在遊戲內；部分遊戲的介面為簡體中文。股市模擬只使用虛擬資金，不構成投資建議。'
+  },
+  en: {
+    eyebrow: 'PLAY ROOM', title: 'A little time. One more round.',
+    lead: 'A two-minute game of Minesweeper or a serious board match. Six small games — nothing to install, click and play.',
+    local: 'Local records, no sign-up', play: 'Play now', minutes: 'min per round', count: '%d games',
+    all: 'All', puzzle: 'Puzzles', casual: 'Casual', strategy: 'Board games', simulation: 'Simulation',
+    recent: 'Last played', resume: 'Play again', empty: 'No games in this category yet.',
+    tip: 'Difficulty and rules live inside each game; some game interfaces are Simplified Chinese only. The market simulator uses virtual funds and is not investment advice.'
+  },
+  ja: {
+    eyebrow: 'ゲーム室 / PLAY ROOM', title: '少しの時間、もう一局。',
+    lead: '2 分のマインスイーパーから本気の盤面勝負まで。インストール不要の 6 つの小さな作品を、クリックしたらすぐ遊べます。',
+    local: '端末内記録、登録不要', play: 'プレイ', minutes: '分 / 1 回', count: '%d ゲーム',
+    all: 'すべて', puzzle: '数字と推理', casual: '合成ゲーム', strategy: 'ボードゲーム', simulation: 'シミュレーション',
+    recent: '前回のゲーム', resume: 'もう一度', empty: 'このカテゴリーにはまだゲームがありません。',
+    tip: '難易度とルールはゲーム内にあります。一部のゲーム画面は簡体字中国語のみ。株式シミュレーターは仮想資金を用い、投資助言ではありません。'
+  }
+};
+
 module.exports = {
-    file: 'games.html',
-    path: '/games.html',
-    active: 'games',
-    ogType: 'website',
-
-    title: {
-        'zh-CN': '2048 · 云陌轩',
-        'zh-TW': '2048 · 雲陌軒',
-        'en': '2048 · Yunmo-Xuan',
-        'ja': '2048 · 雲陌軒'
-    },
-    desc: {
-        'zh-CN': '站内小游戏：2048。方向键或滑动操作，合并相同数字；进度与最佳纪录保存在本机，支持深浅主题与四种界面语言。',
-        'en': 'A small in-site game: 2048. Arrow keys or swipe, merge equal tiles; progress and best score stay on this device, with light/dark themes and four interface languages.'
-    },
-
-    styles: `
-        .g-wrap { max-width: 560px; margin: 0 auto; }
-        .g-top { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; gap: 12px; margin: 28px 0 12px; }
-        .g-scores { display: flex; gap: 10px; }
-        .g-score {
-            min-width: 96px; padding: 10px 16px; text-align: center;
-            background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
-        }
-        .g-score .k { display: block; font-size: .72rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
-        .g-score .v { display: block; margin-top: 2px; font-family: var(--mono); font-size: 1.4rem; font-weight: 700; color: var(--text); }
-        .g-score .v.bump { animation: g-bump .3s ease; }
-        @keyframes g-bump { 40% { transform: scale(1.22); color: var(--accent-ink); } }
-        .g-actions { display: flex; gap: 8px; align-self: center; }
-        .g-actions .icon-btn { width: 40px; height: 40px; }
-        .g-actions .icon-btn.off { color: var(--faint); }
-        .g-restored { margin: 0 2px 12px; font-size: .84rem; color: var(--accent-ink); display: flex; align-items: center; gap: 7px; }
-        .g-restored[hidden] { display: none; }
-
-        .g-board {
-            position: relative; padding: 12px; touch-action: none; user-select: none; -webkit-user-select: none;
-            background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius);
-            box-shadow: var(--shadow-1);
-        }
-        .g-board.nudge { animation: g-nudge .18s ease; }
-        @keyframes g-nudge { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-        .g-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-        .g-cell {
-            aspect-ratio: 1; display: grid; place-items: center;
-            border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line);
-            font-family: var(--mono); font-weight: 700; font-size: clamp(1.05rem, 6.4vw, 1.85rem);
-            color: var(--text); user-select: none;
-        }
-        .g-cell.spawn { animation: g-spawn .22s ease; }
-        @keyframes g-spawn { from { transform: scale(.55); opacity: .2; } }
-        .g-cell.pop { animation: g-pop .24s ease; }
-        @keyframes g-pop { 45% { transform: scale(1.16); } }
-        .g-cell.t2 { background: #eee4da; border-color: #eee4da; color: #6f655c; }
-        .g-cell.t4 { background: #ede0c8; border-color: #ede0c8; color: #6f655c; }
-        .g-cell.t8 { background: #f2b179; border-color: #f2b179; color: #fff; }
-        .g-cell.t16 { background: #f59563; border-color: #f59563; color: #fff; }
-        .g-cell.t32 { background: #f67c5f; border-color: #f67c5f; color: #fff; }
-        .g-cell.t64 { background: #f65e3b; border-color: #f65e3b; color: #fff; }
-        .g-cell.t128 { background: #edcf72; border-color: #edcf72; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
-        .g-cell.t256 { background: #edcc61; border-color: #edcc61; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
-        .g-cell.t512 { background: #edc850; border-color: #edc850; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
-        .g-cell.t1024 { background: #edc53f; border-color: #edc53f; color: #fff; font-size: clamp(.82rem, 4.8vw, 1.35rem); }
-        .g-cell.t2048 { background: #edc22e; border-color: #edc22e; color: #fff; font-size: clamp(.82rem, 4.8vw, 1.35rem); }
-        .g-cell.tsuper { background: #3c3a32; border-color: #3c3a32; color: #fff; font-size: clamp(.72rem, 4.2vw, 1.15rem); }
-
-        .g-msg {
-            position: absolute; inset: 12px; display: none; place-items: center; text-align: center;
-            border-radius: var(--radius-sm); background: rgba(250, 249, 248, .9); backdrop-filter: blur(2px);
-        }
-        [data-theme="dark"] .g-msg { background: rgba(14, 17, 22, .9); }
-        .g-msg.show { display: grid; }
-        .g-msg.show > div { animation: g-rise .3s ease; }
-        @keyframes g-rise { from { transform: translateY(10px); opacity: 0; } }
-        .g-msg.won { background: rgba(237, 194, 46, .38); }
-        [data-theme="dark"] .g-msg.won { background: rgba(237, 194, 46, .26); }
-        .g-msg p { margin: 0; font-size: clamp(1.7rem, 7vw, 2.5rem); font-weight: 800; letter-spacing: -.03em; }
-        .g-msg .btn-row { margin-top: 16px; justify-content: center; }
-
-        .g-hint { margin: 14px 2px 0; font-size: .86rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-        .g-hint .icon { color: var(--accent-ink); flex-shrink: 0; }
-        .g-rules { margin-top: 26px; }
-        @media (max-width: 480px) {
-            .g-board { padding: 8px; }
-            .g-grid { gap: 8px; }
-            .g-msg { inset: 8px; }
-            .g-score { min-width: 84px; padding: 8px 12px; }
-        }
-        /* 矮屏（横放手机等）：收起装饰文案，棋盘按视口高度收缩，保证 controls 够得着 */
-        @media (max-height: 600px) {
-            .page-head { padding-top: 22px; }
-            .page-head .lead { display: none; }
-            .g-top { margin: 12px 0 10px; }
-            .g-rules { display: none; }
-            .g-hint { margin-top: 10px; }
-            .g-board { width: min(100%, max(240px, 58vh)); margin-inline: auto; }
-        }
-        @media (max-height: 460px) {
-            .page-head { display: none; }
-            .g-hint { display: none; }
-            .section.tight { padding: 6px 0 10px; }
-            .g-top { margin: 6px 0 8px; }
-            .g-board { width: min(100%, max(160px, calc(100vh - 200px))); margin-inline: auto; }
-            .g-cell { border-radius: 6px; }
-        }
-    `,
-
-    body: `        <section class="page-head">
+  file: 'games.html', path: '/games.html', active: 'games', ogType: 'website',
+  title: { 'zh-CN': '游戏室 · 云陌轩', 'zh-TW': '遊戲室 · 雲陌軒', en: 'Play room · Yunmo-Xuan', ja: 'ゲーム室 · 雲陌軒' },
+  desc: Object.fromEntries(Object.keys(UI).map(l => [l, UI[l].lead])),
+  i18n: Object.fromEntries(Object.keys(UI).map(l => [l, Object.assign({ meta_description: UI[l].lead }, UI[l]) ])),
+  data: CATALOG,
+  styles: `
+    .play-head { padding: 58px 0 26px; }
+    .play-head h1 { font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.12; letter-spacing: -.045em; max-width: 19ch; }
+    .play-head .lead { max-width: 58ch; margin: 18px 0 0; color: var(--muted); }
+    .play-meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; font-size: .82rem; color: var(--muted); }
+    .play-meta span:first-child { color: var(--accent-ink); }
+    .recent-game { margin: 18px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); font-size: .88rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .recent-game a { font-weight: 650; }
+    .play-filter { display: flex; gap: 8px; flex-wrap: wrap; margin: 26px 0; }
+    .play-filter button { padding: 8px 16px; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); font-size: .86rem; font-weight: 600; cursor: pointer; transition: color .18s ease, border-color .18s ease, background-color .18s ease; }
+    .play-filter button:hover { border-color: var(--accent); color: var(--accent-ink); }
+    .play-filter button[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
+    .play-grid { display: grid; gap: 22px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .game-card { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-1); color: inherit; text-decoration: none; display: flex; flex-direction: column; transition: transform .22s ease, box-shadow .28s ease, border-color .22s ease; }
+    .game-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
+    .game-cover { height: 158px; display: grid; place-items: center; position: relative; border-bottom: 1px solid var(--line); background: linear-gradient(145deg, var(--accent-soft), var(--surface-2)); }
+    .game-cover::before, .game-cover::after { content: ''; position: absolute; border: 1px solid var(--line-strong); border-radius: 50%; }
+    .game-cover::before { width: 216px; height: 216px; }
+    .game-cover::after { width: 150px; height: 150px; }
+    .game-cover.violet { background: linear-gradient(135deg, rgba(123, 47, 252, .13), var(--surface-2)); }
+    .game-cover.mint { background: linear-gradient(135deg, rgba(15, 138, 77, .13), var(--surface-2)); }
+    .game-cover.amber { background: linear-gradient(135deg, rgba(200, 144, 40, .16), var(--surface-2)); }
+    .game-mark { position: relative; z-index: 1; padding: 9px 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-1); color: var(--accent-ink); font: 750 38px/1.15 var(--mono); letter-spacing: -.04em; white-space: nowrap; }
+    .game-copy { flex: 1; display: flex; flex-direction: column; padding: 20px; }
+    .game-copy small { font-size: .72rem; letter-spacing: .05em; color: var(--muted); }
+    .game-copy h2 { margin: 7px 0 6px; font-size: 1.32rem; letter-spacing: -.025em; }
+    .game-copy p { color: var(--muted); font-size: .92rem; line-height: 1.7; }
+    .game-features { margin: 14px 0 0; font-size: .74rem; color: var(--muted); }
+    .game-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+    .game-bottom strong { display: inline-flex; align-items: center; gap: 6px; color: var(--accent-ink); font-size: .87rem; }
+    .game-bottom .icon { transition: transform .22s ease; }
+    .game-card:hover .game-bottom .icon { transform: translateX(4px); }
+    .game-bottom span { color: var(--muted); font: .7rem/1 var(--mono); }
+    .play-tip { max-width: 92ch; margin: 28px 0 56px; color: var(--muted); font-size: .82rem; }
+    @media (max-width: 980px) { .play-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 620px) { .play-grid { grid-template-columns: minmax(0, 1fr); } .play-head { padding-top: 34px; } .game-cover { height: 138px; } }
+  `,
+  body: `        <section class="play-head">
             <div class="container">
-                <span class="eyebrow" data-i18n="eyebrow">小游戏</span>
-                <h1>2048</h1>
-                <p class="lead" data-i18n="lead">
-                    站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起；进度和最佳纪录留在这台设备上。
-                </p>
+                <span class="eyebrow" data-i18n="eyebrow">游戏室 / PLAY ROOM</span>
+                <h1 data-i18n="title">留一点时间，玩一局。</h1>
+                <p class="lead" data-i18n="lead"></p>
+                <div class="play-meta"><span data-i18n="local"></span><span id="gameCount"></span></div>
+                <p class="recent-game" id="recentGame" hidden></p>
             </div>
         </section>
 
         <section class="section tight">
             <div class="container">
-                <div class="g-wrap">
-                    <div class="g-top">
-                        <div class="g-scores">
-                            <div class="g-score"><span class="k" data-i18n="g_score">分数</span><span class="v" id="gScore">0</span></div>
-                            <div class="g-score"><span class="k" data-i18n="g_best">最佳</span><span class="v" id="gBest">0</span></div>
-                        </div>
-                        <div class="g-actions">
-                            <button type="button" class="icon-btn" id="gSound" aria-pressed="true" data-i18n-title="g_sound" data-i18n-aria="g_sound" title="音效">
-                                <svg class="icon i-on" aria-hidden="true"><use href="#i-sound" /></svg>
-                                <svg class="icon i-off" aria-hidden="true" style="display:none"><use href="#i-mute" /></svg>
-                            </button>
-                            <button type="button" class="btn btn-ghost btn-sm" id="gNew">
-                                <svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg>
-                                <span data-i18n="g_new">新游戏</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <p class="g-restored" id="gRestored" hidden>
-                        <svg class="icon" aria-hidden="true"><use href="#i-clock" /></svg>
-                        <span data-i18n="g_restored">已恢复上次的棋局与分数。</span>
-                    </p>
-
-                    <div class="g-board" id="gBoard" data-i18n-aria="g_board" aria-label="2048 棋盘">
-                        <div class="g-grid" id="gGrid"></div>
-                        <div class="g-msg" id="gMsg" role="status">
-                            <div>
-                                <p id="gMsgText"></p>
-                                <div class="btn-row">
-                                    <button type="button" class="btn btn-primary btn-sm" id="gKeep" hidden>
-                                        <span data-i18n="g_keep">继续游戏</span>
-                                    </button>
-                                    <button type="button" class="btn btn-ghost btn-sm" id="gRetry">
-                                        <span data-i18n="g_retry">再试一次</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p class="g-hint">
-                        <svg class="icon" aria-hidden="true"><use href="#i-terminal" /></svg>
-                        <span data-i18n="g_hint">键盘方向键或 WASD 移动；手机上在棋盘上滑动（棋盘内不会触发页面滚动或下拉刷新）。</span>
-                    </p>
-
-                    <aside class="note g-rules" data-i18n="g_rules">
-                        规则：每次移动后随机落下一块 2 或 4；相同数字相撞会合并成它们的和，并计入分数。
-                        合成 2048 即获胜，之后可以继续挑战更大的数字；棋盘填满且无处可合时游戏结束。
-                        棋局、分数与最佳纪录保存在本机浏览器里，关掉页面下次接着玩。
-                    </aside>
-                </div>
+                <div class="play-filter" id="gameFilters" role="group" aria-label="游戏分类"></div>
+                <div class="play-grid" id="gameList"></div>
+                <p class="play-tip" data-i18n="tip"></p>
             </div>
         </section>
 `,
-
-    i18n: {
-        'zh-CN': {
-            meta_description: '站内小游戏：2048。方向键或滑动操作，合并相同数字；进度与最佳纪录保存在本机，支持深浅主题与四种界面语言。',
-            eyebrow: '小游戏',
-            lead: '站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起；进度和最佳纪录留在这台设备上。',
-            g_score: '分数', g_best: '最佳', g_new: '新游戏',
-            g_keep: '继续游戏', g_retry: '再试一次',
-            g_win: '你赢了！', g_over: '游戏结束',
-            g_hint: '键盘方向键或 WASD 移动；手机上在棋盘上滑动（棋盘内不会触发页面滚动或下拉刷新）。',
-            g_rules: '规则：每次移动后随机落下一块 2 或 4；相同数字相撞会合并成它们的和，并计入分数。合成 2048 即获胜，之后可以继续挑战更大的数字；棋盘填满且无处可合时游戏结束。棋局、分数与最佳纪录保存在本机浏览器里，关掉页面下次接着玩。',
-            g_board: '2048 棋盘', g_sound: '音效开关',
-            g_restored: '已恢复上次的棋局与分数。'
-        },
-        'zh-TW': {
-            meta_description: '站內小遊戲：2048。方向鍵或滑動操作，合併相同數字；進度與最佳紀錄保存在本機，支援深淺主題與四種介面語言。',
-            eyebrow: '小遊戲',
-            lead: '站裡唯一會開口勸你再玩一局的東西。方向鍵或滑動，把相同的數字合在一起；進度和最佳紀錄留在這台裝置上。',
-            g_score: '分數', g_best: '最佳', g_new: '新遊戲',
-            g_keep: '繼續遊戲', g_retry: '再試一次',
-            g_win: '你贏了！', g_over: '遊戲結束',
-            g_hint: '鍵盤方向鍵或 WASD 移動；手機上在棋盤上滑動（棋盤內不會觸發頁面滾動或下拉刷新）。',
-            g_rules: '規則：每次移動後隨機落下一塊 2 或 4；相同數字相撞會合併成它們的和，並計入分數。合成 2048 即獲勝，之後可以繼續挑戰更大的數字；棋盤填滿且無處可合時遊戲結束。棋局、分數與最佳紀錄保存在本機瀏覽器裡，關掉頁面下次接著玩。',
-            g_board: '2048 棋盤', g_sound: '音效開關',
-            g_restored: '已恢復上次的棋局與分數。'
-        },
-        'en': {
-            meta_description: 'A small in-site game: 2048. Arrow keys or swipe, merge equal tiles; progress and best score stay on this device, with light/dark themes and four interface languages.',
-            eyebrow: 'Mini game',
-            lead: 'The only thing on this site that talks you into one more round. Arrows or swipe, merge equal numbers; progress and best score stay on this device.',
-            g_score: 'Score', g_best: 'Best', g_new: 'New game',
-            g_keep: 'Keep going', g_retry: 'Try again',
-            g_win: 'You win!', g_over: 'Game over',
-            g_hint: 'Arrow keys or WASD to move; swipe on the board on touch screens (the board never scrolls the page or pulls to refresh).',
-            g_rules: 'Rules: every move drops a random 2 or 4; equal tiles that collide merge into their sum and add to the score. Reaching 2048 wins, and you can keep going for bigger tiles; the game ends when the board is full with no possible merge. The board, score and best record live in this browser, so you can close the page and continue later.',
-            g_board: '2048 board', g_sound: 'Sound on/off',
-            g_restored: 'Restored your previous board and score.'
-        },
-        'ja': {
-            meta_description: 'サイト内のミニゲーム：2048。矢印キーまたはスワイプで同じ数字を合体。進度とベストは端末に保存。ライト/ダークテーマと4言語UIに対応。',
-            eyebrow: 'ミニゲーム',
-            lead: 'このサイトで唯一「もう一局」と囁いてくるもの。矢印キーかスワイプで同じ数字を合わせます。進度とベストはこの端末に残ります。',
-            g_score: 'スコア', g_best: 'ベスト', g_new: '新しいゲーム',
-            g_keep: '続行', g_retry: 'もう一度',
-            g_win: '勝利！', g_over: 'ゲームオーバー',
-            g_hint: '矢印キーまたは WASD で移動、タッチ端末では盤面をスワイプ（盤面内ではページスクロールや pull-to-refresh は起きません）。',
-            g_rules: 'ルール：手を動かすごとに 2 か 4 がランダムに出現。同じ数字がぶつかると合計値に合体し、スコアに加算されます。2048 を作れば勝利、その後もより大きなタイルに挑戦できます。盤面が埋まり合体できなくなったら終了です。盤面・スコア・ベストはこのブラウザに保存され、ページを閉じても続きから遊べます。',
-            g_board: '2048 盤面', g_sound: 'サウンド切替',
-            g_restored: '前回の盤面とスコアを復元しました。'
-        }
-    },
-
     render: function render(ctx) {
-        var grid = document.getElementById('gGrid');
-        if (!grid) return;
+        var games = window.PAGE_DATA;
+        var state = window.PLAY_ROOM || (window.PLAY_ROOM = { filter: 'all' });
+        var filters = document.getElementById('gameFilters');
+        var list = document.getElementById('gameList');
+        var count = document.getElementById('gameCount');
 
-        /* ── 纯逻辑：一行滑动 = 去零 → 相邻同值合并一次 → 再去零 → 补零 ── */
-        function slide(line) {
-            var row = line.filter(function (v) { return v !== 0; });
-            var gained = 0;
-            for (var i = 0; i < row.length - 1; i++) {
-                if (row[i] === row[i + 1]) {
-                    row[i] *= 2;
-                    gained += row[i];
-                    row[i + 1] = 0;
-                }
-            }
-            row = row.filter(function (v) { return v !== 0; });
-            while (row.length < 4) row.push(0);
-            return { line: row, gained: gained };
+        function paint() {
+            var items = games.filter(function (g) { return state.filter === 'all' || g.category === state.filter; });
+            count.textContent = ctx.t('count').replace('%d', items.length);
+            list.innerHTML = items.map(function (g) {
+                return '<a class="game-card" href="' + g.page + '">' +
+                    '<div class="game-cover ' + g.color + '" aria-hidden="true"><span class="game-mark">' + escHtml(g.mark) + '</span></div>' +
+                    '<div class="game-copy"><small>' + escHtml(ctx.t(g.category)) + '</small>' +
+                    '<h2>' + escHtml(ctx.pick(g.name)) + '</h2><p>' + escHtml(ctx.pick(g.desc)) + '</p>' +
+                    '<div class="game-features">' + escHtml(ctx.pick(g.features)) + '</div>' +
+                    '<div class="game-bottom"><strong>' + escHtml(ctx.t('play')) + '<svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></strong>' +
+                    '<span>' + escHtml(g.time) + ' ' + escHtml(ctx.t('minutes')) + '</span></div></div></a>';
+            }).join('');
         }
 
-        function linesOf(board, dir) {
-            if (dir === 'left') return [function (b, i) { return b[i].slice(); }, function (b, i, l) { b[i] = l; }];
-            if (dir === 'right') return [function (b, i) { return b[i].slice().reverse(); }, function (b, i, l) { b[i] = l.reverse(); }];
-            if (dir === 'up') return [function (b, i) { return [b[0][i], b[1][i], b[2][i], b[3][i]]; }, function (b, i, l) { for (var r = 0; r < 4; r++) b[r][i] = l[r]; }];
-            return [function (b, i) { return [b[3][i], b[2][i], b[1][i], b[0][i]]; }, function (b, i, l) { for (var r = 0; r < 4; r++) b[3 - r][i] = l[r]; }];
-        }
-
-        function emptyBoard() {
-            return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
-        }
-
-        function cloneBoard(b) {
-            return b.map(function (r) { return r.slice(); });
-        }
-
-        function sameBoard(a, b) {
-            for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) if (a[i][j] !== b[i][j]) return false;
-            return true;
-        }
-
-        function movesAvailable(b) {
-            for (var i = 0; i < 4; i++) {
-                for (var j = 0; j < 4; j++) {
-                    if (b[i][j] === 0) return true;
-                    if (j < 3 && b[i][j] === b[i][j + 1]) return true;
-                    if (i < 3 && b[i][j] === b[i + 1][j]) return true;
-                }
-            }
-            return false;
-        }
-
-        function applyMove(board, dir) {
-            var io = linesOf(board, dir);
-            var out = emptyBoard();
-            var gained = 0;
-            for (var i = 0; i < 4; i++) {
-                var res = slide(io[0](board, i));
-                gained += res.gained;
-                io[1](out, i, res.line);
-            }
-            return { board: out, gained: gained, moved: !sameBoard(board, out) };
-        }
-
-        /* ── 本机存档：棋局 + 分数 + 胜负状态；读失败或数据坏掉就开新局 ── */
-        var SAVE_KEY = 'g2048save';
-        function readSave() {
-            try {
-                var raw = localStorage.getItem(SAVE_KEY);
-                if (!raw) return null;
-                var s = JSON.parse(raw);
-                if (!s || s.v !== 1 || !Array.isArray(s.board) || s.board.length !== 4) return null;
-                for (var i = 0; i < 4; i++) {
-                    if (!Array.isArray(s.board[i]) || s.board[i].length !== 4) return null;
-                    for (var j = 0; j < 4; j++) {
-                        var v = s.board[i][j];
-                        if (typeof v !== 'number' || !Number.isInteger(v) || v < 0 || (v !== 0 && (v & (v - 1)) !== 0)) return null;
-                    }
-                }
-                if (typeof s.score !== 'number' || s.score < 0) return null;
-                return s;
-            } catch (e) { return null; }
-        }
-
-        function writeSave(S) {
-            try {
-                localStorage.setItem(SAVE_KEY, JSON.stringify({
-                    v: 1, board: S.board, score: S.score, won: S.won, kept: S.kept, over: S.over
-                }));
-            } catch (e) { /* 隐私模式：记不住就不记 */ }
-        }
-
-        /* ── 音效：WebAudio 合成，无外部资源；首次手势后才出声 ── */
-        function audio() {
-            var A = window.G2048_AUDIO;
-            if (!A) {
-                A = window.G2048_AUDIO = { ctx: null, on: true };
-                try { A.on = localStorage.getItem('g2048sound') !== 'off'; } catch (e) { A.on = true; }
-            }
-            return A;
-        }
-        function ensureAudio() {
-            var A = audio();
-            try {
-                if (!A.ctx) A.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if (A.ctx.state === 'suspended') A.ctx.resume();
-            } catch (e) { A.ctx = null; }
-        }
-        function tone(freq, dur, type, vol) {
-            var A = audio();
-            if (!A.on || !A.ctx || A.ctx.state !== 'running') return;
-            try {
-                var o = A.ctx.createOscillator();
-                var g = A.ctx.createGain();
-                o.type = type || 'sine';
-                o.frequency.value = freq;
-                g.gain.setValueAtTime(vol || .06, A.ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(.0001, A.ctx.currentTime + dur);
-                o.connect(g); g.connect(A.ctx.destination);
-                o.start(); o.stop(A.ctx.currentTime + dur);
-            } catch (e) { /* 出声失败不影响游戏 */ }
-        }
-
-        var reduceMotion = false;
-        try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { reduceMotion = false; }
-
-        /* ── 状态：挂在 window 上，切语言重跑 render 时不丢局 ── */
-        var S = window.G2048;
-        if (!S) {
-            S = window.G2048 = { board: emptyBoard(), score: 0, best: 0, won: false, over: false, kept: false, cells: [], last: emptyBoard() };
-            try { S.best = Number(localStorage.getItem('best2048')) || 0; } catch (e) { S.best = 0; }
-
-            for (var c = 0; c < 16; c++) {
-                var cell = document.createElement('div');
-                cell.className = 'g-cell';
-                grid.appendChild(cell);
-                S.cells.push(cell);
-            }
-
-            function drop() {
-                var free = [];
-                for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) if (S.board[i][j] === 0) free.push([i, j]);
-                if (!free.length) return;
-                var spot = free[Math.floor(Math.random() * free.length)];
-                S.board[spot[0]][spot[1]] = Math.random() < 0.9 ? 2 : 4;
-            }
-
-            function saveBest() {
-                try { localStorage.setItem('best2048', String(S.best)); } catch (e) { /* 同上 */ }
-            }
-
-            function flash(el, cls) {
-                if (reduceMotion || !el) return;
-                el.classList.remove(cls);
-                /* 强制 reflow 让同名动画可以重复触发 */
-                void el.offsetWidth;
-                el.classList.add(cls);
-                setTimeout(function () { el.classList.remove(cls); }, 320);
-            }
-
-            function paint() {
-                if (!S.won) {
-                    for (var r = 0; r < 4; r++) for (var q = 0; q < 4; q++) if (S.board[r][q] === 2048) S.won = true;
-                }
-                if (!S.over && !movesAvailable(S.board)) S.over = true;
-
-                for (var i = 0; i < 4; i++) {
-                    for (var j = 0; j < 4; j++) {
-                        var v = S.board[i][j];
-                        var el = S.cells[i * 4 + j];
-                        el.className = v > 2048 ? 'g-cell tsuper' : ('g-cell' + (v ? ' t' + v : ''));
-                        el.textContent = v || '';
-                        var was = S.last[i][j];
-                        if (v && !was) flash(el, 'spawn');
-                        else if (v && was && v > was) flash(el, 'pop');
-                    }
-                }
-                S.last = cloneBoard(S.board);
-                document.getElementById('gScore').textContent = String(S.score);
-                document.getElementById('gBest').textContent = String(S.best);
-
-                var msg = document.getElementById('gMsg');
-                var text = document.getElementById('gMsgText');
-                var keep = document.getElementById('gKeep');
-                var t = window.SITE_RUNTIME ? window.SITE_RUNTIME.t : function (k) { return k; };
-                if (S.over) {
-                    msg.className = 'g-msg show';
-                    text.textContent = t('g_over');
-                    keep.hidden = true;
-                } else if (S.won && !S.kept) {
-                    msg.className = 'g-msg show won';
-                    text.textContent = t('g_win');
-                    keep.hidden = false;
-                } else {
-                    msg.className = 'g-msg';
-                }
-            }
-
-            S.reset = function () {
-                S.board = emptyBoard();
-                S.last = emptyBoard();
-                S.score = 0;
-                S.won = false;
-                S.over = false;
-                S.kept = false;
-                drop();
-                drop();
+        if (!window.PLAY_ROOM_BOUND) {
+            window.PLAY_ROOM_BOUND = true;
+            filters.addEventListener('click', function (event) {
+                var pill = event.target.closest('button[data-category]');
+                if (!pill) return;
+                state.filter = pill.getAttribute('data-category');
+                markPills();
                 paint();
-                writeSave(S);
-                document.getElementById('gRestored').hidden = true;
-            };
-
-            S.move = function (dir) {
-                if (S.over) return false;
-                var res = applyMove(S.board, dir);
-                if (!res.moved) {
-                    flash(document.getElementById('gBoard'), 'nudge');
-                    return false;
-                }
-                var before = S.score;
-                S.board = res.board;
-                S.score += res.gained;
-                if (S.score > S.best) { S.best = S.score; saveBest(); }
-                drop();
-                paint();
-                if (S.score > before) flash(document.getElementById('gScore'), 'bump');
-                tone(240, .06, 'triangle', .04);
-                if (res.gained) tone(320 + 40 * Math.log2(res.gained), .12, 'sine', .07);
-                if (S.won && !S.kept) { tone(523, .12); setTimeout(function () { tone(659, .12); }, 110); setTimeout(function () { tone(784, .2); }, 220); }
-                if (S.over) tone(150, .3, 'sawtooth', .05);
-                writeSave(S);
-                return true;
-            };
-
-            document.getElementById('gNew').addEventListener('click', function () { ensureAudio(); S.reset(); });
-            document.getElementById('gRetry').addEventListener('click', function () { ensureAudio(); S.reset(); });
-            document.getElementById('gKeep').addEventListener('click', function () {
-                ensureAudio();
-                S.kept = true;
-                paint();
-                writeSave(S);
             });
-
-            var soundBtn = document.getElementById('gSound');
-            function paintSound() {
-                var A = audio();
-                soundBtn.setAttribute('aria-pressed', String(A.on));
-                soundBtn.classList.toggle('off', !A.on);
-                soundBtn.querySelector('.i-on').style.display = A.on ? '' : 'none';
-                soundBtn.querySelector('.i-off').style.display = A.on ? 'none' : '';
-            }
-            soundBtn.addEventListener('click', function () {
-                var A = audio();
-                A.on = !A.on;
-                try { localStorage.setItem('g2048sound', A.on ? 'on' : 'off'); } catch (e) { /* 同上 */ }
-                if (A.on) { ensureAudio(); tone(660, .08, 'sine', .05); }
-                paintSound();
-            });
-            paintSound();
-
-            var KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', A: 'left', D: 'right', W: 'up', S: 'down' };
-            document.addEventListener('keydown', function (e) {
-                if (e.altKey || e.ctrlKey || e.metaKey) return;
-                var tag = (e.target && e.target.tagName) || '';
-                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-                var dir = KEYS[e.key];
-                if (!dir) return;
-                e.preventDefault();
-                ensureAudio();
-                S.move(dir);
-            });
-
-            /* 滑动：指针事件 + 指针捕获；棋盘 touch-action:none，浏览器手势不会抢走这次触摸 */
-            var boardEl = document.getElementById('gBoard');
-            var px = 0, py = 0, pid = null;
-            boardEl.addEventListener('pointerdown', function (e) {
-                /* 覆盖层里的按钮要保留原生点击，不能被指针捕获抢走 */
-                if (e.target.closest && e.target.closest('.g-msg')) return;
-                ensureAudio();
-                pid = e.pointerId;
-                px = e.clientX; py = e.clientY;
-                try { boardEl.setPointerCapture(pid); } catch (err) { /* 老浏览器忽略 */ }
-            });
-            boardEl.addEventListener('pointerup', function (e) {
-                if (pid === null || e.pointerId !== pid) return;
-                pid = null;
-                var dx = e.clientX - px, dy = e.clientY - py;
-                if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-                if (Math.abs(dx) > Math.abs(dy)) S.move(dx > 0 ? 'right' : 'left');
-                else S.move(dy > 0 ? 'down' : 'up');
-            });
-            boardEl.addEventListener('pointercancel', function () { pid = null; });
-            boardEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-            boardEl.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-            boardEl.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
-
-            /* 关页/切后台时再落一次盘，避免最后一次移动丢失 */
-            window.addEventListener('pagehide', function () { writeSave(S); });
-            document.addEventListener('visibilitychange', function () {
-                if (document.visibilityState === 'hidden') writeSave(S);
-            });
-
-            window.G2048_API = {
-                setBoard: function (b) { S.board = cloneBoard(b); S.last = cloneBoard(b); S.over = false; S.won = false; S.kept = false; paint(); writeSave(S); },
-                getBoard: function () { return cloneBoard(S.board); },
-                move: function (dir) { return S.move(dir); },
-                score: function () { return S.score; },
-                reset: S.reset
-            };
-
-            var saved = readSave();
-            if (saved) {
-                S.board = cloneBoard(saved.board);
-                S.last = cloneBoard(saved.board);
-                S.score = saved.score;
-                S.won = !!saved.won;
-                S.kept = !!saved.kept;
-                S.over = !!saved.over;
-                if (S.score > S.best) { S.best = S.score; saveBest(); }
-                paint();
-                document.getElementById('gRestored').hidden = false;
-            } else {
-                S.reset();
-            }
         }
+        /* 换语言时才重建；筛选只改属性，否则点一下按钮就被替换，焦点会丢 */
+        function buildPills() {
+            filters.innerHTML = ['all', 'puzzle', 'casual', 'strategy', 'simulation'].map(function (key) {
+                return '<button type="button" data-category="' + key + '" aria-pressed="false">' + escHtml(ctx.t(key)) + '</button>';
+            }).join('');
+            markPills();
+        }
+        function markPills() {
+            [].forEach.call(filters.children, function (b) {
+                b.setAttribute('aria-pressed', String(b.getAttribute('data-category') === state.filter));
+            });
+        }
+        buildPills();
+        paint();
 
-        /* 切语言时只重画文案与覆盖层，不动棋局 */
-        var msg = document.getElementById('gMsg');
-        if (msg.classList.contains('show')) {
-            document.getElementById('gMsgText').textContent = ctx.t(S.over ? 'g_over' : 'g_win');
+        var recent = document.getElementById('recentGame');
+        var last = null;
+        try { last = localStorage.getItem('lastPlayedGame'); } catch (e) {}
+        var game = games.find(function (g) { return g.id === last; });
+        if (game) {
+            recent.hidden = false;
+            recent.innerHTML = '<span>' + escHtml(ctx.t('recent')) + ' · <strong>' + escHtml(ctx.pick(game.name)) + '</strong></span>' +
+                '<a href="' + game.page + '">' + escHtml(ctx.t('resume')) + '</a>';
+        } else {
+            recent.hidden = true;
         }
     },
-
-    data: [],
-
     jsonld: {
-        '@context': 'https://schema.org',
-        '@type': 'WebPage',
-        name: '2048 · 云陌轩',
-        url: 'https://yunmo-xuan.github.io/games.html',
-        inLanguage: ['zh-CN', 'zh-TW', 'en', 'ja']
+      '@context': 'https://schema.org', '@type': 'ItemList',
+      name: '游戏室 · 云陌轩', url: 'https://yunmo-xuan.github.io/games.html',
+      itemListElement: CATALOG.map(function (g, i) {
+        return { '@type': 'ListItem', position: i + 1, name: g.name['zh-CN'], url: 'https://yunmo-xuan.github.io/' + g.page };
+      })
     }
 };

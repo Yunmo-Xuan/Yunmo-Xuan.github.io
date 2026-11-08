@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light dark" />
 
     <title>云陌轩 · 个人空间</title>
-    <meta name="description" content="云陌轩的个人空间：纯手写的静态小站，记录做过的项目与笔记。零框架、零依赖、零外部请求。" id="metaDesc" />
+    <meta name="description" content="云陌轩的个人空间：纯手写的静态小站，展示实用项目与六款小游戏。零框架、零依赖、零外部请求。" id="metaDesc" />
     <link rel="canonical" href="https://yunmo-xuan.github.io/" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#faf9f8" id="metaThemeColor" />
@@ -16,28 +16,34 @@
     <meta property="og:site_name" content="云陌轩" />
     <meta property="og:url" content="https://yunmo-xuan.github.io/" />
     <meta property="og:title" content="云陌轩 · 个人空间" />
-    <meta property="og:description" content="云陌轩的个人空间：纯手写的静态小站，记录做过的项目与笔记。零框架、零依赖、零外部请求。" />
+    <meta property="og:description" content="云陌轩的个人空间：纯手写的静态小站，展示实用项目与六款小游戏。零框架、零依赖、零外部请求。" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="云陌轩 · 个人空间" />
-    <meta name="twitter:description" content="云陌轩的个人空间：纯手写的静态小站，记录做过的项目与笔记。零框架、零依赖、零外部请求。" />
+    <meta name="twitter:description" content="云陌轩的个人空间：纯手写的静态小站，展示实用项目与六款小游戏。零框架、零依赖、零外部请求。" />
 
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b63f6'/%3E%3Cpath d='M16 6.5l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z' fill='%23fff'/%3E%3C/svg%3E" />
+    <link rel="icon" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/favicon.png" />
+    <meta property="og:image" content="https://yunmo-xuan.github.io/assets/logo.webp" />
 
     <script>
         /* 首屏前确定主题与语言，避免闪烁（FOUC） */
         (function () {
             var r = document.documentElement;
             r.className += ' js';
+            var forced = /[?&]theme=(light|dark)/.exec(location.search);
             try {
-                var t = localStorage.getItem('preferredTheme');
-                if (t !== 'light' && t !== 'dark') {
-                    t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                if (forced) { r.setAttribute('data-theme', forced[1]); }
+                else {
+                    var t = localStorage.getItem('preferredTheme');
+                    if (t !== 'light' && t !== 'dark') {
+                        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                    }
+                    r.setAttribute('data-theme', t);
                 }
-                r.setAttribute('data-theme', t);
                 var l = localStorage.getItem('preferredLanguage');
                 if (l) r.setAttribute('lang', l);
             } catch (e) {
-                r.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                r.setAttribute('data-theme', forced ? forced[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
             }
         })();
     </script>
@@ -175,13 +181,27 @@ button { font: inherit; color: inherit; }
     font-size: 1.18rem; font-weight: 750; letter-spacing: -.02em;
     text-decoration: none; color: var(--text);
 }
-.logo .spark {
-    width: 24px; height: 24px; border-radius: 7px; background: var(--grad);
-    display: grid; place-items: center; color: #fff; font-size: 14px;
-    box-shadow: 0 4px 12px rgba(11, 99, 246, .28);
+.logo-mark {
+    width: 28px; height: 28px; border-radius: 9px; object-fit: cover;
+    box-shadow: 0 4px 12px rgba(11, 99, 246, .24);
     transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
 }
-.logo:hover .spark { transform: rotate(-8deg); }
+.logo:hover .logo-mark { transform: rotate(-6deg) scale(1.04); }
+
+/* ---------- 启动动画（同一标签页只播一次，可跳过） ---------- */
+.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: #05070f; }
+.intro[hidden] { display: none !important; }
+.intro-stage { position: relative; width: min(88vw, 62vh); aspect-ratio: 1; }
+.intro-video { width: 100%; height: 100%; object-fit: contain; border-radius: 24px; }
+.intro-brand {
+    position: absolute; left: 0; bottom: -52px; display: flex; align-items: center; gap: 10px;
+    color: #eaf1ff; font-weight: 700; letter-spacing: -.01em;
+}
+.intro-brand img { border-radius: 10px; }
+.intro-skip { position: absolute; right: 22px; bottom: 22px; }
+.intro-out { opacity: 0; transition: opacity .4s ease; }
+html.intro-on, html.intro-on body { overflow: hidden; }
+@media (max-height: 560px) { .intro-stage { width: min(58vw, 84vh); } .intro-brand { display: none; } }
 
 .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
 .nav-links a {
@@ -509,6 +529,81 @@ body { touch-action: manipulation; }
 <body>
     <a class="skip-link" href="#main" data-i18n="a11y_skip" data-i18n-aria="a11y_skip">跳到主要内容</a>
 
+    <div class="intro" id="introSplash" role="dialog" aria-modal="true" aria-label="Site intro" hidden>
+        <div class="intro-stage">
+            <div class="intro-brand"><img src="assets/logo-mark.webp" alt="" width="36" height="36" /><span data-i18n="brand">云陌轩</span></div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip">跳过</button>
+    </div>
+
+    <script>
+    (function () {
+        var el = document.getElementById('introSplash');
+        if (!el) return;
+        var seen = false, reduced = false;
+        try { seen = sessionStorage.getItem('yunmo.intro.seen') === '1'; } catch (e) {}
+        try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (seen || reduced || /[?&]nosplash/.test(location.search)) { el.remove(); return; }
+        /* 只有真的要播时才建 <video>，避免回访用户白拉一次素材 */
+        var video = document.createElement('video');
+        video.className = 'intro-video';
+        video.id = 'introVideo';
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.setAttribute('aria-hidden', 'true');
+        video.src = 'assets/intro.mp4';
+        el.querySelector('.intro-stage').prepend(video);
+        var lang = 'zh-CN';
+        try { lang = localStorage.getItem('preferredLanguage') || lang; } catch (e) {}
+        var skipText = { 'zh-CN': '跳过', 'zh-TW': '跳過', en: 'Skip', ja: 'スキップ' }[lang] || '跳过';
+        el.querySelector('#introSkip').textContent = skipText;
+        el.hidden = false;
+        document.documentElement.classList.add('intro-on', 'booting');
+        /* 弹层期间背景不可交互也不可 Tab 进去，结束后把焦点还给原处。
+           这段脚本在解析中途执行，#main 此刻还不存在，所以补一次 DOMContentLoaded 后再锁 */
+        var LOCK = ['.site-header', '#main', '.site-footer'];
+        var lastFocus = document.activeElement;
+        var closed = false;
+        function lock(on) {
+            LOCK.forEach(function (sel) {
+                var node = document.querySelector(sel);
+                if (node) node.inert = on;
+            });
+        }
+        lock(true);
+        document.addEventListener('DOMContentLoaded', function () { if (!closed) lock(true); });
+        var skip = document.getElementById('introSkip');
+        /* 焦点必须进入弹层，否则 inert 只是把背景锁成谁也碰不到 */
+        skip.focus();
+        function done() {
+            if (closed) return; closed = true;
+            el.classList.add('intro-out');
+            lock(false);
+            setTimeout(function () {
+                el.remove();
+                document.documentElement.classList.remove('intro-on', 'booting');
+                if (lastFocus && lastFocus.focus) lastFocus.focus();
+            }, 420);
+        }
+        video.addEventListener('ended', done);
+        video.addEventListener('error', done);
+        skip.addEventListener('click', done);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
+        var playing = video.play();
+        if (playing && playing.then) {
+            playing.then(function () {
+                /* 播成功才算"看过"，被拦截时下次还能再试 */
+                try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+            }).catch(done);
+        } else {
+            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+        }
+        setTimeout(done, 7000);
+    })();
+    </script>
+
+
     <svg class="sprite" aria-hidden="true" focusable="false"><defs>
             <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></symbol>
             <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></symbol>
@@ -542,7 +637,7 @@ body { touch-action: manipulation; }
     <header class="site-header">
         <div class="container header-inner">
             <a class="logo" href="index.html">
-                <span class="spark" aria-hidden="true">✦</span>
+                <img class="logo-mark" src="assets/logo.webp" alt="" width="28" height="28" />
                 <span data-i18n="brand">云陌轩</span>
             </a>
 
@@ -550,7 +645,6 @@ body { touch-action: manipulation; }
                 <ul class="nav-links">
                     <li><a href="index.html" data-i18n="nav_home" aria-current="page">首页</a></li>
                     <li><a href="projects.html" data-i18n="nav_projects">项目</a></li>
-                    <li><a href="blog.html" data-i18n="nav_blog">文章</a></li>
                     <li><a href="games.html" data-i18n="nav_games">游戏</a></li>
                     <li><a href="about.html" data-i18n="nav_about">关于</a></li>
                 </ul>
@@ -586,7 +680,7 @@ body { touch-action: manipulation; }
 
     <main id="main">
         <noscript>
-            <p class="noscript-note">文章与项目列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
+            <p class="noscript-note">项目与游戏列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
                 站点源码公开：<a href="https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io">Yunmo-Xuan.github.io</a>。</p>
         </noscript>
         <section class="hero">
@@ -599,16 +693,16 @@ body { touch-action: manipulation; }
                         <span class="grad" data-i18n="hero_title_2">云陌轩</span>
                     </h1>
                     <p class="lead reveal d2" data-i18n="hero_desc">
-                        这里展示我做的实用工具与项目；从 PDF 工具箱到个人站，把想法做成能用的东西。
+                        这里展示我做的实用工具、项目与小游戏；从 PDF 工具箱到六款游戏，把想法做成能用、能玩的东西。
                     </p>
                     <div class="hero-actions btn-row reveal d3">
                         <a class="btn btn-primary" href="projects.html">
                             <svg class="icon" aria-hidden="true"><use href="#i-folder" /></svg>
                             <span data-i18n="cta_projects">看看项目</span>
                         </a>
-                        <a class="btn btn-ghost" href="blog.html">
-                            <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
-                            <span data-i18n="cta_blog">读读文章</span>
+                        <a class="btn btn-ghost" href="games.html">
+                            <svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg>
+                            <span data-i18n="cta_games">玩玩游戏</span>
                         </a>
                         <a class="btn btn-ghost" href="https://github.com/Yunmo-Xuan" target="_blank" rel="noopener noreferrer">
                             <svg class="icon" aria-hidden="true"><use href="#i-github" /></svg>
@@ -651,7 +745,7 @@ body { touch-action: manipulation; }
                 <div class="reveal">
                     <span class="eyebrow" data-i18n="guide_eyebrow">导览</span>
                     <h2 class="section-title" data-i18n="guide_title">想去哪儿？</h2>
-                    <p class="section-sub" data-i18n="guide_sub">看看做过的项目，读读开发笔记，或了解这个站背后的人。</p>
+                    <p class="section-sub" data-i18n="guide_sub">看看做过的项目，挑一款游戏，或了解这个站背后的人。</p>
                 </div>
 
                 <div class="card-grid grid-3">
@@ -663,15 +757,7 @@ body { touch-action: manipulation; }
                             <span class="more"><span data-i18n="card_view_projects">查看</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
                         </div>
                     </a>
-                    <a class="tile-link reveal d1" href="blog.html">
-                        <div class="card">
-                            <div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg></div>
-                            <h3 data-i18n="card_blog_t">文章</h3>
-                            <p data-i18n="card_blog_d">技术笔记与零散思考，按时间倒序排列，可按标签筛选。</p>
-                            <span class="more"><span data-i18n="card_view_blog">阅读</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
-                        </div>
-                    </a>
-                    <a class="tile-link reveal d2" href="about.html">
+                    <a class="tile-link reveal d1" href="about.html">
                         <div class="card">
                             <div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#i-user" /></svg></div>
                             <h3 data-i18n="card_about_t">关于</h3>
@@ -679,11 +765,11 @@ body { touch-action: manipulation; }
                             <span class="more"><span data-i18n="card_view_about">了解</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
                         </div>
                     </a>
-                    <a class="tile-link reveal d3" href="games.html">
+                    <a class="tile-link reveal d2" href="games.html">
                         <div class="card">
                             <div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg></div>
                             <h3 data-i18n="card_games_t">小游戏</h3>
-                            <p data-i18n="card_games_d">站内写的 2048：方向键或滑动，合并相同数字，跟着站点一起换主题换语言。</p>
+                            <p data-i18n="card_games_d">2048、星核合成、象棋、五子棋、扫雷、股市模拟：六款作品，体验合成、对弈、推理与模拟。</p>
                             <span class="more"><span data-i18n="card_view_games">玩一局</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></span>
                         </div>
                     </a>
@@ -721,7 +807,7 @@ body { touch-action: manipulation; }
                             <span class="num">03</span>
                             <div>
                                 <h3 data-i18n="p3_t">可持续更新</h3>
-                                <p data-i18n="p3_d">文章和项目各集中在页面里的一个数组，加一条内容不必改布局。</p>
+                                <p data-i18n="p3_d">项目介绍与游戏页面分开维护，让内容和玩法都能持续打磨。</p>
                             </div>
                         </div>
                     </div>
@@ -735,14 +821,13 @@ body { touch-action: manipulation; }
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a class="logo" href="index.html">
-                        <span class="spark" aria-hidden="true">✦</span>
+                        <img class="logo-mark" src="assets/logo.webp" alt="" width="28" height="28" />
                         <span data-i18n="brand">云陌轩</span>
                     </a>
                     <p data-i18n="footer_tagline">一个人的静态小站，慢慢更新。</p>
                 </div>
                 <ul class="footer-nav">
                     <li><a href="projects.html" data-i18n="nav_projects">项目</a></li>
-                    <li><a href="blog.html" data-i18n="nav_blog">文章</a></li>
                     <li><a href="games.html" data-i18n="nav_games">游戏</a></li>
                     <li><a href="about.html" data-i18n="nav_about">关于</a></li>
                     <li><a href="https://github.com/Yunmo-Xuan" target="_blank" rel="noopener noreferrer" data-i18n="footer_github">GitHub 主页</a></li>
@@ -766,13 +851,13 @@ body { touch-action: manipulation; }
    ============================================================ */
 window.PAGE_I18N = {
   "zh-CN": {
-    "meta_description": "云陌轩的个人空间：纯手写的静态小站，记录做过的项目与笔记。零框架、零依赖、零外部请求。",
+    "meta_description": "云陌轩的个人空间：纯手写的静态小站，展示实用项目与六款小游戏。零框架、零依赖、零外部请求。",
     "hero_badge": "在线维护中",
     "hero_title_1": "你好，我是",
     "hero_title_2": "云陌轩",
-    "hero_desc": "这里展示我做的实用工具与项目；从 PDF 工具箱到个人站，把想法做成能用的东西。",
+    "hero_desc": "这里展示我做的实用工具、项目与小游戏；从 PDF 工具箱到六款游戏，把想法做成能用、能玩的东西。",
     "cta_projects": "看看项目",
-    "cta_blog": "读读文章",
+    "cta_games": "玩玩游戏",
     "featured_label": "精选项目",
     "featured_title": "PDF 工具箱",
     "featured_desc": "在本地查看、整理与处理 PDF，让常用文档操作集中在一个工具箱里。",
@@ -783,18 +868,15 @@ window.PAGE_I18N = {
     "featured_note": "下载与使用条款见项目页。",
     "guide_eyebrow": "导览",
     "guide_title": "想去哪儿？",
-    "guide_sub": "看看做过的项目，读读开发笔记，或了解这个站背后的人。",
+    "guide_sub": "看看做过的项目，挑一款游戏，或了解这个站背后的人。",
     "card_projects_t": "项目",
     "card_projects_d": "从 PDF 工具箱到个人站，了解功能、使用方式与项目进展。",
-    "card_blog_t": "文章",
-    "card_blog_d": "技术笔记与零散思考，按时间倒序排列，可按标签筛选。",
     "card_about_t": "关于",
     "card_about_d": "我是谁、在做什么，以及这个站为什么长这个样子。",
     "card_view_projects": "查看",
-    "card_view_blog": "阅读",
     "card_view_about": "了解",
     "card_games_t": "小游戏",
-    "card_games_d": "站内写的 2048：方向键或滑动，合并相同数字，跟着站点一起换主题换语言。",
+    "card_games_d": "2048、星核合成、象棋、五子棋、扫雷、股市模拟：六款作品，体验合成、对弈、推理与模拟。",
     "card_view_games": "玩一局",
     "principle_eyebrow": "原则",
     "principle_title": "这个站坚持的几件事",
@@ -803,17 +885,17 @@ window.PAGE_I18N = {
     "p2_t": "读得舒服",
     "p2_d": "中文优先的字体栈、克制的行宽与字号，深浅色都保证足够的对比度。",
     "p3_t": "可持续更新",
-    "p3_d": "文章和项目各集中在页面里的一个数组，加一条内容不必改布局。",
+    "p3_d": "项目介绍与游戏页面分开维护，让内容和玩法都能持续打磨。",
     "doc_title": "云陌轩 · 个人空间"
   },
   "zh-TW": {
-    "meta_description": "雲陌軒的個人空間：純手寫的靜態小站，記錄做過的項目與筆記。零框架、零相依、零外部請求。",
+    "meta_description": "雲陌軒的個人空間：純手寫的靜態小站，展示實用項目與六款小遊戲。零框架、零相依、零外部請求。",
     "hero_badge": "線上維護中",
     "hero_title_1": "你好，我是",
     "hero_title_2": "雲陌軒",
-    "hero_desc": "這裡展示我做的實用工具與項目；從 PDF 工具箱到個人站，把想法做成能用的東西。",
+    "hero_desc": "這裡展示我做的實用工具、項目與小遊戲；從 PDF 工具箱到六款遊戲，把想法做成能用、能玩的東西。",
     "cta_projects": "看看項目",
-    "cta_blog": "讀讀文章",
+    "cta_games": "玩玩遊戲",
     "featured_label": "精選項目",
     "featured_title": "PDF 工具箱",
     "featured_desc": "在本機檢視、整理與處理 PDF，讓常用文件操作集中在一個工具箱裡。",
@@ -824,18 +906,15 @@ window.PAGE_I18N = {
     "featured_note": "下載與使用條款見項目頁。",
     "guide_eyebrow": "導覽",
     "guide_title": "想去哪裡？",
-    "guide_sub": "看看做過的項目，讀讀開發筆記，或認識這個站背後的人。",
+    "guide_sub": "看看做過的項目，挑一款遊戲，或認識這個站背後的人。",
     "card_projects_t": "項目",
     "card_projects_d": "從 PDF 工具箱到個人站，了解功能、使用方式與項目進展。",
-    "card_blog_t": "文章",
-    "card_blog_d": "技術筆記與零散思考，按時間倒序排列，可按標籤篩選。",
     "card_about_t": "關於",
     "card_about_d": "我是誰、在做什麼，以及這個站為什麼長這個樣子。",
     "card_view_projects": "查看",
-    "card_view_blog": "閱讀",
     "card_view_about": "認識",
     "card_games_t": "小遊戲",
-    "card_games_d": "站內寫的 2048：方向鍵或滑動，合併相同數字，跟著網站一起換主題換語言。",
+    "card_games_d": "2048、星核合成、象棋、五子棋、踩地雷、股市模擬：六款作品，體驗合成、對弈、推理與模擬。",
     "card_view_games": "玩一局",
     "principle_eyebrow": "原則",
     "principle_title": "這個站堅持的幾件事",
@@ -844,17 +923,17 @@ window.PAGE_I18N = {
     "p2_t": "讀得舒服",
     "p2_d": "中文優先的字型堆疊、克制的行寬與字號，深淺色都保證足夠的對比度。",
     "p3_t": "可持續更新",
-    "p3_d": "文章和項目各集中在頁面裡的一個陣列，加一條內容不必改佈局。",
+    "p3_d": "項目介紹與遊戲頁面分開維護，讓內容和玩法都能持續打磨。",
     "doc_title": "雲陌軒 · 個人空間"
   },
   "en": {
-    "meta_description": "Yunmo-Xuan's corner of the internet: a hand-written static site with projects and notes. No framework, no dependencies, no external requests.",
+    "meta_description": "Yunmo-Xuan's corner of the internet: a hand-written static site with practical projects and six games. No framework, no dependencies, no external requests.",
     "hero_badge": "Actively maintained",
     "hero_title_1": "Hi, I'm",
     "hero_title_2": "Yunmo-Xuan",
-    "hero_desc": "Here are the practical tools and projects I build — from PDF Toolbox to this personal site, turning ideas into things you can use.",
+    "hero_desc": "Here are the practical tools, projects and games I build — from PDF Toolbox to six games, turning ideas into things you can use and play.",
     "cta_projects": "See projects",
-    "cta_blog": "Read the notes",
+    "cta_games": "Play games",
     "featured_label": "SELECTED PROJECT",
     "featured_title": "PDF Toolbox",
     "featured_desc": "View, organize and process PDFs locally, with everyday document tasks together in one toolbox.",
@@ -865,18 +944,15 @@ window.PAGE_I18N = {
     "featured_note": "Downloads and terms of use are on the project page.",
     "guide_eyebrow": "Navigate",
     "guide_title": "Where to next?",
-    "guide_sub": "Explore my projects, read development notes, or meet the person behind this site.",
+    "guide_sub": "Explore my projects, pick a game, or meet the person behind this site.",
     "card_projects_t": "Projects",
     "card_projects_d": "From PDF Toolbox to this personal site: features, how to use them, and project updates.",
-    "card_blog_t": "Writing",
-    "card_blog_d": "Notes and half-formed thoughts, newest first, filterable by tag.",
     "card_about_t": "About",
     "card_about_d": "Who I am, what I work on, and why this site looks the way it does.",
     "card_view_projects": "Browse",
-    "card_view_blog": "Read",
     "card_view_about": "Meet",
-    "card_games_t": "Mini game",
-    "card_games_d": "A 2048 written for this site: arrows or swipe, merge equal tiles, and it follows the site theme and language.",
+    "card_games_t": "Mini games",
+    "card_games_d": "2048, Planet Merge, Xiangqi, Gomoku, Minesweeper and Stock Market Simulator: six games spanning merging, strategy, logic and simulation.",
     "card_view_games": "Play",
     "principle_eyebrow": "Principles",
     "principle_title": "What this site sticks to",
@@ -885,17 +961,17 @@ window.PAGE_I18N = {
     "p2_t": "Comfortable to read",
     "p2_d": "A CJK-first type stack, a restrained measure and size, enough contrast in both themes.",
     "p3_t": "Easy to keep alive",
-    "p3_d": "Posts and projects each live in one array inside the page — adding an entry never touches the layout.",
+    "p3_d": "Project descriptions and game pages are maintained separately, so both content and gameplay can keep improving.",
     "doc_title": "Yunmo-Xuan · Personal Site"
   },
   "ja": {
-    "meta_description": "雲陌軒の個人空間。手書きの静的サイトで、作ったものとノートを記録しています。フレームワークなし、依存なし、外部リクエストなし。",
+    "meta_description": "雲陌軒の個人空間。手書きの静的サイトで、実用的なプロジェクトと6つのミニゲームを紹介しています。フレームワークなし、依存なし、外部リクエストなし。",
     "hero_badge": "更新中",
     "hero_title_1": "こんにちは、",
     "hero_title_2": "雲陌軒です",
-    "hero_desc": "自作の実用ツールやプロジェクトを紹介しています。PDF ツールボックスからこの個人サイトまで、アイデアを使えるものに。",
+    "hero_desc": "自作の実用ツール、プロジェクト、ミニゲームを紹介しています。PDF ツールボックスから6つのゲームまで、アイデアを使えるもの、遊べるものに。",
     "cta_projects": "プロジェクトを見る",
-    "cta_blog": "ノートを読む",
+    "cta_games": "ゲームで遊ぶ",
     "featured_label": "注目のプロジェクト",
     "featured_title": "PDF ツールボックス",
     "featured_desc": "PDF の閲覧・整理・処理をローカルで。日常の文書作業をひとつのツールボックスにまとめました。",
@@ -906,18 +982,15 @@ window.PAGE_I18N = {
     "featured_note": "ダウンロードと利用規約はプロジェクトページをご覧ください。",
     "guide_eyebrow": "ガイド",
     "guide_title": "どこへ行く？",
-    "guide_sub": "制作したプロジェクトや開発ノート、このサイトの作者について紹介します。",
+    "guide_sub": "プロジェクトを見る、ゲームを選ぶ、このサイトの作者を知る。気になるところからどうぞ。",
     "card_projects_t": "プロジェクト",
     "card_projects_d": "PDF ツールボックスから個人サイトまで、機能や使い方、進捗を紹介します。",
-    "card_blog_t": "ノート",
-    "card_blog_d": "技術ノートと思いつき。新しい順、タグで絞り込めます。",
     "card_about_t": "概要",
     "card_about_d": "私自身と、このサイトがこの形をしている理由について。",
     "card_view_projects": "見る",
-    "card_view_blog": "読む",
     "card_view_about": "知る",
     "card_games_t": "ミニゲーム",
-    "card_games_d": "このサイトのために作った 2048。矢印キーかスワイプで同じ数字を合体。サイトのテーマと言語に従います。",
+    "card_games_d": "2048、星核合成、シャンチー、五目並べ、マインスイーパー、株式市場シミュレーター。合成・対局・推理・シミュレーションを楽しむ6作品。",
     "card_view_games": "遊ぶ",
     "principle_eyebrow": "方針",
     "principle_title": "このサイトが守っていること",
@@ -926,7 +999,7 @@ window.PAGE_I18N = {
     "p2_t": "読みやすさ",
     "p2_d": "CJK を優先したフォント構成、控えめな行幅と字号、どちらのテーマでも十分なコントラスト。",
     "p3_t": "続けやすい更新",
-    "p3_d": "ノートもプロジェクトもページ内の一つの配列に集約。追加でレイアウトは変わりません。",
+    "p3_d": "プロジェクトの紹介とゲームのページを分けて管理し、内容も遊び方も少しずつ磨いていきます。",
     "doc_title": "雲陌軒 · パーソナルサイト"
   }
 };
@@ -934,7 +1007,7 @@ window.PAGE_I18N = {
 
     <script>
 /* ============================================================
-   本页内容数据 —— 想加一条文章/项目，从这里开始
+   本页内容数据 —— 想加一条项目或游戏，从这里开始
    ============================================================ */
 window.PAGE_DATA = [];
 
@@ -971,7 +1044,7 @@ window.PAGE_RENDER = function(ctx) {
         'zh-CN': {
             doc_title: '云陌轩',
             brand: '云陌轩',
-            nav_home: '首页', nav_projects: '项目', nav_blog: '文章', nav_games: '游戏', nav_about: '关于',
+            nav_home: '首页', nav_projects: '项目', nav_games: '游戏', nav_about: '关于',
             a11y_skip: '跳到主要内容', a11y_theme: '切换深浅色主题', a11y_lang: '选择语言',
             a11y_menu: '打开菜单', a11y_menu_close: '关闭菜单', a11y_footer: '页脚',
             footer_tagline: '一个人的静态小站，慢慢更新。',
@@ -983,7 +1056,7 @@ window.PAGE_RENDER = function(ctx) {
         'zh-TW': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: '首頁', nav_projects: '項目', nav_blog: '文章', nav_games: '遊戲', nav_about: '關於',
+            nav_home: '首頁', nav_projects: '項目', nav_games: '遊戲', nav_about: '關於',
             a11y_skip: '跳至主要內容', a11y_theme: '切換深淺色主題', a11y_lang: '選擇語言',
             a11y_menu: '開啟選單', a11y_menu_close: '關閉選單', a11y_footer: '頁尾',
             footer_tagline: '一個人的靜態小站，慢慢更新。',
@@ -995,7 +1068,7 @@ window.PAGE_RENDER = function(ctx) {
         'en': {
             doc_title: 'Yunmo-Xuan',
             brand: 'Yunmo-Xuan',
-            nav_home: 'Home', nav_projects: 'Projects', nav_blog: 'Writing', nav_games: 'Games', nav_about: 'About',
+            nav_home: 'Home', nav_projects: 'Projects', nav_games: 'Games', nav_about: 'About',
             a11y_skip: 'Skip to main content', a11y_theme: 'Toggle light and dark theme',
             a11y_lang: 'Choose language', a11y_menu: 'Open menu', a11y_menu_close: 'Close menu',
             a11y_footer: 'Footer',
@@ -1008,7 +1081,7 @@ window.PAGE_RENDER = function(ctx) {
         'ja': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_blog: 'ノート', nav_games: 'ゲーム', nav_about: '概要',
+            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_games: 'ゲーム', nav_about: '概要',
             a11y_skip: '本文へスキップ', a11y_theme: 'ライト／ダークを切替',
             a11y_lang: '言語を選択', a11y_menu: 'メニューを開く', a11y_menu_close: 'メニューを閉じる',
             a11y_footer: 'フッター',
@@ -1258,7 +1331,7 @@ function inline(s) {
 
 function isExternal(u) { return /^(https?:|mailto:)/i.test(String(u || '')); }
 
-/* 由结构化段落生成 HTML，供文章与项目描述复用 */
+/* 由结构化段落生成 HTML，供正文与项目描述复用 */
 function renderBlocks(blocks) {
     if (!blocks) return '';
     var out = [];

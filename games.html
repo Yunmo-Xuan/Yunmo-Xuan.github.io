@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
 
-    <title>2048 · 云陌轩</title>
-    <meta name="description" content="站内小游戏：2048。方向键或滑动操作，合并相同数字；进度与最佳纪录保存在本机，支持深浅主题与四种界面语言。" id="metaDesc" />
+    <title>游戏室 · 云陌轩</title>
+    <meta name="description" content="从两分钟的扫雷，到一盘认真的对弈。六款小作品，不用安装，点开就能玩。" id="metaDesc" />
     <link rel="canonical" href="https://yunmo-xuan.github.io/games.html" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#faf9f8" id="metaThemeColor" />
@@ -15,29 +15,35 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="云陌轩" />
     <meta property="og:url" content="https://yunmo-xuan.github.io/games.html" />
-    <meta property="og:title" content="2048 · 云陌轩" />
-    <meta property="og:description" content="站内小游戏：2048。方向键或滑动操作，合并相同数字；进度与最佳纪录保存在本机，支持深浅主题与四种界面语言。" />
+    <meta property="og:title" content="游戏室 · 云陌轩" />
+    <meta property="og:description" content="从两分钟的扫雷，到一盘认真的对弈。六款小作品，不用安装，点开就能玩。" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="2048 · 云陌轩" />
-    <meta name="twitter:description" content="站内小游戏：2048。方向键或滑动操作，合并相同数字；进度与最佳纪录保存在本机，支持深浅主题与四种界面语言。" />
+    <meta name="twitter:title" content="游戏室 · 云陌轩" />
+    <meta name="twitter:description" content="从两分钟的扫雷，到一盘认真的对弈。六款小作品，不用安装，点开就能玩。" />
 
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b63f6'/%3E%3Cpath d='M16 6.5l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z' fill='%23fff'/%3E%3C/svg%3E" />
+    <link rel="icon" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/favicon.png" />
+    <meta property="og:image" content="https://yunmo-xuan.github.io/assets/logo.webp" />
 
     <script>
         /* 首屏前确定主题与语言，避免闪烁（FOUC） */
         (function () {
             var r = document.documentElement;
             r.className += ' js';
+            var forced = /[?&]theme=(light|dark)/.exec(location.search);
             try {
-                var t = localStorage.getItem('preferredTheme');
-                if (t !== 'light' && t !== 'dark') {
-                    t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                if (forced) { r.setAttribute('data-theme', forced[1]); }
+                else {
+                    var t = localStorage.getItem('preferredTheme');
+                    if (t !== 'light' && t !== 'dark') {
+                        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                    }
+                    r.setAttribute('data-theme', t);
                 }
-                r.setAttribute('data-theme', t);
                 var l = localStorage.getItem('preferredLanguage');
                 if (l) r.setAttribute('lang', l);
             } catch (e) {
-                r.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                r.setAttribute('data-theme', forced ? forced[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
             }
         })();
     </script>
@@ -175,13 +181,27 @@ button { font: inherit; color: inherit; }
     font-size: 1.18rem; font-weight: 750; letter-spacing: -.02em;
     text-decoration: none; color: var(--text);
 }
-.logo .spark {
-    width: 24px; height: 24px; border-radius: 7px; background: var(--grad);
-    display: grid; place-items: center; color: #fff; font-size: 14px;
-    box-shadow: 0 4px 12px rgba(11, 99, 246, .28);
+.logo-mark {
+    width: 28px; height: 28px; border-radius: 9px; object-fit: cover;
+    box-shadow: 0 4px 12px rgba(11, 99, 246, .24);
     transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
 }
-.logo:hover .spark { transform: rotate(-8deg); }
+.logo:hover .logo-mark { transform: rotate(-6deg) scale(1.04); }
+
+/* ---------- 启动动画（同一标签页只播一次，可跳过） ---------- */
+.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: #05070f; }
+.intro[hidden] { display: none !important; }
+.intro-stage { position: relative; width: min(88vw, 62vh); aspect-ratio: 1; }
+.intro-video { width: 100%; height: 100%; object-fit: contain; border-radius: 24px; }
+.intro-brand {
+    position: absolute; left: 0; bottom: -52px; display: flex; align-items: center; gap: 10px;
+    color: #eaf1ff; font-weight: 700; letter-spacing: -.01em;
+}
+.intro-brand img { border-radius: 10px; }
+.intro-skip { position: absolute; right: 22px; bottom: 22px; }
+.intro-out { opacity: 0; transition: opacity .4s ease; }
+html.intro-on, html.intro-on body { overflow: hidden; }
+@media (max-height: 560px) { .intro-stage { width: min(58vw, 84vh); } .intro-brand { display: none; } }
 
 .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
 .nav-links a {
@@ -425,113 +445,168 @@ body { touch-action: manipulation; }
 
 /* ---------- 本页专用样式 ---------- */
 
-        .g-wrap { max-width: 560px; margin: 0 auto; }
-        .g-top { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; gap: 12px; margin: 28px 0 12px; }
-        .g-scores { display: flex; gap: 10px; }
-        .g-score {
-            min-width: 96px; padding: 10px 16px; text-align: center;
-            background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
-        }
-        .g-score .k { display: block; font-size: .72rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
-        .g-score .v { display: block; margin-top: 2px; font-family: var(--mono); font-size: 1.4rem; font-weight: 700; color: var(--text); }
-        .g-score .v.bump { animation: g-bump .3s ease; }
-        @keyframes g-bump { 40% { transform: scale(1.22); color: var(--accent-ink); } }
-        .g-actions { display: flex; gap: 8px; align-self: center; }
-        .g-actions .icon-btn { width: 40px; height: 40px; }
-        .g-actions .icon-btn.off { color: var(--faint); }
-        .g-restored { margin: 0 2px 12px; font-size: .84rem; color: var(--accent-ink); display: flex; align-items: center; gap: 7px; }
-        .g-restored[hidden] { display: none; }
-
-        .g-board {
-            position: relative; padding: 12px; touch-action: none; user-select: none; -webkit-user-select: none;
-            background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius);
-            box-shadow: var(--shadow-1);
-        }
-        .g-board.nudge { animation: g-nudge .18s ease; }
-        @keyframes g-nudge { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-        .g-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-        .g-cell {
-            aspect-ratio: 1; display: grid; place-items: center;
-            border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line);
-            font-family: var(--mono); font-weight: 700; font-size: clamp(1.05rem, 6.4vw, 1.85rem);
-            color: var(--text); user-select: none;
-        }
-        .g-cell.spawn { animation: g-spawn .22s ease; }
-        @keyframes g-spawn { from { transform: scale(.55); opacity: .2; } }
-        .g-cell.pop { animation: g-pop .24s ease; }
-        @keyframes g-pop { 45% { transform: scale(1.16); } }
-        .g-cell.t2 { background: #eee4da; border-color: #eee4da; color: #6f655c; }
-        .g-cell.t4 { background: #ede0c8; border-color: #ede0c8; color: #6f655c; }
-        .g-cell.t8 { background: #f2b179; border-color: #f2b179; color: #fff; }
-        .g-cell.t16 { background: #f59563; border-color: #f59563; color: #fff; }
-        .g-cell.t32 { background: #f67c5f; border-color: #f67c5f; color: #fff; }
-        .g-cell.t64 { background: #f65e3b; border-color: #f65e3b; color: #fff; }
-        .g-cell.t128 { background: #edcf72; border-color: #edcf72; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
-        .g-cell.t256 { background: #edcc61; border-color: #edcc61; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
-        .g-cell.t512 { background: #edc850; border-color: #edc850; color: #fff; font-size: clamp(.95rem, 5.6vw, 1.6rem); }
-        .g-cell.t1024 { background: #edc53f; border-color: #edc53f; color: #fff; font-size: clamp(.82rem, 4.8vw, 1.35rem); }
-        .g-cell.t2048 { background: #edc22e; border-color: #edc22e; color: #fff; font-size: clamp(.82rem, 4.8vw, 1.35rem); }
-        .g-cell.tsuper { background: #3c3a32; border-color: #3c3a32; color: #fff; font-size: clamp(.72rem, 4.2vw, 1.15rem); }
-
-        .g-msg {
-            position: absolute; inset: 12px; display: none; place-items: center; text-align: center;
-            border-radius: var(--radius-sm); background: rgba(250, 249, 248, .9); backdrop-filter: blur(2px);
-        }
-        [data-theme="dark"] .g-msg { background: rgba(14, 17, 22, .9); }
-        .g-msg.show { display: grid; }
-        .g-msg.show > div { animation: g-rise .3s ease; }
-        @keyframes g-rise { from { transform: translateY(10px); opacity: 0; } }
-        .g-msg.won { background: rgba(237, 194, 46, .38); }
-        [data-theme="dark"] .g-msg.won { background: rgba(237, 194, 46, .26); }
-        .g-msg p { margin: 0; font-size: clamp(1.7rem, 7vw, 2.5rem); font-weight: 800; letter-spacing: -.03em; }
-        .g-msg .btn-row { margin-top: 16px; justify-content: center; }
-
-        .g-hint { margin: 14px 2px 0; font-size: .86rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-        .g-hint .icon { color: var(--accent-ink); flex-shrink: 0; }
-        .g-rules { margin-top: 26px; }
-        @media (max-width: 480px) {
-            .g-board { padding: 8px; }
-            .g-grid { gap: 8px; }
-            .g-msg { inset: 8px; }
-            .g-score { min-width: 84px; padding: 8px 12px; }
-        }
-        /* 矮屏（横放手机等）：收起装饰文案，棋盘按视口高度收缩，保证 controls 够得着 */
-        @media (max-height: 600px) {
-            .page-head { padding-top: 22px; }
-            .page-head .lead { display: none; }
-            .g-top { margin: 12px 0 10px; }
-            .g-rules { display: none; }
-            .g-hint { margin-top: 10px; }
-            .g-board { width: min(100%, max(240px, 58vh)); margin-inline: auto; }
-        }
-        @media (max-height: 460px) {
-            .page-head { display: none; }
-            .g-hint { display: none; }
-            .section.tight { padding: 6px 0 10px; }
-            .g-top { margin: 6px 0 8px; }
-            .g-board { width: min(100%, max(160px, calc(100vh - 200px))); margin-inline: auto; }
-            .g-cell { border-radius: 6px; }
-        }
+    .play-head { padding: 58px 0 26px; }
+    .play-head h1 { font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.12; letter-spacing: -.045em; max-width: 19ch; }
+    .play-head .lead { max-width: 58ch; margin: 18px 0 0; color: var(--muted); }
+    .play-meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; font-size: .82rem; color: var(--muted); }
+    .play-meta span:first-child { color: var(--accent-ink); }
+    .recent-game { margin: 18px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); font-size: .88rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .recent-game a { font-weight: 650; }
+    .play-filter { display: flex; gap: 8px; flex-wrap: wrap; margin: 26px 0; }
+    .play-filter button { padding: 8px 16px; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); font-size: .86rem; font-weight: 600; cursor: pointer; transition: color .18s ease, border-color .18s ease, background-color .18s ease; }
+    .play-filter button:hover { border-color: var(--accent); color: var(--accent-ink); }
+    .play-filter button[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
+    .play-grid { display: grid; gap: 22px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .game-card { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-1); color: inherit; text-decoration: none; display: flex; flex-direction: column; transition: transform .22s ease, box-shadow .28s ease, border-color .22s ease; }
+    .game-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
+    .game-cover { height: 158px; display: grid; place-items: center; position: relative; border-bottom: 1px solid var(--line); background: linear-gradient(145deg, var(--accent-soft), var(--surface-2)); }
+    .game-cover::before, .game-cover::after { content: ''; position: absolute; border: 1px solid var(--line-strong); border-radius: 50%; }
+    .game-cover::before { width: 216px; height: 216px; }
+    .game-cover::after { width: 150px; height: 150px; }
+    .game-cover.violet { background: linear-gradient(135deg, rgba(123, 47, 252, .13), var(--surface-2)); }
+    .game-cover.mint { background: linear-gradient(135deg, rgba(15, 138, 77, .13), var(--surface-2)); }
+    .game-cover.amber { background: linear-gradient(135deg, rgba(200, 144, 40, .16), var(--surface-2)); }
+    .game-mark { position: relative; z-index: 1; padding: 9px 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-1); color: var(--accent-ink); font: 750 38px/1.15 var(--mono); letter-spacing: -.04em; white-space: nowrap; }
+    .game-copy { flex: 1; display: flex; flex-direction: column; padding: 20px; }
+    .game-copy small { font-size: .72rem; letter-spacing: .05em; color: var(--muted); }
+    .game-copy h2 { margin: 7px 0 6px; font-size: 1.32rem; letter-spacing: -.025em; }
+    .game-copy p { color: var(--muted); font-size: .92rem; line-height: 1.7; }
+    .game-features { margin: 14px 0 0; font-size: .74rem; color: var(--muted); }
+    .game-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+    .game-bottom strong { display: inline-flex; align-items: center; gap: 6px; color: var(--accent-ink); font-size: .87rem; }
+    .game-bottom .icon { transition: transform .22s ease; }
+    .game-card:hover .game-bottom .icon { transform: translateX(4px); }
+    .game-bottom span { color: var(--muted); font: .7rem/1 var(--mono); }
+    .play-tip { max-width: 92ch; margin: 28px 0 56px; color: var(--muted); font-size: .82rem; }
+    @media (max-width: 980px) { .play-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 620px) { .play-grid { grid-template-columns: minmax(0, 1fr); } .play-head { padding-top: 34px; } .game-cover { height: 138px; } }
 
     </style>
 
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "2048 · 云陌轩",
+  "@type": "ItemList",
+  "name": "游戏室 · 云陌轩",
   "url": "https://yunmo-xuan.github.io/games.html",
-  "inLanguage": [
-    "zh-CN",
-    "zh-TW",
-    "en",
-    "ja"
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "2048",
+      "url": "https://yunmo-xuan.github.io/2048.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "星核合成",
+      "url": "https://yunmo-xuan.github.io/planet-merge.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "五子棋",
+      "url": "https://yunmo-xuan.github.io/gomoku.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "扫雷",
+      "url": "https://yunmo-xuan.github.io/minesweeper.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 5,
+      "name": "中国象棋",
+      "url": "https://yunmo-xuan.github.io/xiangqi.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 6,
+      "name": "股市模拟",
+      "url": "https://yunmo-xuan.github.io/simdesk.html"
+    }
   ]
 }
     </script>
 </head>
 <body>
     <a class="skip-link" href="#main" data-i18n="a11y_skip" data-i18n-aria="a11y_skip">跳到主要内容</a>
+
+    <div class="intro" id="introSplash" role="dialog" aria-modal="true" aria-label="Site intro" hidden>
+        <div class="intro-stage">
+            <div class="intro-brand"><img src="assets/logo-mark.webp" alt="" width="36" height="36" /><span data-i18n="brand">云陌轩</span></div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip">跳过</button>
+    </div>
+
+    <script>
+    (function () {
+        var el = document.getElementById('introSplash');
+        if (!el) return;
+        var seen = false, reduced = false;
+        try { seen = sessionStorage.getItem('yunmo.intro.seen') === '1'; } catch (e) {}
+        try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (seen || reduced || /[?&]nosplash/.test(location.search)) { el.remove(); return; }
+        /* 只有真的要播时才建 <video>，避免回访用户白拉一次素材 */
+        var video = document.createElement('video');
+        video.className = 'intro-video';
+        video.id = 'introVideo';
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.setAttribute('aria-hidden', 'true');
+        video.src = 'assets/intro.mp4';
+        el.querySelector('.intro-stage').prepend(video);
+        var lang = 'zh-CN';
+        try { lang = localStorage.getItem('preferredLanguage') || lang; } catch (e) {}
+        var skipText = { 'zh-CN': '跳过', 'zh-TW': '跳過', en: 'Skip', ja: 'スキップ' }[lang] || '跳过';
+        el.querySelector('#introSkip').textContent = skipText;
+        el.hidden = false;
+        document.documentElement.classList.add('intro-on', 'booting');
+        /* 弹层期间背景不可交互也不可 Tab 进去，结束后把焦点还给原处。
+           这段脚本在解析中途执行，#main 此刻还不存在，所以补一次 DOMContentLoaded 后再锁 */
+        var LOCK = ['.site-header', '#main', '.site-footer'];
+        var lastFocus = document.activeElement;
+        var closed = false;
+        function lock(on) {
+            LOCK.forEach(function (sel) {
+                var node = document.querySelector(sel);
+                if (node) node.inert = on;
+            });
+        }
+        lock(true);
+        document.addEventListener('DOMContentLoaded', function () { if (!closed) lock(true); });
+        var skip = document.getElementById('introSkip');
+        /* 焦点必须进入弹层，否则 inert 只是把背景锁成谁也碰不到 */
+        skip.focus();
+        function done() {
+            if (closed) return; closed = true;
+            el.classList.add('intro-out');
+            lock(false);
+            setTimeout(function () {
+                el.remove();
+                document.documentElement.classList.remove('intro-on', 'booting');
+                if (lastFocus && lastFocus.focus) lastFocus.focus();
+            }, 420);
+        }
+        video.addEventListener('ended', done);
+        video.addEventListener('error', done);
+        skip.addEventListener('click', done);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
+        var playing = video.play();
+        if (playing && playing.then) {
+            playing.then(function () {
+                /* 播成功才算"看过"，被拦截时下次还能再试 */
+                try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+            }).catch(done);
+        } else {
+            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+        }
+        setTimeout(done, 7000);
+    })();
+    </script>
+
 
     <svg class="sprite" aria-hidden="true" focusable="false"><defs>
             <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></symbol>
@@ -566,7 +641,7 @@ body { touch-action: manipulation; }
     <header class="site-header">
         <div class="container header-inner">
             <a class="logo" href="index.html">
-                <span class="spark" aria-hidden="true">✦</span>
+                <img class="logo-mark" src="assets/logo.webp" alt="" width="28" height="28" />
                 <span data-i18n="brand">云陌轩</span>
             </a>
 
@@ -574,7 +649,6 @@ body { touch-action: manipulation; }
                 <ul class="nav-links">
                     <li><a href="index.html" data-i18n="nav_home">首页</a></li>
                     <li><a href="projects.html" data-i18n="nav_projects">项目</a></li>
-                    <li><a href="blog.html" data-i18n="nav_blog">文章</a></li>
                     <li><a href="games.html" data-i18n="nav_games" aria-current="page">游戏</a></li>
                     <li><a href="about.html" data-i18n="nav_about">关于</a></li>
                 </ul>
@@ -610,72 +684,24 @@ body { touch-action: manipulation; }
 
     <main id="main">
         <noscript>
-            <p class="noscript-note">文章与项目列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
+            <p class="noscript-note">项目与游戏列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
                 站点源码公开：<a href="https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io">Yunmo-Xuan.github.io</a>。</p>
         </noscript>
-        <section class="page-head">
+        <section class="play-head">
             <div class="container">
-                <span class="eyebrow" data-i18n="eyebrow">小游戏</span>
-                <h1>2048</h1>
-                <p class="lead" data-i18n="lead">
-                    站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起；进度和最佳纪录留在这台设备上。
-                </p>
+                <span class="eyebrow" data-i18n="eyebrow">游戏室 / PLAY ROOM</span>
+                <h1 data-i18n="title">留一点时间，玩一局。</h1>
+                <p class="lead" data-i18n="lead"></p>
+                <div class="play-meta"><span data-i18n="local"></span><span id="gameCount"></span></div>
+                <p class="recent-game" id="recentGame" hidden></p>
             </div>
         </section>
 
         <section class="section tight">
             <div class="container">
-                <div class="g-wrap">
-                    <div class="g-top">
-                        <div class="g-scores">
-                            <div class="g-score"><span class="k" data-i18n="g_score">分数</span><span class="v" id="gScore">0</span></div>
-                            <div class="g-score"><span class="k" data-i18n="g_best">最佳</span><span class="v" id="gBest">0</span></div>
-                        </div>
-                        <div class="g-actions">
-                            <button type="button" class="icon-btn" id="gSound" aria-pressed="true" data-i18n-title="g_sound" data-i18n-aria="g_sound" title="音效">
-                                <svg class="icon i-on" aria-hidden="true"><use href="#i-sound" /></svg>
-                                <svg class="icon i-off" aria-hidden="true" style="display:none"><use href="#i-mute" /></svg>
-                            </button>
-                            <button type="button" class="btn btn-ghost btn-sm" id="gNew">
-                                <svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg>
-                                <span data-i18n="g_new">新游戏</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <p class="g-restored" id="gRestored" hidden>
-                        <svg class="icon" aria-hidden="true"><use href="#i-clock" /></svg>
-                        <span data-i18n="g_restored">已恢复上次的棋局与分数。</span>
-                    </p>
-
-                    <div class="g-board" id="gBoard" data-i18n-aria="g_board" aria-label="2048 棋盘">
-                        <div class="g-grid" id="gGrid"></div>
-                        <div class="g-msg" id="gMsg" role="status">
-                            <div>
-                                <p id="gMsgText"></p>
-                                <div class="btn-row">
-                                    <button type="button" class="btn btn-primary btn-sm" id="gKeep" hidden>
-                                        <span data-i18n="g_keep">继续游戏</span>
-                                    </button>
-                                    <button type="button" class="btn btn-ghost btn-sm" id="gRetry">
-                                        <span data-i18n="g_retry">再试一次</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p class="g-hint">
-                        <svg class="icon" aria-hidden="true"><use href="#i-terminal" /></svg>
-                        <span data-i18n="g_hint">键盘方向键或 WASD 移动；手机上在棋盘上滑动（棋盘内不会触发页面滚动或下拉刷新）。</span>
-                    </p>
-
-                    <aside class="note g-rules" data-i18n="g_rules">
-                        规则：每次移动后随机落下一块 2 或 4；相同数字相撞会合并成它们的和，并计入分数。
-                        合成 2048 即获胜，之后可以继续挑战更大的数字；棋盘填满且无处可合时游戏结束。
-                        棋局、分数与最佳纪录保存在本机浏览器里，关掉页面下次接着玩。
-                    </aside>
-                </div>
+                <div class="play-filter" id="gameFilters" role="group" aria-label="游戏分类"></div>
+                <div class="play-grid" id="gameList"></div>
+                <p class="play-tip" data-i18n="tip"></p>
             </div>
         </section>
     </main>
@@ -685,14 +711,13 @@ body { touch-action: manipulation; }
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a class="logo" href="index.html">
-                        <span class="spark" aria-hidden="true">✦</span>
+                        <img class="logo-mark" src="assets/logo.webp" alt="" width="28" height="28" />
                         <span data-i18n="brand">云陌轩</span>
                     </a>
                     <p data-i18n="footer_tagline">一个人的静态小站，慢慢更新。</p>
                 </div>
                 <ul class="footer-nav">
                     <li><a href="projects.html" data-i18n="nav_projects">项目</a></li>
-                    <li><a href="blog.html" data-i18n="nav_blog">文章</a></li>
                     <li><a href="games.html" data-i18n="nav_games">游戏</a></li>
                     <li><a href="about.html" data-i18n="nav_about">关于</a></li>
                     <li><a href="https://github.com/Yunmo-Xuan" target="_blank" rel="noopener noreferrer" data-i18n="footer_github">GitHub 主页</a></li>
@@ -716,418 +741,352 @@ body { touch-action: manipulation; }
    ============================================================ */
 window.PAGE_I18N = {
   "zh-CN": {
-    "meta_description": "站内小游戏：2048。方向键或滑动操作，合并相同数字；进度与最佳纪录保存在本机，支持深浅主题与四种界面语言。",
-    "eyebrow": "小游戏",
-    "lead": "站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起；进度和最佳纪录留在这台设备上。",
-    "g_score": "分数",
-    "g_best": "最佳",
-    "g_new": "新游戏",
-    "g_keep": "继续游戏",
-    "g_retry": "再试一次",
-    "g_win": "你赢了！",
-    "g_over": "游戏结束",
-    "g_hint": "键盘方向键或 WASD 移动；手机上在棋盘上滑动（棋盘内不会触发页面滚动或下拉刷新）。",
-    "g_rules": "规则：每次移动后随机落下一块 2 或 4；相同数字相撞会合并成它们的和，并计入分数。合成 2048 即获胜，之后可以继续挑战更大的数字；棋盘填满且无处可合时游戏结束。棋局、分数与最佳纪录保存在本机浏览器里，关掉页面下次接着玩。",
-    "g_board": "2048 棋盘",
-    "g_sound": "音效开关",
-    "g_restored": "已恢复上次的棋局与分数。",
-    "doc_title": "2048 · 云陌轩"
+    "meta_description": "从两分钟的扫雷，到一盘认真的对弈。六款小作品，不用安装，点开就能玩。",
+    "eyebrow": "游戏室 / PLAY ROOM",
+    "title": "留一点时间，玩一局。",
+    "lead": "从两分钟的扫雷，到一盘认真的对弈。六款小作品，不用安装，点开就能玩。",
+    "local": "本机记录，不用注册",
+    "play": "开始游戏",
+    "minutes": "分钟一局",
+    "count": "%d 款游戏",
+    "all": "全部",
+    "puzzle": "数字与推理",
+    "casual": "轻松合成",
+    "strategy": "棋盘对弈",
+    "simulation": "策略模拟",
+    "recent": "上次玩过",
+    "resume": "再来一局",
+    "empty": "这个分类暂时没有游戏。",
+    "tip": "难度与规则都在游戏里；部分游戏的界面为简体中文。股市模拟只使用虚拟资金，不构成投资建议。",
+    "doc_title": "游戏室 · 云陌轩"
   },
   "zh-TW": {
-    "meta_description": "站內小遊戲：2048。方向鍵或滑動操作，合併相同數字；進度與最佳紀錄保存在本機，支援深淺主題與四種介面語言。",
-    "eyebrow": "小遊戲",
-    "lead": "站裡唯一會開口勸你再玩一局的東西。方向鍵或滑動，把相同的數字合在一起；進度和最佳紀錄留在這台裝置上。",
-    "g_score": "分數",
-    "g_best": "最佳",
-    "g_new": "新遊戲",
-    "g_keep": "繼續遊戲",
-    "g_retry": "再試一次",
-    "g_win": "你贏了！",
-    "g_over": "遊戲結束",
-    "g_hint": "鍵盤方向鍵或 WASD 移動；手機上在棋盤上滑動（棋盤內不會觸發頁面滾動或下拉刷新）。",
-    "g_rules": "規則：每次移動後隨機落下一塊 2 或 4；相同數字相撞會合併成它們的和，並計入分數。合成 2048 即獲勝，之後可以繼續挑戰更大的數字；棋盤填滿且無處可合時遊戲結束。棋局、分數與最佳紀錄保存在本機瀏覽器裡，關掉頁面下次接著玩。",
-    "g_board": "2048 棋盤",
-    "g_sound": "音效開關",
-    "g_restored": "已恢復上次的棋局與分數。",
-    "doc_title": "2048 · 雲陌軒"
+    "meta_description": "從兩分鐘的掃雷，到一盤認真對弈。六款小作品，不用安裝，點開就能玩。",
+    "eyebrow": "遊戲室 / PLAY ROOM",
+    "title": "留一點時間，玩一局。",
+    "lead": "從兩分鐘的掃雷，到一盤認真對弈。六款小作品，不用安裝，點開就能玩。",
+    "local": "本機紀錄，不用註冊",
+    "play": "開始遊戲",
+    "minutes": "分鐘一局",
+    "count": "%d 款遊戲",
+    "all": "全部",
+    "puzzle": "數字與推理",
+    "casual": "輕鬆合成",
+    "strategy": "棋盤對弈",
+    "simulation": "策略模擬",
+    "recent": "上次玩過",
+    "resume": "再來一局",
+    "empty": "這個分類暫時沒有遊戲。",
+    "tip": "難度與規則都在遊戲內；部分遊戲的介面為簡體中文。股市模擬只使用虛擬資金，不構成投資建議。",
+    "doc_title": "遊戲室 · 雲陌軒"
   },
   "en": {
-    "meta_description": "A small in-site game: 2048. Arrow keys or swipe, merge equal tiles; progress and best score stay on this device, with light/dark themes and four interface languages.",
-    "eyebrow": "Mini game",
-    "lead": "The only thing on this site that talks you into one more round. Arrows or swipe, merge equal numbers; progress and best score stay on this device.",
-    "g_score": "Score",
-    "g_best": "Best",
-    "g_new": "New game",
-    "g_keep": "Keep going",
-    "g_retry": "Try again",
-    "g_win": "You win!",
-    "g_over": "Game over",
-    "g_hint": "Arrow keys or WASD to move; swipe on the board on touch screens (the board never scrolls the page or pulls to refresh).",
-    "g_rules": "Rules: every move drops a random 2 or 4; equal tiles that collide merge into their sum and add to the score. Reaching 2048 wins, and you can keep going for bigger tiles; the game ends when the board is full with no possible merge. The board, score and best record live in this browser, so you can close the page and continue later.",
-    "g_board": "2048 board",
-    "g_sound": "Sound on/off",
-    "g_restored": "Restored your previous board and score.",
-    "doc_title": "2048 · Yunmo-Xuan"
+    "meta_description": "A two-minute game of Minesweeper or a serious board match. Six small games — nothing to install, click and play.",
+    "eyebrow": "PLAY ROOM",
+    "title": "A little time. One more round.",
+    "lead": "A two-minute game of Minesweeper or a serious board match. Six small games — nothing to install, click and play.",
+    "local": "Local records, no sign-up",
+    "play": "Play now",
+    "minutes": "min per round",
+    "count": "%d games",
+    "all": "All",
+    "puzzle": "Puzzles",
+    "casual": "Casual",
+    "strategy": "Board games",
+    "simulation": "Simulation",
+    "recent": "Last played",
+    "resume": "Play again",
+    "empty": "No games in this category yet.",
+    "tip": "Difficulty and rules live inside each game; some game interfaces are Simplified Chinese only. The market simulator uses virtual funds and is not investment advice.",
+    "doc_title": "Play room · Yunmo-Xuan"
   },
   "ja": {
-    "meta_description": "サイト内のミニゲーム：2048。矢印キーまたはスワイプで同じ数字を合体。進度とベストは端末に保存。ライト/ダークテーマと4言語UIに対応。",
-    "eyebrow": "ミニゲーム",
-    "lead": "このサイトで唯一「もう一局」と囁いてくるもの。矢印キーかスワイプで同じ数字を合わせます。進度とベストはこの端末に残ります。",
-    "g_score": "スコア",
-    "g_best": "ベスト",
-    "g_new": "新しいゲーム",
-    "g_keep": "続行",
-    "g_retry": "もう一度",
-    "g_win": "勝利！",
-    "g_over": "ゲームオーバー",
-    "g_hint": "矢印キーまたは WASD で移動、タッチ端末では盤面をスワイプ（盤面内ではページスクロールや pull-to-refresh は起きません）。",
-    "g_rules": "ルール：手を動かすごとに 2 か 4 がランダムに出現。同じ数字がぶつかると合計値に合体し、スコアに加算されます。2048 を作れば勝利、その後もより大きなタイルに挑戦できます。盤面が埋まり合体できなくなったら終了です。盤面・スコア・ベストはこのブラウザに保存され、ページを閉じても続きから遊べます。",
-    "g_board": "2048 盤面",
-    "g_sound": "サウンド切替",
-    "g_restored": "前回の盤面とスコアを復元しました。",
-    "doc_title": "2048 · 雲陌軒"
+    "meta_description": "2 分のマインスイーパーから本気の盤面勝負まで。インストール不要の 6 つの小さな作品を、クリックしたらすぐ遊べます。",
+    "eyebrow": "ゲーム室 / PLAY ROOM",
+    "title": "少しの時間、もう一局。",
+    "lead": "2 分のマインスイーパーから本気の盤面勝負まで。インストール不要の 6 つの小さな作品を、クリックしたらすぐ遊べます。",
+    "local": "端末内記録、登録不要",
+    "play": "プレイ",
+    "minutes": "分 / 1 回",
+    "count": "%d ゲーム",
+    "all": "すべて",
+    "puzzle": "数字と推理",
+    "casual": "合成ゲーム",
+    "strategy": "ボードゲーム",
+    "simulation": "シミュレーション",
+    "recent": "前回のゲーム",
+    "resume": "もう一度",
+    "empty": "このカテゴリーにはまだゲームがありません。",
+    "tip": "難易度とルールはゲーム内にあります。一部のゲーム画面は簡体字中国語のみ。株式シミュレーターは仮想資金を用い、投資助言ではありません。",
+    "doc_title": "ゲーム室 · 雲陌軒"
   }
 };
     </script>
 
     <script>
 /* ============================================================
-   本页内容数据 —— 想加一条文章/项目，从这里开始
+   本页内容数据 —— 想加一条项目或游戏，从这里开始
    ============================================================ */
-window.PAGE_DATA = [];
+window.PAGE_DATA = [
+  {
+    "id": "2048",
+    "page": "2048.html",
+    "src": null,
+    "category": "puzzle",
+    "mark": "2048",
+    "color": "blue",
+    "time": "3–10",
+    "name": {
+      "zh-CN": "2048",
+      "zh-TW": "2048",
+      "en": "2048",
+      "ja": "2048"
+    },
+    "desc": {
+      "zh-CN": "推一格，合一对。接着上次的棋局，向更大的数字迈进。",
+      "zh-TW": "推一格，合一對。接著上次的棋局，向更大的數字邁進。",
+      "en": "Slide, merge, repeat. Pick up your last board and work toward a bigger number.",
+      "ja": "一押しで一つ合わせ、前回の盤面から大きな数字を目指しましょう。"
+    },
+    "features": {
+      "zh-CN": "滑动操作 / 自动续局",
+      "zh-TW": "滑動操作 / 自動續局",
+      "en": "Swipe controls / Saved progress",
+      "ja": "スワイプ / 続きから"
+    },
+    "how": {
+      "zh-CN": "方向键或 WASD 移动，手机上在棋盘内滑动；相同数字相撞合并一次。",
+      "zh-TW": "方向鍵或 WASD 移動，手機上在棋盤內滑動；相同數字相撞合併一次。",
+      "en": "Arrows or WASD to move, swipe inside the board on touch screens; equal tiles merge once per move.",
+      "ja": "矢印キーか WASD、タッチでは盤面内をスワイプ。同じ数字は1回の移動で1度だけ合体します。"
+    }
+  },
+  {
+    "id": "planet-merge",
+    "page": "planet-merge.html",
+    "src": "planet-merge.html",
+    "category": "casual",
+    "mark": "◎",
+    "color": "violet",
+    "time": "5–15",
+    "name": {
+      "zh-CN": "星核合成",
+      "zh-TW": "星核合成",
+      "en": "Planet Merge",
+      "ja": "星核合成"
+    },
+    "desc": {
+      "zh-CN": "找准落点，让同级天体相遇。留好空间，等待下一次连锁合成。",
+      "zh-TW": "找準落點，讓同級天體相遇。留好空間，等待下一次連鎖合成。",
+      "en": "Aim the drop, let matching bodies meet, and leave room for the next chain.",
+      "ja": "落下位置を見極めて同じ天体を衝突させ、次の連鎖のための空間を残しましょう。"
+    },
+    "features": {
+      "zh-CN": "物理碰撞 / 每日挑战",
+      "zh-TW": "物理碰撞 / 每日挑戰",
+      "en": "Physics collisions / Daily challenge",
+      "ja": "物理衝突 / 日替わりチャレンジ"
+    },
+    "how": {
+      "zh-CN": "拖动选择落点，松手投放；相同星级相遇即合成。",
+      "zh-TW": "拖動選擇落點，鬆手投放；相同星級相遇即合成。",
+      "en": "Drag to aim, release to drop; equal tiers merge on contact.",
+      "ja": "ドラッグで位置を決めて離すと投入。同じ等級が触れると合体します。"
+    }
+  },
+  {
+    "id": "gomoku",
+    "page": "gomoku.html",
+    "src": "gomoku.html",
+    "category": "strategy",
+    "mark": "● ○",
+    "color": "blue",
+    "time": "5–20",
+    "name": {
+      "zh-CN": "五子棋",
+      "zh-TW": "五子棋",
+      "en": "Gomoku",
+      "ja": "五目並べ"
+    },
+    "desc": {
+      "zh-CN": "从一条活三开始布局。与电脑过招，或和身边的人轮流落子。",
+      "zh-TW": "從一條活三開始佈局。與電腦過招，或和身邊的人輪流落子。",
+      "en": "Build from an open three. Play the computer, or take turns on one board.",
+      "ja": "活三から布石を組み立てる。コンピューター戦、または同一画面で交互に着手。"
+    },
+    "features": {
+      "zh-CN": "人机对弈 / 双人同屏",
+      "zh-TW": "人機對弈 / 雙人同屏",
+      "en": "Computer opponent / Local two-player",
+      "ja": "コンピューター戦 / 同一画面2人"
+    },
+    "how": {
+      "zh-CN": "点击交叉点落子；禁手按页面规则提示（简化规则，非完整连珠赛事规则）。",
+      "zh-TW": "點擊交叉點落子；禁手依頁面規則提示（簡化規則，非完整連珠賽事規則）。",
+      "en": "Click an intersection to play; forbidden moves follow the simplified rules shown on the page.",
+      "ja": "交点をクリックして着手。禁手は画面に表示される簡易ルールで判定します。"
+    }
+  },
+  {
+    "id": "minesweeper",
+    "page": "minesweeper.html",
+    "src": "minesweeper.html",
+    "category": "puzzle",
+    "mark": "1 2 3",
+    "color": "mint",
+    "time": "2–15",
+    "name": {
+      "zh-CN": "扫雷",
+      "zh-TW": "掃雷",
+      "en": "Minesweeper",
+      "ja": "マインスイーパー"
+    },
+    "desc": {
+      "zh-CN": "每个数字都是线索。先圈出危险，再一口气打开安全区域。",
+      "zh-TW": "每個數字都是線索。先圈出危險，再一次打開安全區域。",
+      "en": "Every number is a clue. Mark the danger, then open safe ground in one go.",
+      "ja": "数字はすべて手がかり。危険を旗で囲み、安全な領域を一気に開きましょう。"
+    },
+    "features": {
+      "zh-CN": "难度选择 / 标旗与快捷展开",
+      "zh-TW": "難度選擇 / 標旗與快捷展開",
+      "en": "Difficulty levels / Flags and chords",
+      "ja": "難易度選択 / 旗と一括展開"
+    },
+    "how": {
+      "zh-CN": "左键翻开，右键标旗；数字与旗数一致时可快捷展开周围格子。",
+      "zh-TW": "左鍵翻開，右鍵標旗；數字與旗數一致時可快捷展開周圍格子。",
+      "en": "Left click reveals, right click flags; a matching flag count chords the neighbours open.",
+      "ja": "左クリックで開き、右クリックで旗。数字と旗の数が合えば周囲を一括展開できます。"
+    }
+  },
+  {
+    "id": "xiangqi",
+    "page": "xiangqi.html",
+    "src": "xiangqi/中国象棋.html",
+    "category": "strategy",
+    "mark": "將",
+    "color": "amber",
+    "time": "10–30",
+    "name": {
+      "zh-CN": "中国象棋",
+      "zh-TW": "中國象棋",
+      "en": "Chinese Chess",
+      "ja": "中国象棋"
+    },
+    "desc": {
+      "zh-CN": "楚河汉界，从开局走到残局。对弈之后，回看关键的那一步。",
+      "zh-TW": "楚河漢界，從開局走到殘局。對弈之後，回看關鍵的那一步。",
+      "en": "Cross the river and play it out, then review the move that decided the game.",
+      "ja": "川を渡り、開局から終盤まで。対局後に大事な一手を振り返れます。"
+    },
+    "features": {
+      "zh-CN": "人机对弈 / 棋谱复盘",
+      "zh-TW": "人機對弈 / 棋譜複盤",
+      "en": "Computer opponent / Game review",
+      "ja": "コンピューター戦 / 棋譜レビュー"
+    },
+    "how": {
+      "zh-CN": "点击棋子再看落点；支持人机、双人、悔棋与复盘。",
+      "zh-TW": "點擊棋子再看落點；支援人機、雙人、悔棋與復盤。",
+      "en": "Select a piece, then its destination. Supports AI, two-player, undo and review.",
+      "ja": "駒を選んでから移動先をクリック。AI戦・2人対戦・待った・検討に対応。"
+    }
+  },
+  {
+    "id": "simdesk",
+    "page": "simdesk.html",
+    "src": "simdesk.html",
+    "category": "simulation",
+    "mark": "↗",
+    "color": "mint",
+    "time": "10–30",
+    "name": {
+      "zh-CN": "股市模拟",
+      "zh-TW": "股市模擬",
+      "en": "Market Simulator",
+      "ja": "株式シミュレーター"
+    },
+    "desc": {
+      "zh-CN": "在虚拟市场里试试自己的判断。看行情、下订单，也别忘了风险。",
+      "zh-TW": "在虛擬市場裡試試自己的判斷。看行情、下訂單，也別忘了風險。",
+      "en": "Test your judgement in a virtual market. Read prices, place orders, mind the risk.",
+      "ja": "仮想市場で判断力を試す。相場を読み、注文し、リスクも忘れずに。"
+    },
+    "features": {
+      "zh-CN": "模拟交易 / 情景战役",
+      "zh-TW": "模擬交易 / 情景戰役",
+      "en": "Virtual trading / Scenario campaigns",
+      "ja": "模擬取引 / シナリオ戦役"
+    },
+    "how": {
+      "zh-CN": "行情、财务与新闻全部由本地引擎生成，不是真实市场，也不构成投资建议。",
+      "zh-TW": "行情、財務與新聞全部由本地引擎生成，不是真實市場，也不構成投資建議。",
+      "en": "Prices, financials and news are generated locally — not a real market and not investment advice.",
+      "ja": "価格・財務・ニュースはすべてローカル生成。実市場ではなく投資助言でもありません。"
+    }
+  }
+];
 
 /* ============================================================
    本页渲染逻辑
    ============================================================ */
 window.PAGE_RENDER = function(ctx) {
-        var grid = document.getElementById('gGrid');
-        if (!grid) return;
+        var games = window.PAGE_DATA;
+        var state = window.PLAY_ROOM || (window.PLAY_ROOM = { filter: 'all' });
+        var filters = document.getElementById('gameFilters');
+        var list = document.getElementById('gameList');
+        var count = document.getElementById('gameCount');
 
-        /* ── 纯逻辑：一行滑动 = 去零 → 相邻同值合并一次 → 再去零 → 补零 ── */
-        function slide(line) {
-            var row = line.filter(function (v) { return v !== 0; });
-            var gained = 0;
-            for (var i = 0; i < row.length - 1; i++) {
-                if (row[i] === row[i + 1]) {
-                    row[i] *= 2;
-                    gained += row[i];
-                    row[i + 1] = 0;
-                }
-            }
-            row = row.filter(function (v) { return v !== 0; });
-            while (row.length < 4) row.push(0);
-            return { line: row, gained: gained };
+        function paint() {
+            var items = games.filter(function (g) { return state.filter === 'all' || g.category === state.filter; });
+            count.textContent = ctx.t('count').replace('%d', items.length);
+            list.innerHTML = items.map(function (g) {
+                return '<a class="game-card" href="' + g.page + '">' +
+                    '<div class="game-cover ' + g.color + '" aria-hidden="true"><span class="game-mark">' + escHtml(g.mark) + '</span></div>' +
+                    '<div class="game-copy"><small>' + escHtml(ctx.t(g.category)) + '</small>' +
+                    '<h2>' + escHtml(ctx.pick(g.name)) + '</h2><p>' + escHtml(ctx.pick(g.desc)) + '</p>' +
+                    '<div class="game-features">' + escHtml(ctx.pick(g.features)) + '</div>' +
+                    '<div class="game-bottom"><strong>' + escHtml(ctx.t('play')) + '<svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></strong>' +
+                    '<span>' + escHtml(g.time) + ' ' + escHtml(ctx.t('minutes')) + '</span></div></div></a>';
+            }).join('');
         }
 
-        function linesOf(board, dir) {
-            if (dir === 'left') return [function (b, i) { return b[i].slice(); }, function (b, i, l) { b[i] = l; }];
-            if (dir === 'right') return [function (b, i) { return b[i].slice().reverse(); }, function (b, i, l) { b[i] = l.reverse(); }];
-            if (dir === 'up') return [function (b, i) { return [b[0][i], b[1][i], b[2][i], b[3][i]]; }, function (b, i, l) { for (var r = 0; r < 4; r++) b[r][i] = l[r]; }];
-            return [function (b, i) { return [b[3][i], b[2][i], b[1][i], b[0][i]]; }, function (b, i, l) { for (var r = 0; r < 4; r++) b[3 - r][i] = l[r]; }];
-        }
-
-        function emptyBoard() {
-            return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
-        }
-
-        function cloneBoard(b) {
-            return b.map(function (r) { return r.slice(); });
-        }
-
-        function sameBoard(a, b) {
-            for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) if (a[i][j] !== b[i][j]) return false;
-            return true;
-        }
-
-        function movesAvailable(b) {
-            for (var i = 0; i < 4; i++) {
-                for (var j = 0; j < 4; j++) {
-                    if (b[i][j] === 0) return true;
-                    if (j < 3 && b[i][j] === b[i][j + 1]) return true;
-                    if (i < 3 && b[i][j] === b[i + 1][j]) return true;
-                }
-            }
-            return false;
-        }
-
-        function applyMove(board, dir) {
-            var io = linesOf(board, dir);
-            var out = emptyBoard();
-            var gained = 0;
-            for (var i = 0; i < 4; i++) {
-                var res = slide(io[0](board, i));
-                gained += res.gained;
-                io[1](out, i, res.line);
-            }
-            return { board: out, gained: gained, moved: !sameBoard(board, out) };
-        }
-
-        /* ── 本机存档：棋局 + 分数 + 胜负状态；读失败或数据坏掉就开新局 ── */
-        var SAVE_KEY = 'g2048save';
-        function readSave() {
-            try {
-                var raw = localStorage.getItem(SAVE_KEY);
-                if (!raw) return null;
-                var s = JSON.parse(raw);
-                if (!s || s.v !== 1 || !Array.isArray(s.board) || s.board.length !== 4) return null;
-                for (var i = 0; i < 4; i++) {
-                    if (!Array.isArray(s.board[i]) || s.board[i].length !== 4) return null;
-                    for (var j = 0; j < 4; j++) {
-                        var v = s.board[i][j];
-                        if (typeof v !== 'number' || !Number.isInteger(v) || v < 0 || (v !== 0 && (v & (v - 1)) !== 0)) return null;
-                    }
-                }
-                if (typeof s.score !== 'number' || s.score < 0) return null;
-                return s;
-            } catch (e) { return null; }
-        }
-
-        function writeSave(S) {
-            try {
-                localStorage.setItem(SAVE_KEY, JSON.stringify({
-                    v: 1, board: S.board, score: S.score, won: S.won, kept: S.kept, over: S.over
-                }));
-            } catch (e) { /* 隐私模式：记不住就不记 */ }
-        }
-
-        /* ── 音效：WebAudio 合成，无外部资源；首次手势后才出声 ── */
-        function audio() {
-            var A = window.G2048_AUDIO;
-            if (!A) {
-                A = window.G2048_AUDIO = { ctx: null, on: true };
-                try { A.on = localStorage.getItem('g2048sound') !== 'off'; } catch (e) { A.on = true; }
-            }
-            return A;
-        }
-        function ensureAudio() {
-            var A = audio();
-            try {
-                if (!A.ctx) A.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if (A.ctx.state === 'suspended') A.ctx.resume();
-            } catch (e) { A.ctx = null; }
-        }
-        function tone(freq, dur, type, vol) {
-            var A = audio();
-            if (!A.on || !A.ctx || A.ctx.state !== 'running') return;
-            try {
-                var o = A.ctx.createOscillator();
-                var g = A.ctx.createGain();
-                o.type = type || 'sine';
-                o.frequency.value = freq;
-                g.gain.setValueAtTime(vol || .06, A.ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(.0001, A.ctx.currentTime + dur);
-                o.connect(g); g.connect(A.ctx.destination);
-                o.start(); o.stop(A.ctx.currentTime + dur);
-            } catch (e) { /* 出声失败不影响游戏 */ }
-        }
-
-        var reduceMotion = false;
-        try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { reduceMotion = false; }
-
-        /* ── 状态：挂在 window 上，切语言重跑 render 时不丢局 ── */
-        var S = window.G2048;
-        if (!S) {
-            S = window.G2048 = { board: emptyBoard(), score: 0, best: 0, won: false, over: false, kept: false, cells: [], last: emptyBoard() };
-            try { S.best = Number(localStorage.getItem('best2048')) || 0; } catch (e) { S.best = 0; }
-
-            for (var c = 0; c < 16; c++) {
-                var cell = document.createElement('div');
-                cell.className = 'g-cell';
-                grid.appendChild(cell);
-                S.cells.push(cell);
-            }
-
-            function drop() {
-                var free = [];
-                for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) if (S.board[i][j] === 0) free.push([i, j]);
-                if (!free.length) return;
-                var spot = free[Math.floor(Math.random() * free.length)];
-                S.board[spot[0]][spot[1]] = Math.random() < 0.9 ? 2 : 4;
-            }
-
-            function saveBest() {
-                try { localStorage.setItem('best2048', String(S.best)); } catch (e) { /* 同上 */ }
-            }
-
-            function flash(el, cls) {
-                if (reduceMotion || !el) return;
-                el.classList.remove(cls);
-                /* 强制 reflow 让同名动画可以重复触发 */
-                void el.offsetWidth;
-                el.classList.add(cls);
-                setTimeout(function () { el.classList.remove(cls); }, 320);
-            }
-
-            function paint() {
-                if (!S.won) {
-                    for (var r = 0; r < 4; r++) for (var q = 0; q < 4; q++) if (S.board[r][q] === 2048) S.won = true;
-                }
-                if (!S.over && !movesAvailable(S.board)) S.over = true;
-
-                for (var i = 0; i < 4; i++) {
-                    for (var j = 0; j < 4; j++) {
-                        var v = S.board[i][j];
-                        var el = S.cells[i * 4 + j];
-                        el.className = v > 2048 ? 'g-cell tsuper' : ('g-cell' + (v ? ' t' + v : ''));
-                        el.textContent = v || '';
-                        var was = S.last[i][j];
-                        if (v && !was) flash(el, 'spawn');
-                        else if (v && was && v > was) flash(el, 'pop');
-                    }
-                }
-                S.last = cloneBoard(S.board);
-                document.getElementById('gScore').textContent = String(S.score);
-                document.getElementById('gBest').textContent = String(S.best);
-
-                var msg = document.getElementById('gMsg');
-                var text = document.getElementById('gMsgText');
-                var keep = document.getElementById('gKeep');
-                var t = window.SITE_RUNTIME ? window.SITE_RUNTIME.t : function (k) { return k; };
-                if (S.over) {
-                    msg.className = 'g-msg show';
-                    text.textContent = t('g_over');
-                    keep.hidden = true;
-                } else if (S.won && !S.kept) {
-                    msg.className = 'g-msg show won';
-                    text.textContent = t('g_win');
-                    keep.hidden = false;
-                } else {
-                    msg.className = 'g-msg';
-                }
-            }
-
-            S.reset = function () {
-                S.board = emptyBoard();
-                S.last = emptyBoard();
-                S.score = 0;
-                S.won = false;
-                S.over = false;
-                S.kept = false;
-                drop();
-                drop();
+        if (!window.PLAY_ROOM_BOUND) {
+            window.PLAY_ROOM_BOUND = true;
+            filters.addEventListener('click', function (event) {
+                var pill = event.target.closest('button[data-category]');
+                if (!pill) return;
+                state.filter = pill.getAttribute('data-category');
+                markPills();
                 paint();
-                writeSave(S);
-                document.getElementById('gRestored').hidden = true;
-            };
-
-            S.move = function (dir) {
-                if (S.over) return false;
-                var res = applyMove(S.board, dir);
-                if (!res.moved) {
-                    flash(document.getElementById('gBoard'), 'nudge');
-                    return false;
-                }
-                var before = S.score;
-                S.board = res.board;
-                S.score += res.gained;
-                if (S.score > S.best) { S.best = S.score; saveBest(); }
-                drop();
-                paint();
-                if (S.score > before) flash(document.getElementById('gScore'), 'bump');
-                tone(240, .06, 'triangle', .04);
-                if (res.gained) tone(320 + 40 * Math.log2(res.gained), .12, 'sine', .07);
-                if (S.won && !S.kept) { tone(523, .12); setTimeout(function () { tone(659, .12); }, 110); setTimeout(function () { tone(784, .2); }, 220); }
-                if (S.over) tone(150, .3, 'sawtooth', .05);
-                writeSave(S);
-                return true;
-            };
-
-            document.getElementById('gNew').addEventListener('click', function () { ensureAudio(); S.reset(); });
-            document.getElementById('gRetry').addEventListener('click', function () { ensureAudio(); S.reset(); });
-            document.getElementById('gKeep').addEventListener('click', function () {
-                ensureAudio();
-                S.kept = true;
-                paint();
-                writeSave(S);
             });
-
-            var soundBtn = document.getElementById('gSound');
-            function paintSound() {
-                var A = audio();
-                soundBtn.setAttribute('aria-pressed', String(A.on));
-                soundBtn.classList.toggle('off', !A.on);
-                soundBtn.querySelector('.i-on').style.display = A.on ? '' : 'none';
-                soundBtn.querySelector('.i-off').style.display = A.on ? 'none' : '';
-            }
-            soundBtn.addEventListener('click', function () {
-                var A = audio();
-                A.on = !A.on;
-                try { localStorage.setItem('g2048sound', A.on ? 'on' : 'off'); } catch (e) { /* 同上 */ }
-                if (A.on) { ensureAudio(); tone(660, .08, 'sine', .05); }
-                paintSound();
-            });
-            paintSound();
-
-            var KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', A: 'left', D: 'right', W: 'up', S: 'down' };
-            document.addEventListener('keydown', function (e) {
-                if (e.altKey || e.ctrlKey || e.metaKey) return;
-                var tag = (e.target && e.target.tagName) || '';
-                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-                var dir = KEYS[e.key];
-                if (!dir) return;
-                e.preventDefault();
-                ensureAudio();
-                S.move(dir);
-            });
-
-            /* 滑动：指针事件 + 指针捕获；棋盘 touch-action:none，浏览器手势不会抢走这次触摸 */
-            var boardEl = document.getElementById('gBoard');
-            var px = 0, py = 0, pid = null;
-            boardEl.addEventListener('pointerdown', function (e) {
-                /* 覆盖层里的按钮要保留原生点击，不能被指针捕获抢走 */
-                if (e.target.closest && e.target.closest('.g-msg')) return;
-                ensureAudio();
-                pid = e.pointerId;
-                px = e.clientX; py = e.clientY;
-                try { boardEl.setPointerCapture(pid); } catch (err) { /* 老浏览器忽略 */ }
-            });
-            boardEl.addEventListener('pointerup', function (e) {
-                if (pid === null || e.pointerId !== pid) return;
-                pid = null;
-                var dx = e.clientX - px, dy = e.clientY - py;
-                if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-                if (Math.abs(dx) > Math.abs(dy)) S.move(dx > 0 ? 'right' : 'left');
-                else S.move(dy > 0 ? 'down' : 'up');
-            });
-            boardEl.addEventListener('pointercancel', function () { pid = null; });
-            boardEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-            boardEl.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-            boardEl.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
-
-            /* 关页/切后台时再落一次盘，避免最后一次移动丢失 */
-            window.addEventListener('pagehide', function () { writeSave(S); });
-            document.addEventListener('visibilitychange', function () {
-                if (document.visibilityState === 'hidden') writeSave(S);
-            });
-
-            window.G2048_API = {
-                setBoard: function (b) { S.board = cloneBoard(b); S.last = cloneBoard(b); S.over = false; S.won = false; S.kept = false; paint(); writeSave(S); },
-                getBoard: function () { return cloneBoard(S.board); },
-                move: function (dir) { return S.move(dir); },
-                score: function () { return S.score; },
-                reset: S.reset
-            };
-
-            var saved = readSave();
-            if (saved) {
-                S.board = cloneBoard(saved.board);
-                S.last = cloneBoard(saved.board);
-                S.score = saved.score;
-                S.won = !!saved.won;
-                S.kept = !!saved.kept;
-                S.over = !!saved.over;
-                if (S.score > S.best) { S.best = S.score; saveBest(); }
-                paint();
-                document.getElementById('gRestored').hidden = false;
-            } else {
-                S.reset();
-            }
         }
+        /* 换语言时才重建；筛选只改属性，否则点一下按钮就被替换，焦点会丢 */
+        function buildPills() {
+            filters.innerHTML = ['all', 'puzzle', 'casual', 'strategy', 'simulation'].map(function (key) {
+                return '<button type="button" data-category="' + key + '" aria-pressed="false">' + escHtml(ctx.t(key)) + '</button>';
+            }).join('');
+            markPills();
+        }
+        function markPills() {
+            [].forEach.call(filters.children, function (b) {
+                b.setAttribute('aria-pressed', String(b.getAttribute('data-category') === state.filter));
+            });
+        }
+        buildPills();
+        paint();
 
-        /* 切语言时只重画文案与覆盖层，不动棋局 */
-        var msg = document.getElementById('gMsg');
-        if (msg.classList.contains('show')) {
-            document.getElementById('gMsgText').textContent = ctx.t(S.over ? 'g_over' : 'g_win');
+        var recent = document.getElementById('recentGame');
+        var last = null;
+        try { last = localStorage.getItem('lastPlayedGame'); } catch (e) {}
+        var game = games.find(function (g) { return g.id === last; });
+        if (game) {
+            recent.hidden = false;
+            recent.innerHTML = '<span>' + escHtml(ctx.t('recent')) + ' · <strong>' + escHtml(ctx.pick(game.name)) + '</strong></span>' +
+                '<a href="' + game.page + '">' + escHtml(ctx.t('resume')) + '</a>';
+        } else {
+            recent.hidden = true;
         }
     };
     </script>
@@ -1157,7 +1116,7 @@ window.PAGE_RENDER = function(ctx) {
         'zh-CN': {
             doc_title: '云陌轩',
             brand: '云陌轩',
-            nav_home: '首页', nav_projects: '项目', nav_blog: '文章', nav_games: '游戏', nav_about: '关于',
+            nav_home: '首页', nav_projects: '项目', nav_games: '游戏', nav_about: '关于',
             a11y_skip: '跳到主要内容', a11y_theme: '切换深浅色主题', a11y_lang: '选择语言',
             a11y_menu: '打开菜单', a11y_menu_close: '关闭菜单', a11y_footer: '页脚',
             footer_tagline: '一个人的静态小站，慢慢更新。',
@@ -1169,7 +1128,7 @@ window.PAGE_RENDER = function(ctx) {
         'zh-TW': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: '首頁', nav_projects: '項目', nav_blog: '文章', nav_games: '遊戲', nav_about: '關於',
+            nav_home: '首頁', nav_projects: '項目', nav_games: '遊戲', nav_about: '關於',
             a11y_skip: '跳至主要內容', a11y_theme: '切換深淺色主題', a11y_lang: '選擇語言',
             a11y_menu: '開啟選單', a11y_menu_close: '關閉選單', a11y_footer: '頁尾',
             footer_tagline: '一個人的靜態小站，慢慢更新。',
@@ -1181,7 +1140,7 @@ window.PAGE_RENDER = function(ctx) {
         'en': {
             doc_title: 'Yunmo-Xuan',
             brand: 'Yunmo-Xuan',
-            nav_home: 'Home', nav_projects: 'Projects', nav_blog: 'Writing', nav_games: 'Games', nav_about: 'About',
+            nav_home: 'Home', nav_projects: 'Projects', nav_games: 'Games', nav_about: 'About',
             a11y_skip: 'Skip to main content', a11y_theme: 'Toggle light and dark theme',
             a11y_lang: 'Choose language', a11y_menu: 'Open menu', a11y_menu_close: 'Close menu',
             a11y_footer: 'Footer',
@@ -1194,7 +1153,7 @@ window.PAGE_RENDER = function(ctx) {
         'ja': {
             doc_title: '雲陌軒',
             brand: '雲陌軒',
-            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_blog: 'ノート', nav_games: 'ゲーム', nav_about: '概要',
+            nav_home: 'ホーム', nav_projects: 'プロジェクト', nav_games: 'ゲーム', nav_about: '概要',
             a11y_skip: '本文へスキップ', a11y_theme: 'ライト／ダークを切替',
             a11y_lang: '言語を選択', a11y_menu: 'メニューを開く', a11y_menu_close: 'メニューを閉じる',
             a11y_footer: 'フッター',
@@ -1444,7 +1403,7 @@ function inline(s) {
 
 function isExternal(u) { return /^(https?:|mailto:)/i.test(String(u || '')); }
 
-/* 由结构化段落生成 HTML，供文章与项目描述复用 */
+/* 由结构化段落生成 HTML，供正文与项目描述复用 */
 function renderBlocks(blocks) {
     if (!blocks) return '';
     var out = [];

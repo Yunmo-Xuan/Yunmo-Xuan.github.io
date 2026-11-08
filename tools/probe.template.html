@@ -13,9 +13,23 @@
 <div id="out">running…</div>
 <div id="stages"></div>
 <script>
-/* 同源探针：把五个页面在各断点/主题下装进 iframe，检查布局与渲染结果。
+/* 同源探针：把每个页面在各断点/主题/语言下装进 iframe，检查布局、渲染与真实交互。
    用法：node tools/probe.js —— 由脚本写入 site/__probe.html 后无头运行。 */
-var PAGES = ['index.html', 'projects.html', 'blog.html', 'games.html', 'about.html', '404.html', 'blog.html#/post/rewrite-2026'];
+var LIGHT = ['light-1440', 'dark-1440', 'light-390', 'dark-390', 'light-320', 'en-320', 'ja-390', 'tw-390', 'tab-768', 'tabland-1024', 'phoneland-740', 'wide-1920'];
+var SHORT = ['light-1440', 'dark-1440', 'light-390', 'en-320', 'phoneland-740', 'wide-1920'];
+var PAGES = [
+  { file: 'index.html', stages: LIGHT },
+  { file: 'projects.html', stages: LIGHT },
+  { file: 'games.html', stages: LIGHT },
+  { file: '2048.html', stages: LIGHT },
+  { file: 'planet-merge.html', stages: SHORT },
+  { file: 'gomoku.html', stages: SHORT },
+  { file: 'minesweeper.html', stages: SHORT },
+  { file: 'xiangqi.html', stages: SHORT },
+  { file: 'simdesk.html', stages: SHORT },
+  { file: 'about.html', stages: LIGHT },
+  { file: '404.html', stages: LIGHT }
+];
 var STAGES = [
   { label: 'light-1440', theme: 'light', w: 1440, h: 900 },
   { label: 'dark-1440', theme: 'dark', w: 1440, h: 900 },
@@ -31,7 +45,19 @@ var STAGES = [
   { label: 'wide-1920', theme: 'light', w: 1920, h: 1080 }
 ];
 var results = [];
+var TOTAL_STAGES = 0;
+function renderRows() {
+  var out = document.getElementById('out');
+  var bad = results.filter(function (r) { return !r.ok; }).length;
+  out.innerHTML = results.map(function (r) {
+    return '<div class="' + (r.ok ? 'ok' : 'no') + '">[' + (r.ok ? 'PASS' : 'FAIL') + '] ' + r.stage + ' ' + r.page +
+      (r.problems.length ? ' :: ' + r.problems.join('; ') : '') + '</div>';
+  }).join('') + '<div>RUNNING ' + results.length + '/' + TOTAL_STAGES + ', ' + bad + ' failed</div>';
+}
+function record(r) { results.push(r); renderRows(); }
 var stageEl = document.getElementById('stages');
+/* 启动动画每个标签页只播一次；探针要检查的是页面本体，先标记为已看过 */
+try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
 
 function check(doc, label, page, stage) {
   var de = doc.documentElement;
@@ -40,26 +66,27 @@ function check(doc, label, page, stage) {
   if (de.scrollWidth - cw > 1) problems.push('overflow ' + (de.scrollWidth - cw) + 'px');
   if (!doc.title) problems.push('empty title');
   if (!doc.querySelector('.nav-links a')) problems.push('no nav');
-  if (!doc.querySelector('main h1, .hero h1')) problems.push('no h1');
+  if (!doc.querySelector('main h1, .hero h1, .play-head h1, .embed-head h1')) problems.push('no h1');
+  if (doc.querySelector('.nav-links a[href="blog.html"]')) problems.push('blog link still in nav');
   var slots = [].slice.call(doc.querySelectorAll('[data-i18n]')).filter(function (el) { return !el.textContent.trim(); });
   if (slots.length) problems.push('empty i18n: ' + slots.map(function (e) { return e.getAttribute('data-i18n'); }).join(','));
   /* 转义泄漏：文案里不该出现裸的 \u003c / &lt; / 被吃掉的标签 */
   var text = doc.body.innerText || '';
   if (/\\u003c|&lt;|&quot;/.test(text)) problems.push('escape leak in visible text');
-  /* 正文可见文字里不该出现未渲染的标签片段 */
   if (/&lt;\/?(strong|em|code)&gt;/.test(text)) problems.push('unrendered inline tag');
   var theme = de.getAttribute('data-theme');
   if (theme !== stage.theme) problems.push('theme=' + theme);
-  if (doc.documentElement.lang !== (stage.lang || 'zh-CN')) problems.push('lang=' + doc.documentElement.lang);
+  if (de.lang !== (stage.lang || 'zh-CN')) problems.push('lang=' + de.lang);
   var revealed = doc.querySelectorAll('.reveal.in').length;
   var total = doc.querySelectorAll('.reveal').length;
   /* 无头环境里 IntersectionObserver 未必被调度，reveal 只作信息展示，不算失败 */
   /* 本页专属断言 */
-  if (page === 'blog.html' && !doc.querySelector('#postList a, #postContent h1')) problems.push('blog rendered nothing');
-  if (page.indexOf('post/') > -1) {
-    if (!doc.querySelector('#postContent h1')) problems.push('post body missing');
-    if (!doc.querySelector('#postContent p')) problems.push('post paragraphs missing');
-    if (!doc.querySelector('#listView[hidden]')) problems.push('list not hidden in reader');
+  if (page === 'games.html' && doc.querySelectorAll('.game-card').length !== 6) problems.push('expected six game cards, got ' + doc.querySelectorAll('.game-card').length);
+  if (page === '2048.html' && doc.querySelectorAll('.g-cell').length !== 16) problems.push('2048 board not built (' + doc.querySelectorAll('.g-cell').length + ' cells)');
+  if (/\.html$/.test(page) && doc.getElementById('embedGame')) {
+    if (!doc.querySelector('.site-header')) problems.push('embed page lost site chrome');
+    var frame = doc.getElementById('embedGame');
+    if (!/^assets\/games\/(planet-merge|gomoku|minesweeper|xiangqi|simdesk)\.html$/.test(frame.getAttribute('src'))) problems.push('unexpected frame src ' + frame.getAttribute('src'));
   }
   if (page === 'projects.html' && !doc.querySelector('#projList .project')) problems.push('projects rendered nothing');
   if (page === 'about.html' && !doc.querySelector('#changelog li')) problems.push('changelog empty');
@@ -70,12 +97,13 @@ function check(doc, label, page, stage) {
       .filter(function (h) { return h && !/^(https?:|#|mailto:|data:)/.test(h) && h.charAt(0) !== '/'; });
     if (links.length) problems.push('404 must use root-absolute, found: ' + links.join(','));
   }
-  results.push({ page: page, stage: label, ok: problems.length === 0, problems: problems, cw: cw, scrollW: de.scrollWidth, revealed: revealed + '/' + total });
+  record({ page: page, stage: label, ok: problems.length === 0, problems: problems, cw: cw, scrollW: de.scrollWidth, revealed: revealed + '/' + total });
 }
 
 function runStage(stage, pageIndex, done) {
   localStorage.setItem('preferredTheme', stage.theme);
   localStorage.setItem('preferredLanguage', stage.lang || 'zh-CN');
+  var page = PAGES[pageIndex];
   var wrap = document.createElement('div');
   wrap.className = 'frame-wrap';
   var f = document.createElement('iframe');
@@ -87,16 +115,18 @@ function runStage(stage, pageIndex, done) {
     setTimeout(function () {
       /* 页面启动期异常无法在这里捕获（导航会替换 window），
          但它一定会让下面的结构断言失败 */
-      try { check(f.contentDocument, stage.label, PAGES[pageIndex], stage); }
-      catch (e) { results.push({ page: PAGES[pageIndex], stage: stage.label, ok: false, problems: ['crash: ' + e.message] }); }
+      try { check(f.contentDocument, stage.label, page.file, stage); }
+      catch (e) { record({ page: page.file, stage: stage.label, ok: false, problems: ['crash: ' + e.message] }); }
       done();
-    }, 260);
+    }, 320);
   });
-  f.src = PAGES[pageIndex];
+  f.src = page.file;
 }
 
 var queue = [];
-STAGES.forEach(function (s, si) { PAGES.forEach(function (p, pi) { queue.push([s, pi]); }); });
+STAGES.forEach(function (s) {
+  PAGES.forEach(function (p, pi) { if (p.stages.indexOf(s.label) >= 0) queue.push([s, pi]); });
+});
 
 /* ---------- 交互阶段：真的点一遍，验证 JS 行为 ---------- */
 var INTERACTIONS = [
@@ -130,41 +160,70 @@ var INTERACTIONS = [
       d.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       if (d.body.classList.contains('nav-open')) throw 'Escape did not close';
     } },
-  { page: 'blog.html', w: 1440, name: 'open post + back', run: function (d, win, done) {
-      function assertReaderOpen() {
-        if (d.querySelector('#postView[hidden]')) return 'reader stayed hidden after click';
-        if (!/#\/post\//.test(win.location.hash)) return 'hash not updated: ' + win.location.hash;
-        if (!d.querySelector('#postContent h2')) return 'post headings missing';
-        return null;
-      }
-      if (d.querySelector('#postView[hidden]') === null) return done('reader visible on load');
-      d.querySelector('.post-row').click();
-      /* hashchange 异步派发，等一拍再断言 */
-      setTimeout(function () {
-        var err = assertReaderOpen();
-        if (err) return done(err);
-        d.getElementById('backToList').click();
-        setTimeout(function () {
-          if (d.querySelector('#postView:not([hidden])')) return done('reader not closed after back');
-          done();
-        }, 150);
-      }, 150);
-    } },
-  { page: 'blog.html', w: 1440, name: 'tag filter', run: function (d) {
-      var pills = d.querySelectorAll('#postFilters .pill');
-      if (pills.length < 2) throw 'filter bar missing (pills=' + pills.length + ')';
-      var all = d.querySelectorAll('#postList .post-row').length;
-      pills[1].click();
-      var some = d.querySelectorAll('#postList .post-row').length;
-      if (some >= all) throw 'filter did not narrow list (' + all + ' -> ' + some + ')';
-      if (pills[1].getAttribute('aria-pressed') !== 'true') throw 'aria-pressed not set';
-      pills[0].click();
-      if (d.querySelectorAll('#postList .post-row').length !== all) throw 'reset failed';
+  { page: 'index.html', w: 1440, slow: true, name: 'intro splash shows once and can be skipped', run: function (d, win, done) {
+      var f2 = d.createElement('iframe');
+      f2.style.width = '1280px';
+      f2.style.height = '800px';
+      var first = '', phase = 0;
+      f2.addEventListener('load', function () {
+        var d2 = f2.contentDocument;
+        if (!d2 || !d2.defaultView) { done('splash frame disappeared before it booted'); return; }
+        if (phase === 0) {
+          /* 就在子帧自己的会话里清掉标记再重载一次，这才是干净的“第一次访问” */
+          phase = 1;
+          d2.defaultView.sessionStorage.removeItem('yunmo.intro.seen');
+          d2.defaultView.location.reload();
+          return;
+        }
+        if (phase >= 2) return;
+        phase = 2;
+        var seen2 = 0;
+        (function wait2() {
+          var splash = d2.getElementById('introSplash');
+          if (splash && d2.readyState !== 'complete' && seen2++ < 16) { setTimeout(wait2, 120); return; }
+          if (!splash) first = 'first visit showed no splash (seen=' + d2.defaultView.sessionStorage.getItem('yunmo.intro.seen') +
+            ', reduced=' + d2.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches + ')';
+          else if (splash.hidden) first = 'splash stayed hidden';
+          else if (!d2.getElementById('introVideo')) first = 'splash has no video';
+          else if (!d2.getElementById('main').inert) first = 'background stayed reachable during the splash';
+          else if (d2.activeElement !== d2.getElementById('introSkip')) first = 'focus never entered the splash';
+          else {
+            var skip = d2.getElementById('introSkip');
+            skip.click();
+            setTimeout(function () {
+              var still = d2.getElementById('introSplash');
+              if (still && !still.classList.contains('intro-out')) first = 'skip did not dismiss the splash';
+              if (still && d2.getElementById('main').inert) first = first || 'background stayed locked after the splash';
+              var f3 = d2.createElement('iframe');
+              f3.style.width = '1280px';
+              f3.style.height = '800px';
+              f3.addEventListener('load', function () {
+                var seen3 = 0;
+                (function wait3() {
+                  var d3 = f3.contentDocument;
+                  if (!d3) { first = first || 'reopened splash frame vanished'; f3.remove(); done(first); return; }
+                  /* 没解析完的文档当然没有弹层，那不能算“只播一次” */
+                  if (d3.readyState !== 'complete' && seen3++ < 16) { setTimeout(wait3, 120); return; }
+                  var again = d3.getElementById('introSplash');
+                  if (again) first = first || 'splash replayed in the same session';
+                  f3.remove();
+                  try { d2.defaultView.sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+                  done(first || undefined);
+                })();
+              });
+              d2.body.appendChild(f3);
+              f3.src = 'index.html';
+            }, 520);
+          }
+          if (first) { try { d2.defaultView.sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {} done(first); }
+        })();
+      });
+      d.body.appendChild(f2);
+      f2.src = 'index.html';
     } },
   { page: 'projects.html', w: 1440, name: 'project filter', run: function (d) {
       if (d.querySelectorAll('#projList .project').length === 0) throw 'no project card';
       var pills = d.querySelectorAll('#projFilters .pill');
-      /* 只有一个标签时筛选条应当自动隐藏；目前这条项目带 4 个标签，所以应当显示 */
       if (pills.length < 2) throw 'filter bar missing (pills=' + pills.length + ')';
       pills[1].click();
       if (pills[1].getAttribute('aria-pressed') !== 'true') throw 'aria-pressed not set';
@@ -202,53 +261,49 @@ var INTERACTIONS = [
         if (d.getElementById('projList').textContent.includes('[object Object]')) throw 'untranslated project name';
       });
     } },
-  { page: 'about.html', w: 1440, name: 'contact links on first load', run: function (d) {
-      var expected = [
-        'https://github.com/Yunmo-Xuan',
-        'https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io',
-        'https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io/issues/new'
-      ];
-      var links = Array.from(d.querySelectorAll('#contactList a'), function (a) { return a.href; });
-      if (JSON.stringify(links) !== JSON.stringify(expected)) throw 'incorrect contact destinations';
+  { page: 'games.html', w: 1440, name: 'game hub lists and filters', run: function (d) {
+      var cards = d.querySelectorAll('.game-card');
+      if (cards.length !== 6) throw 'expected six games, got ' + cards.length;
+      var hrefs = [].map.call(cards, function (c) { return c.getAttribute('href'); });
+      var want = ['2048.html', 'planet-merge.html', 'gomoku.html', 'minesweeper.html', 'xiangqi.html', 'simdesk.html'];
+      if (hrefs.join(',') !== want.join(',')) throw 'game destinations wrong: ' + hrefs.join(',');
+      var pills = d.querySelectorAll('#gameFilters button');
+      if (pills.length !== 5) throw 'expected 5 category pills, got ' + pills.length;
+      pills[1].click();
+      var some = d.querySelectorAll('.game-card').length;
+      if (some === 0 || some >= 6) throw 'category filter did not narrow (' + some + ')';
+      if (pills[1].getAttribute('aria-pressed') !== 'true') throw 'aria-pressed not set';
+      d.querySelector('[data-lang="en"]').click();
+      if (!/games/i.test(d.getElementById('gameCount').textContent)) throw 'count not translated: ' + d.getElementById('gameCount').textContent;
+      d.querySelector('[data-lang="zh-CN"]').click();
+      var again = d.querySelectorAll('#gameFilters button');
+      again[0].click();
+      if (d.querySelectorAll('.game-card').length !== 6) throw 'reset failed';
     } },
-  { page: 'blog.html', w: 1440, name: 'counts and malformed hash', run: function (d, win, done) {
-      var rows = d.querySelectorAll('#postList .post-row').length;
-      if (!rows || d.getElementById('postCount').textContent.indexOf(String(rows)) < 0) return done('post count missing');
-      win.location.hash = '#/post/%E0%A4%A';
-      setTimeout(function () {
-        if (d.getElementById('listView').hidden) return done('malformed hash hid the article list');
-        done();
-      }, 150);
-    } },
-  { page: 'blog.html', w: 1440, name: 'language changes preserve navigation', run: function (d, win, done) {
-      ['en', 'ja', 'zh-TW', 'zh-CN'].forEach(function (lang) {
-        d.querySelector('[data-lang="' + lang + '"]').click();
-      });
-      var rows = d.querySelectorAll('#postList .post-row').length;
-      if (!rows || d.getElementById('postCount').textContent.indexOf(String(rows)) < 0) return done('post count disappeared');
-      d.querySelector('.post-row').click();
-      setTimeout(function () {
-        if (d.getElementById('postView').hidden) return done('reader failed after switching languages');
-        d.getElementById('backToList').click();
-        setTimeout(function () {
-          if (d.getElementById('listView').hidden) return done('back failed after switching languages');
-          done();
-        }, 150);
-      }, 150);
-    } },
-  { page: 'games.html', w: 1440, name: '2048 merge rules', run: function (d, win) {
+  { page: '2048.html', w: 1440, name: '2048 merge rules', run: function (d, win) {
       var api = win.G2048_API;
       if (!api) throw 'game API missing';
+      /* 每次移动后系统会随机落一块，断言只看"合并结果的前缀"，多出来的那块只能是 2 或 4 */
+      function merged(row, expected) {
+        var got = row.filter(function (v) { return v; });
+        var extra = got.length - expected.length;
+        if (extra < 0 || extra > 1) return false;
+        for (var i = 0; i < expected.length; i++) if (got[i] !== expected[i]) return false;
+        if (extra === 1 && got[got.length - 1] !== 2 && got[got.length - 1] !== 4) return false;
+        return true;
+      }
+      api.reset();
       api.setBoard([[2, 2, 2, 2], [4, 4, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
       api.move('left');
       var b = api.getBoard();
-      if (b[0][0] !== 4 || b[0][1] !== 4 || b[0][2] !== 0) throw 'row merge wrong: ' + JSON.stringify(b[0]);
+      if (!merged(b[0], [4, 4])) throw 'row merge wrong: ' + JSON.stringify(b[0]);
       if (b[1][0] !== 8) throw 'second row merge wrong: ' + JSON.stringify(b[1]);
       if (api.score() !== 16) throw 'score wrong: ' + api.score();
       api.setBoard([[2, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
       api.move('right');
       b = api.getBoard();
-      if (b[0][3] !== 4) throw 'right merge wrong: ' + JSON.stringify(b[0]);
+      var right = b[0].filter(function (v) { return v; });
+      if (right[right.length - 1] !== 4) throw 'right merge wrong: ' + JSON.stringify(b[0]);
       api.setBoard([[2, 4, 8, 16], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
       var before = JSON.stringify(api.getBoard());
       if (api.move('left')) throw 'move reported change on an already-collapsed row';
@@ -256,12 +311,17 @@ var INTERACTIONS = [
       api.setBoard([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 8, 16]]);
       api.move('up');
       b = api.getBoard();
-      if (b[0][0] !== 2 || b[0][1] !== 4 || b[0][2] !== 8 || b[0][3] !== 16) throw 'up move wrong: ' + JSON.stringify(b[0]);
+      if (!merged(b[0], [2, 4, 8, 16])) throw 'up move wrong: ' + JSON.stringify(b[0]);
+      /* 同一块在一次移动里只能合并一次：1024+1024 与 512+512 应得 2048 与 1024，而不是 4096 */
+      api.setBoard([[1024, 1024, 512, 512], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+      api.move('left');
+      b = api.getBoard();
+      if (!merged(b[0], [2048, 1024])) throw 'double merge wrong: ' + JSON.stringify(b[0]);
     } },
-  { page: 'games.html', w: 390, name: '2048 keyboard, overlay and language', run: function (d, win) {
+  { page: '2048.html', w: 390, name: '2048 win gate, overlay and language', run: function (d, win) {
       var api = win.G2048_API;
       api.reset();
-      api.setBoard([[2, 0, 0, 0], [0, 4, 0, 0], [0, 0, 8, 0], [0, 0, 0, 16]]);
+      api.setBoard([[0, 0, 0, 2], [0, 0, 4, 0], [0, 8, 0, 0], [16, 0, 0, 0]]);
       var ev = new win.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true });
       d.dispatchEvent(ev);
       if (!ev.defaultPrevented) throw 'arrow key not captured (page would scroll)';
@@ -271,10 +331,12 @@ var INTERACTIONS = [
       d.querySelector('[data-lang="en"]').click();
       if (JSON.stringify(api.getBoard()) !== snapshot) throw 'language switch reset the board';
       if (d.querySelector('.g-score .k').textContent.indexOf('Score') < 0) throw 'score label not translated';
+      /* 胜利必须先看到、并且确认后才能继续走 */
       api.setBoard([[2048, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
       var msg = d.getElementById('gMsg');
       if (!msg.classList.contains('show') || !msg.classList.contains('won')) throw 'win overlay missing';
       if (d.getElementById('gMsgText').textContent.indexOf('You win') < 0) throw 'win text not translated';
+      if (api.move('up') !== false) throw 'move accepted while win overlay is up';
       d.getElementById('gKeep').click();
       if (msg.classList.contains('show')) throw 'keep-playing did not dismiss overlay';
       api.setBoard([[2, 4, 2, 4], [4, 2, 4, 2], [2, 4, 2, 4], [4, 2, 4, 2]]);
@@ -283,60 +345,251 @@ var INTERACTIONS = [
       if (msg.classList.contains('show') || api.score() !== 0) throw 'retry did not restart the game';
       d.querySelector('[data-lang="zh-CN"]').click();
     } },
-  { page: 'games.html', w: 390, name: '2048 gesture lock, swipe and sound', run: function (d, win) {
+  { page: '2048.html', w: 390, name: '2048 gesture lock, swipe and sound', run: function (d, win) {
       var api = win.G2048_API;
       var board = d.getElementById('gBoard');
       if (win.getComputedStyle(board).touchAction !== 'none') throw 'board touch-action is not none (browser gestures would steal swipes)';
       if (win.getComputedStyle(d.body).overscrollBehaviorY !== 'none') throw 'page overscroll not locked (pull-to-refresh possible)';
-      api.setBoard([[2, 0, 0, 0], [0, 4, 0, 0], [0, 0, 8, 0], [0, 0, 0, 16]]);
+      api.setBoard([[0, 0, 0, 2], [0, 0, 4, 0], [0, 8, 0, 0], [16, 0, 0, 0]]);
       var r = board.getBoundingClientRect();
       var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      board.dispatchEvent(new win.PointerEvent('pointerdown', { pointerId: 7, clientX: cx + 60, clientY: cy, bubbles: true }));
-      board.dispatchEvent(new win.PointerEvent('pointerup', { pointerId: 7, clientX: cx - 60, clientY: cy, bubbles: true }));
+      board.dispatchEvent(new win.PointerEvent('pointerdown', { pointerId: 7, isPrimary: true, clientX: cx + 60, clientY: cy, bubbles: true }));
+      board.dispatchEvent(new win.PointerEvent('pointerup', { pointerId: 7, isPrimary: true, clientX: cx - 60, clientY: cy, bubbles: true }));
       var b = api.getBoard();
       if (b[0][0] !== 2 || b[1][0] !== 4 || b[2][0] !== 8 || b[3][0] !== 16) throw 'pointer swipe left failed: ' + JSON.stringify(b);
+      /* 右键/中键与短促轻点都不该移动棋盘 */
+      var before = JSON.stringify(api.getBoard());
+      board.dispatchEvent(new win.PointerEvent('pointerdown', { pointerId: 8, isPrimary: true, button: 2, clientX: cx + 60, clientY: cy, bubbles: true }));
+      board.dispatchEvent(new win.PointerEvent('pointerup', { pointerId: 8, isPrimary: true, button: 2, clientX: cx - 60, clientY: cy, bubbles: true }));
+      if (JSON.stringify(api.getBoard()) !== before) throw 'right-button swipe moved the board';
+      api.setBoard([[0, 0, 0, 2], [0, 0, 4, 0], [0, 8, 0, 0], [16, 0, 0, 0]]);
+      before = JSON.stringify(api.getBoard());
+      board.dispatchEvent(new win.PointerEvent('pointerdown', { pointerId: 9, isPrimary: true, clientX: cx, clientY: cy, bubbles: true }));
+      board.dispatchEvent(new win.PointerEvent('pointerup', { pointerId: 9, isPrimary: true, clientX: cx + 6, clientY: cy, bubbles: true }));
+      if (JSON.stringify(api.getBoard()) !== before) throw 'a 6px tap moved the board';
       var sb = d.getElementById('gSound');
-      var before = sb.getAttribute('aria-pressed');
+      var pressed = sb.getAttribute('aria-pressed');
       sb.click();
-      if (sb.getAttribute('aria-pressed') === before) throw 'sound toggle did not flip';
+      if (sb.getAttribute('aria-pressed') === pressed) throw 'sound toggle did not flip';
       if (sb.querySelector('.i-off').style.display === 'none') throw 'mute icon not shown when off';
       sb.click();
-      if (sb.getAttribute('aria-pressed') !== before) throw 'sound toggle did not restore';
+      if (sb.getAttribute('aria-pressed') !== pressed) throw 'sound toggle did not restore';
     } },
-  { page: 'games.html', w: 390, name: '2048 save survives reload', run: function (d, win, done) {
+  { page: '2048.html', w: 390, name: '2048 save survives reopen', run: function (d, win, done) {
       var api = win.G2048_API;
       api.setBoard([[8, 8, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
       api.move('left');
       var expect = JSON.stringify(api.getBoard());
       var score = api.score();
-      /* 用嵌套的新 iframe 模拟「下次打开」，避免重载 runner 自己的 iframe */
       var f2 = d.createElement('iframe');
       f2.style.width = '390px';
       f2.style.height = '600px';
       f2.addEventListener('load', function () {
-        setTimeout(function () {
+        var tries = 0;
+        (function wait() {
           var w2 = f2.contentWindow, d2 = f2.contentDocument;
+          if (!w2 || !d2) { done('reopened frame disappeared before it booted'); return; }
+          if (!w2.G2048_API && tries++ < 16) { setTimeout(wait, 120); return; }
           var api2 = w2.G2048_API;
           var problem = '';
-          if (!api2) problem = 'game did not boot in a fresh frame';
+          if (!api2) problem = 'game did not boot in a fresh frame (readyState ' + d2.readyState +
+            ', body children ' + (d2.body ? d2.body.children.length : 'none') + ', len ' + (d2.documentElement ? d2.documentElement.innerHTML.length : 0) + ')';
           else if (JSON.stringify(api2.getBoard()) !== expect) problem = 'board not restored: ' + JSON.stringify(api2.getBoard());
           else if (api2.score() !== score) problem = 'score not restored: ' + api2.score();
           else if (d2.getElementById('gRestored').hidden) problem = 'restored notice missing';
           f2.remove();
           done(problem || undefined);
-        }, 220);
-      }, { once: true });
+        })();
+      });
       d.body.appendChild(f2);
-      f2.src = 'games.html';
+      f2.src = '2048.html';
+    } },
+  { page: 'minesweeper.html', w: 1440, name: 'embed loads the game and syncs theme', run: function (d, win, done) {
+      var frame = d.getElementById('embedGame');
+      var button = d.getElementById('embedFull');
+      function inner() { return frame.contentDocument; }
+      setTimeout(function () {
+        var problems = [];
+        var idoc = inner();
+        if (!idoc || !idoc.body || idoc.body.children.length === 0) problems.push('game iframe never loaded');
+        if (!d.getElementById('embedLoading').hidden) problems.push('loading veil still up');
+        /* 站点令牌必须真的进到游戏内部（象棋的变量名与主题取值都和其他几款不同） */
+        var gameName = frame.getAttribute('src').split('/').pop();
+        var varName = gameName === 'xiangqi.html' ? '--panel' : '--surface';
+        var wantToken = d.documentElement.getAttribute('data-theme') === 'dark' ? '#161c25' : '#ffffff';
+        var gotToken = idoc.defaultView.getComputedStyle(idoc.documentElement).getPropertyValue(varName).trim().toLowerCase();
+        if (gotToken !== wantToken) problems.push('site tokens did not reach ' + gameName + ' (' + varName + '=' + gotToken + ', want ' + wantToken + ')');
+        /* 运行时重复 id 会让 querySelector 只认第一个，按钮可能接错线 */
+        var idBag = {}, dupIds = [];
+        [].slice.call(idoc.querySelectorAll('[id]')).forEach(function (el) {
+          if (idBag[el.id]) dupIds.push(el.id); else idBag[el.id] = 1;
+        });
+        if (dupIds.length) problems.push('duplicate ids in loaded game: ' + dupIds.slice(0, 5).join(','));
+        /* 站点主题变化要传进 iframe 里的游戏 */
+        var before = idoc.documentElement.getAttribute('data-theme');
+        d.getElementById('themeToggle').click();
+        setTimeout(function () {
+          var after = inner().documentElement.getAttribute('data-theme');
+          if (before === after) problems.push('theme did not reach the embedded game (' + after + ')');
+          d.getElementById('themeToggle').click();
+          /* 放大：整页只剩游戏，Esc 收回 */
+          button.click();
+          if (!d.getElementById('embedFrame').classList.contains('is-full')) problems.push('fullscreen class missing');
+          if (button.getAttribute('aria-pressed') !== 'true') problems.push('fullscreen aria-pressed not set');
+          d.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+          if (d.getElementById('embedFrame').classList.contains('is-full')) problems.push('Escape did not leave fullscreen');
+          button.click();
+          if (!d.getElementById('embedFrame').classList.contains('is-full')) problems.push('cannot re-enter fullscreen');
+          d.querySelector('[data-lang="ja"]').click();
+          if (!/ゲーム/.test(d.querySelector('.embed-foot').textContent)) problems.push('embed copy not translated');
+          if (!d.getElementById('embedFrame').classList.contains('is-full')) problems.push('fullscreen lost after language switch');
+          if (button.querySelector('span').textContent.indexOf('拡大') < 0) problems.push('fullscreen label wrong while fullscreen');
+          button.click();
+          if (d.getElementById('embedFrame').classList.contains('is-full')) problems.push('fullscreen button broke after switching languages');
+          d.querySelector('[data-lang="zh-CN"]').click();
+          done(problems.length ? problems.join('; ') : undefined);
+        }, 700);
+      }, 900);
+    } },
+  { page: 'planet-merge.html', w: 1440, name: 'planet-merge reach, demo gate, seed parity', run: function (d, win, done) {
+      var frame = d.getElementById('embedGame');
+      setTimeout(function () {
+        var problems = [];
+        var iw = frame.contentWindow;
+        var pm = iw && iw.__PM;
+        if (!pm) { done('planet-merge test surface (__PM) missing'); return; }
+        function place(tier, x, y) {
+          pm.state.ghostTier = tier;
+          pm.state.ghostX = x;
+          pm.state.spawnCd = 0;
+          pm.drop();
+          var b = pm.balls[pm.balls.length - 1];
+          b.x = x; b.y = y; b.px = x; b.py = y - 0.0021; b.lock = 0;
+          return b;
+        }
+        /* 1. 中间隔着小行星，两个同阶星球仍必须合并（x 扫描不能用 B 自己的半径提前 break） */
+        pm.reset('endless', false);
+        pm.balls.length = 0;
+        place(5, 100, 300); place(0, 180, 300); place(5, 190, 300);
+        var mergesBefore = pm.state.merges;
+        for (var s = 0; s < 3; s++) pm.step(1 / 120);
+        if (pm.state.merges === mergesBefore) problems.push('wide pair hidden by a small body never merged');
+        /* 2. 结束后不得再计分，结算画面的数字必须冻结 */
+        pm.reset('endless', false);
+        pm.balls.length = 0;
+        place(2, 150, 300); place(2, 180, 300);
+        pm.state.phase = 'over';
+        var frozenScore = pm.state.score, frozenMerges = pm.state.merges;
+        for (s = 0; s < 6; s++) pm.step(1 / 120);
+        if (pm.state.score !== frozenScore || pm.state.merges !== frozenMerges) {
+          problems.push('board kept scoring after game over');
+        }
+        /* 3. 演示局不发成就 */
+        pm.reset('endless', true);
+        pm.balls.length = 0;
+        var achKeys = Object.keys(pm.save.ach || {}).length, drops = pm.save.drops;
+        place(1, 120, 260); place(1, 150, 260); place(3, 240, 200); place(3, 275, 200);
+        for (s = 0; s < 40; s++) { pm.state.spawnCd = 0; pm.step(1 / 120); }
+        if (Object.keys(pm.save.ach || {}).length !== achKeys) problems.push('attract demo unlocked an achievement');
+        if (pm.save.drops !== drops) problems.push('attract demo wrote play stats');
+        /* 4. 每日挑战的星球序列不能受“减弱动效”开关影响 */
+        function drive(motion) {
+          pm.save.motion = motion;
+          pm.reset('daily', false);
+          pm.balls.length = 0;
+          var trace = [];
+          for (var k = 0; k < 10; k++) {
+            pm.state.ghostX = 60 + ((k * 53) % 340);
+            pm.state.spawnCd = 0;
+            pm.drop();
+            trace.push(pm.state.nextTier);
+            for (var q = 0; q < 18; q++) pm.step(1 / 120);
+          }
+          trace.push(pm.state.score);
+          return trace.join(',');
+        }
+        var asLight = drive(false), asHeavy = drive(true);
+        pm.save.motion = false;
+        if (asLight !== asHeavy) problems.push('daily seed sequence depends on reduced-motion');
+        /* 5. 焦点在按钮上时，空格属于按钮，不能抢去做投放 */
+        pm.reset('endless', false);
+        pm.state.spawnCd = 0;
+        var beforeDrop = pm.state.drops;
+        var btn = frame.contentDocument.getElementById('btnPause');
+        btn.focus();
+        btn.dispatchEvent(new iw.KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+        if (pm.state.drops !== beforeDrop) problems.push('space hijacked while a button had focus');
+        frame.contentDocument.body.dispatchEvent(new iw.KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+        if (pm.state.drops === beforeDrop) problems.push('space stopped dropping while the field had focus');
+        pm.reset('endless', true);
+        done(problems.length ? problems.join('; ') : undefined);
+      }, 1100);
+    } },
+  { page: 'minesweeper.html', w: 1440, name: 'minesweeper chord, capacity and progress', run: function (d, win, done) {
+      var frame = d.getElementById('embedGame');
+      setTimeout(function () {
+        var iw = frame.contentWindow;
+        if (!iw || !iw.eval || !iw.eval('typeof chord')) { done('minesweeper internals unreachable'); return; }
+        var problems = [];
+        /* 左上角(0 号格)是真实格子：连锁踩到它必须判负，而不是静悄悄 */
+        iw.eval([
+          'S.level="custom"; S.cols=5; S.rows=5; S.mines=1;',
+          'cfg.firstSafe=false; cfg.solvable=false; cfg.anim=false;',
+          'newGame(); S.started=true; S.busy=false; S.over=null;',
+          'S.cells[0].m=true; for (var z=0; z<S.cells.length; z++) if (S.cells[z].m) NB[z].forEach(function(j){ S.cells[j].a++; });',
+          'openCell(6);',
+          'S.cells[2].k=FLAG; S.flags++; repaint(2);',
+          'chord(6);',
+          'window.__P1 = S.over;'
+        ].join('\n'));
+        if (iw.__P1 !== 'lose') problems.push('chord onto the mine at index 0 was ignored (got ' + iw.__P1 + ')');
+        /* 布雷容量：首击安全区放不下那么多雷时，雷数必须自降到可通关 */
+        iw.eval([
+          'S.cols=5; S.rows=5; S.mines=21; cfg.firstSafe=true; cfg.solvable=true;',
+          'newGame(); S.started=true;',
+          'plant(12);',
+          'var placed = S.cells.filter(function(c){return c.m;}).length;',
+          'window.__P2 = placed + "/" + S.mines + "/" + (S.cols*S.rows - 9);'
+        ].join('\n'));
+        var cap = String(iw.__P2).split('/');
+        if (cap[0] !== cap[1] || Number(cap[1]) > Number(cap[2])) {
+          problems.push('custom board asked for more mines than it can hold (' + iw.__P2 + ')');
+        }
+        /* 进度：清空全部安全格必须读到 100% */
+        var pct = iw.eval([
+          'S.cols=5; S.rows=5; S.mines=1; cfg.firstSafe=false; cfg.anim=false;',
+          'newGame(); S.started=true; S.over=null;',
+          'S.cells.forEach(function(c,i){ if(i!==0){ c.o=true; c.k=NONE; } });',
+          'S.opened = S.cells.length - S.mines;',
+          'checkWin(); sync();',
+          'document.getElementById("pctTxt").textContent + "|" + (S.over||"none")'
+        ].join('\n'));
+        if (pct.indexOf('100%') !== 0) problems.push('cleared board did not read 100% (' + pct + ')');
+        if (pct.indexOf('win') < 0) problems.push('full clear did not register as a win (' + pct + ')');
+        iw.eval('newGame();');
+        done(problems.length ? problems.join('; ') : undefined);
+      }, 1100);
+    } },
+  { page: 'about.html', w: 1440, name: 'contact links on first load', run: function (d) {
+      var expected = [
+        'https://github.com/Yunmo-Xuan',
+        'https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io',
+        'https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io/issues/new'
+      ];
+      var links = Array.from(d.querySelectorAll('#contactList a'), function (a) { return a.href; });
+      if (JSON.stringify(links) !== JSON.stringify(expected)) throw 'incorrect contact destinations';
     } },
   { page: '404.html', w: 1440, name: 'site map links', run: function (d) {
       var links = d.querySelectorAll('#pageMap a');
-      if (links.length !== 5) throw 'expected 5 map links, got ' + links.length;
+      if (links.length !== 4) throw 'expected 4 map links, got ' + links.length;
       for (var i = 0; i < links.length; i++) {
         if (links[i].getAttribute('href').charAt(0) !== '/') throw 'map link not root-absolute: ' + links[i].getAttribute('href');
       }
+      if (d.querySelector('#pageMap a[href="/blog.html"]')) throw '404 map still lists the retired blog';
     } }
 ];
+
+if (!TOTAL_STAGES) TOTAL_STAGES = queue.length + INTERACTIONS.length;
 
 function runInteraction(job, done) {
   localStorage.removeItem('preferredTheme');
@@ -360,16 +613,16 @@ function runInteraction(job, done) {
         if (settled) return;
         settled = true;
         var problems = msg ? [String(msg)] : [];
-        if (errs.length) problems.push('page error: ' + errs.join(' | '));
-        results.push({ page: job.page, stage: 'act:' + job.name, ok: problems.length === 0, problems: problems, cw: job.w, scrollW: job.w, revealed: '-' });
+        if (errs.length) problems.push('page error: ' + errs.join(' |'));
+        record({ page: job.page, stage: 'act:' + job.name, ok: problems.length === 0, problems: problems, cw: job.w, scrollW: job.w, revealed: '-' });
         done();
       }
       try { job.run(f.contentDocument, win, finish); }
       catch (e) { finish(e.message || e); return; }
       setTimeout(function () {
         finish(job.run.length >= 3 ? 'interaction timed out' : undefined);
-      }, 1600);
-    }, 240);
+      }, job.slow ? 20000 : 6000);
+    }, 300);
   });
   f.src = job.page;
 }

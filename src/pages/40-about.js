@@ -3,10 +3,33 @@
 
 /* 站点大事记：新增一条即在数组开头插入 */
 const CHANGELOG = [
-    { date: '2026-10-28', tag: 'rewrite', text: { 'zh-CN': '整站重写。补齐文章与项目两个页面，清掉所有指向不存在文件的链接。', en: 'Full rewrite. Added the Writing and Projects pages, removed every link that pointed at a file which never existed.' } },
-    { date: '2026-10-28', tag: 'i18n', text: { 'zh-CN': '界面文案支持简体中文、繁體中文、English、日本語；主题新增深色并跟随系统偏好。', en: 'UI copy now covers zh-CN, zh-TW, en and ja; a dark theme joined the light one and follows the system preference.' } },
-    { date: '2026-10-28', tag: 'a11y', text: { 'zh-CN': '去掉 Font Awesome CDN，图标改为内联 SVG；补上跳转链接、焦点样式与减少动效支持。', en: 'Dropped the Font Awesome CDN for inline SVG; added a skip link, focus styles and reduced-motion support.' } },
-    { date: '2026-10-26', tag: '404', text: { 'zh-CN': '404 页改成能真正导航的样子：列出站内全部页面，并把错误路径带进反馈链接。', en: 'The 404 page became useful: it lists every page on the site and carries the broken path into the feedback link.' } }
+    { date: '2026-11-07', tag: 'games', text: {
+        'zh-CN': '游戏集合更新：2048、星核合成、象棋、五子棋、扫雷、股市模拟统一从游戏中心进入，站点内容聚焦项目与游戏。',
+        'zh-TW': '遊戲集合更新：2048、星核合成、象棋、五子棋、踩地雷、股市模擬統一從遊戲中心進入，網站內容聚焦項目與遊戲。',
+        en: 'Game collection update: 2048, Planet Merge, Xiangqi, Gomoku, Minesweeper and Stock Market Simulator are grouped in the games hub. The site now focuses on projects and games.',
+        ja: 'ゲーム集を更新。2048、星核合成、シャンチー、五目並べ、マインスイーパー、株式市場シミュレーターへの入口をゲーム一覧にまとめ、プロジェクトとゲームを中心としたサイトに。'
+    } },
+    { date: '2026-10-28', tag: 'rewrite', text: {
+        'zh-CN': '全站重写。', 'zh-TW': '全站重寫。', en: 'Full site rewrite.', ja: 'サイト全体を書き直しました。'
+    } },
+    { date: '2026-10-28', tag: 'i18n', text: {
+        'zh-CN': '界面文案支持简体中文、繁體中文、English、日本語；主题新增深色并跟随系统偏好。',
+        'zh-TW': '介面文案支援簡體中文、繁體中文、English、日本語；主題新增深色並跟隨系統偏好。',
+        en: 'UI copy now covers zh-CN, zh-TW, en and ja; a dark theme joined the light one and follows the system preference.',
+        ja: 'UI を簡体字中国語・繁体字中国語・英語・日本語に対応。システム設定に従うダークテーマを追加しました。'
+    } },
+    { date: '2026-10-28', tag: 'a11y', text: {
+        'zh-CN': '去掉 Font Awesome CDN，图标改为内联 SVG；补上跳转链接、焦点样式与减少动效支持。',
+        'zh-TW': '移除 Font Awesome CDN，圖示改為行內 SVG；補上跳轉連結、焦點樣式與減少動態效果支援。',
+        en: 'Dropped the Font Awesome CDN for inline SVG; added a skip link, focus styles and reduced-motion support.',
+        ja: 'Font Awesome CDN をやめ、インライン SVG に変更。スキップリンク、フォーカス表示、動きを減らす設定への対応を追加しました。'
+    } },
+    { date: '2026-10-26', tag: '404', text: {
+        'zh-CN': '404 页加入站内导航，并把错误路径带进反馈链接。',
+        'zh-TW': '404 頁加入站內導覽，並把錯誤路徑帶進回報連結。',
+        en: 'Added site navigation to the 404 page and included the broken path in the feedback link.',
+        ja: '404 ページにサイト内ナビゲーションを追加し、報告リンクにエラーのパスを含めました。'
+    } }
 ];
 
 /* 站点取向：会显示成标签，也出现在正文里 */
@@ -116,9 +139,9 @@ module.exports = {
             contact_issues_sub: '错别字、坏链接、任何建议',
             contact_mail: '发邮件',
             contact_mail_sub: '不公开，仅用于联系',
-            bio_1: '我是云陌轩。这个站用来放我自己做出来的东西，和顺手写下的笔记 —— 没有订阅，没有评论区，也没有算法在决定该让你看到什么。',
-            bio_2: '我更愿意把一件事做完，而不是一开始做十件。所以站点长成现在这样：五个页面、没有框架，打开之后不再向任何别处请求东西。你摸到的每一个交互都是手写的 JavaScript，包括深色主题和这四种语言。',
-            bio_3: '如果你是顺着某个链接误闯进来的，「文章」里记着这些坑是怎么踩的；如果你本来就认识我，直接开个 Issue 告诉我哪里写错了，比什么渠道都快。',
+            bio_1: '我是云陌轩。这个站用来展示我做的实用项目与小游戏 —— 没有订阅，没有评论区，也没有算法在决定该让你看到什么。',
+            bio_2: '站点使用 HTML、CSS 和 JavaScript，不引入框架；保留深浅色主题与四语言界面，把项目介绍和游戏入口放在各自的页面里。',
+            bio_3: '想了解工具的功能与使用方式，可以先看[项目](projects.html)；想玩一局，就去[游戏中心](games.html)挑选六款作品中的一款。发现问题或有建议，欢迎开个 Issue 告诉我。',
             bio_note: '这个站是开源的，源码地址就在旁边一栏 —— 喜欢这种写法的话，拿去改成你自己的样子。'
         },
         'zh-TW': {
@@ -137,9 +160,9 @@ module.exports = {
             contact_issues_sub: '錯別字、壞連結、任何建議',
             contact_mail: '發郵件',
             contact_mail_sub: '不公開，僅用於聯絡',
-            bio_1: '我是雲陌軒。這個站用來放我自己做出來的東西，和順手寫下的筆記 —— 沒有訂閱，沒有留言區，也沒有演算法在決定該讓你看到什麼。',
-            bio_2: '我更願意把一件事做完，而不是一開始做十件。所以站點長成現在這樣：五個頁面、沒有框架，開啟之後不再往別處請求任何東西。你摸到的每一個互動都是手寫的 JavaScript，包括深色主題和這四種語言。',
-            bio_3: '如果你是順著某個連結誤闖進來的，「文章」裡記著這些坑是怎麼踩的；如果你本來就認識我，直接開一個 Issue 告訴我哪裡寫錯了，比什麼管道都快。',
+            bio_1: '我是雲陌軒。這個站用來展示我做的實用項目與小遊戲 —— 沒有訂閱，沒有留言區，也沒有演算法在決定該讓你看到什麼。',
+            bio_2: '網站使用 HTML、CSS 和 JavaScript，不引入框架；保留深淺色主題與四語言介面，把項目介紹和遊戲入口放在各自的頁面裡。',
+            bio_3: '想了解工具的功能與使用方式，可以先看[項目](projects.html)；想玩一局，就去[遊戲中心](games.html)挑選六款作品中的一款。發現問題或有建議，歡迎開一個 Issue 告訴我。',
             bio_note: '這個站是開源的，原始碼位址就在旁邊一欄 —— 喜歡這種寫法的話，拿去改成你自己的樣子。'
         },
         'en': {
@@ -158,9 +181,9 @@ module.exports = {
             contact_issues_sub: 'Typos, broken links, any suggestion',
             contact_mail: 'Email',
             contact_mail_sub: 'Not published, contact only',
-            bio_1: 'I am Yunmo-Xuan. This site holds the things I built and the notes I wrote on the way — no subscription, no comment section, no algorithm deciding what you should look at.',
-            bio_2: 'I would rather finish one thing than start ten. That is why the site looks the way it does: five pages, no framework, and nothing fetched from anywhere else once the page is open. Every interaction here is hand-written JavaScript, the dark theme and the four languages included.',
-            bio_3: 'If you wandered in from a link, the Writing page records how those traps were stepped in. If you already know me, opening an issue to point out what is wrong is faster than any other channel.',
+            bio_1: 'I am Yunmo-Xuan. This site showcases the practical projects and games I build — no subscription, no comment section, no algorithm deciding what you should look at.',
+            bio_2: 'The site uses HTML, CSS and JavaScript without a framework. Light and dark themes and four interface languages remain, with project descriptions and game links on their own pages.',
+            bio_3: 'Visit [Projects](projects.html) for tool features and usage information, or pick one of six games in the [games hub](games.html). If you find a problem or have a suggestion, feel free to open an issue.',
             bio_note: 'The site is open source — the repository is listed right beside this text. Take it and bend it into your own.'
         },
         'ja': {
@@ -179,9 +202,9 @@ module.exports = {
             contact_issues_sub: '誤字・壊れたリンク・提案なら何でも',
             contact_mail: 'メール',
             contact_mail_sub: '非公開、連絡用のみ',
-            bio_1: '雲陌軒です。このサイトには、自分で作ったものと、作りながら書き留めたノートを入れています。購読もコメント欄もありません。何が目に留まるかを決めるアルゴリズムも。',
-            bio_2: '十個始めるより、ひとつ終わらせたい。だからサイトは今の形になりました。5 ページ、フレームワークなし、ページを開いた後に他から何かを取りに行くこともありません。ここに有るインタラクションは全部手書きの JavaScript です。ダークテーマも4言語も含めて。',
-            bio_3: 'リンクから迷い込んだなら、ノート側に踏んだ落とし穴の記録があります。知り合いなら、おかしい箇所を Issue で教えてください。いちばん早いのはそれです。',
+            bio_1: '雲陌軒です。このサイトでは、自作の実用的なプロジェクトとミニゲームを紹介しています。購読もコメント欄も、何を見せるかを決めるアルゴリズムもありません。',
+            bio_2: 'サイトは HTML・CSS・JavaScript で作り、フレームワークは使っていません。明暗テーマと4言語の UI を備え、プロジェクトの紹介とゲームへの入口をそれぞれのページにまとめています。',
+            bio_3: 'ツールの機能や使い方は[プロジェクト](projects.html)で確認できます。遊びたいときは[ゲーム一覧](games.html)から6作品のどれかを選んでください。不具合や提案があれば Issue をどうぞ。',
             bio_note: 'このサイトはオープンソースで、リポジトリはすぐ横に書いてあります。持っていって、自分の形に曲げてください。'
         }
     },

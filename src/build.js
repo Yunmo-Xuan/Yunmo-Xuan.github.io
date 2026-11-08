@@ -14,7 +14,8 @@ const OUT = path.join(SRC, '..', 'site');
 const coreCss = read('core.css');
 const coreJs = read('core.js');
 
-const FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b63f6'/%3E%3Cpath d='M16 6.5l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z' fill='%23fff'/%3E%3C/svg%3E";
+const FAVICON = 'assets/favicon.png';
+const LOGO_MARK = 'assets/logo.webp';
 
 const ICONS = `<svg class="sprite" aria-hidden="true" focusable="false"><defs>
         <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></symbol>
@@ -81,22 +82,28 @@ function head(page) {
     <meta name="twitter:description" content="${esc(page.desc['zh-CN'])}" />
 
     <link rel="icon" href="${FAVICON}" />
+    <link rel="apple-touch-icon" href="${FAVICON}" />
+    <meta property="og:image" content="${SITE_ORIGIN}/${LOGO_MARK}" />
 
     <script>
         /* 首屏前确定主题与语言，避免闪烁（FOUC） */
         (function () {
             var r = document.documentElement;
             r.className += ' js';
+            var forced = /[?&]theme=(light|dark)/.exec(location.search);
             try {
-                var t = localStorage.getItem('preferredTheme');
-                if (t !== 'light' && t !== 'dark') {
-                    t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                if (forced) { r.setAttribute('data-theme', forced[1]); }
+                else {
+                    var t = localStorage.getItem('preferredTheme');
+                    if (t !== 'light' && t !== 'dark') {
+                        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                    }
+                    r.setAttribute('data-theme', t);
                 }
-                r.setAttribute('data-theme', t);
                 var l = localStorage.getItem('preferredLanguage');
                 if (l) r.setAttribute('lang', l);
             } catch (e) {
-                r.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                r.setAttribute('data-theme', forced ? forced[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
             }
         })();
     </script>
@@ -128,7 +135,7 @@ function header(page) {
     return `    <header class="site-header">
         <div class="container header-inner">
             <a class="logo" href="${p}index.html">
-                <span class="spark" aria-hidden="true">✦</span>
+                <img class="logo-mark" src="${p}${LOGO_MARK}" alt="" width="28" height="28" />
                 <span data-i18n="brand">云陌轩</span>
             </a>
 
@@ -136,7 +143,6 @@ function header(page) {
                 <ul class="nav-links">
 ${item('home', 'index.html', '首页')}
 ${item('projects', 'projects.html', '项目')}
-${item('blog', 'blog.html', '文章')}
 ${item('games', 'games.html', '游戏')}
 ${item('about', 'about.html', '关于')}
                 </ul>
@@ -178,14 +184,13 @@ function footer(page) {
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a class="logo" href="${p}index.html">
-                        <span class="spark" aria-hidden="true">✦</span>
+                        <img class="logo-mark" src="${p}${LOGO_MARK}" alt="" width="28" height="28" />
                         <span data-i18n="brand">云陌轩</span>
                     </a>
                     <p data-i18n="footer_tagline">一个人的静态小站，慢慢更新。</p>
                 </div>
                 <ul class="footer-nav">
                     <li><a href="${p}projects.html" data-i18n="nav_projects">项目</a></li>
-                    <li><a href="${p}blog.html" data-i18n="nav_blog">文章</a></li>
                     <li><a href="${p}games.html" data-i18n="nav_games">游戏</a></li>
                     <li><a href="${p}about.html" data-i18n="nav_about">关于</a></li>
                     <li><a href="https://github.com/Yunmo-Xuan" target="_blank" rel="noopener noreferrer" data-i18n="footer_github">GitHub 主页</a></li>
@@ -206,8 +211,84 @@ function footer(page) {
 
 function body(page) {
     const skip = `    <a class="skip-link" href="#main" data-i18n="a11y_skip" data-i18n-aria="a11y_skip">跳到主要内容</a>`;
+    const intro = `
+    <div class="intro" id="introSplash" role="dialog" aria-modal="true" aria-label="Site intro" hidden>
+        <div class="intro-stage">
+            <div class="intro-brand"><img src="${page.prefix}assets/logo-mark.webp" alt="" width="36" height="36" /><span data-i18n="brand">云陌轩</span></div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm intro-skip" id="introSkip">跳过</button>
+    </div>
+
+    <script>
+    (function () {
+        var el = document.getElementById('introSplash');
+        if (!el) return;
+        var seen = false, reduced = false;
+        try { seen = sessionStorage.getItem('yunmo.intro.seen') === '1'; } catch (e) {}
+        try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (seen || reduced || /[?&]nosplash/.test(location.search)) { el.remove(); return; }
+        /* 只有真的要播时才建 <video>，避免回访用户白拉一次素材 */
+        var video = document.createElement('video');
+        video.className = 'intro-video';
+        video.id = 'introVideo';
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.setAttribute('aria-hidden', 'true');
+        video.src = '${page.prefix}assets/intro.mp4';
+        el.querySelector('.intro-stage').prepend(video);
+        var lang = 'zh-CN';
+        try { lang = localStorage.getItem('preferredLanguage') || lang; } catch (e) {}
+        var skipText = { 'zh-CN': '跳过', 'zh-TW': '跳過', en: 'Skip', ja: 'スキップ' }[lang] || '跳过';
+        el.querySelector('#introSkip').textContent = skipText;
+        el.hidden = false;
+        document.documentElement.classList.add('intro-on', 'booting');
+        /* 弹层期间背景不可交互也不可 Tab 进去，结束后把焦点还给原处。
+           这段脚本在解析中途执行，#main 此刻还不存在，所以补一次 DOMContentLoaded 后再锁 */
+        var LOCK = ['.site-header', '#main', '.site-footer'];
+        var lastFocus = document.activeElement;
+        var closed = false;
+        function lock(on) {
+            LOCK.forEach(function (sel) {
+                var node = document.querySelector(sel);
+                if (node) node.inert = on;
+            });
+        }
+        lock(true);
+        document.addEventListener('DOMContentLoaded', function () { if (!closed) lock(true); });
+        var skip = document.getElementById('introSkip');
+        /* 焦点必须进入弹层，否则 inert 只是把背景锁成谁也碰不到 */
+        skip.focus();
+        function done() {
+            if (closed) return; closed = true;
+            el.classList.add('intro-out');
+            lock(false);
+            setTimeout(function () {
+                el.remove();
+                document.documentElement.classList.remove('intro-on', 'booting');
+                if (lastFocus && lastFocus.focus) lastFocus.focus();
+            }, 420);
+        }
+        video.addEventListener('ended', done);
+        video.addEventListener('error', done);
+        skip.addEventListener('click', done);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') done(); });
+        var playing = video.play();
+        if (playing && playing.then) {
+            playing.then(function () {
+                /* 播成功才算"看过"，被拦截时下次还能再试 */
+                try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+            }).catch(done);
+        } else {
+            try { sessionStorage.setItem('yunmo.intro.seen', '1'); } catch (e) {}
+        }
+        setTimeout(done, 7000);
+    })();
+    </script>
+`;
     return `<body>
 ${skip}
+${intro}
 
     ${ICONS.replace(/\n/g, '\n    ')}
 
@@ -215,7 +296,7 @@ ${header(page)}
 
     <main id="main">
         <noscript>
-            <p class="noscript-note">文章与项目列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
+            <p class="noscript-note">项目与游戏列表由页面内的一段 JavaScript 渲染 —— 关掉脚本后只剩静态文字。
                 站点源码公开：<a href="https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io">Yunmo-Xuan.github.io</a>。</p>
         </noscript>
 ${page.body}    </main>
@@ -231,7 +312,7 @@ window.PAGE_I18N = ${JSON.stringify(page.i18n, null, 2).replace(/</g, '\\u003c')
 
     <script>
 /* ============================================================
-   本页内容数据 —— 想加一条文章/项目，从这里开始
+   本页内容数据 —— 想加一条项目或游戏，从这里开始
    ============================================================ */
 window.PAGE_DATA = ${page.data === undefined ? '[]' : JSON.stringify(page.data, null, 2).replace(/</g, '\\u003c')};
 
@@ -264,13 +345,49 @@ if (fs.existsSync(extraDir)) {
     }
 }
 
+/* 站点素材（图标、Logo、启动视频）随产物一起走，游戏文件由 tools/build-games.cjs 补进来 */
+const brandDir = path.join(SRC, '..', 'assets');
+if (fs.existsSync(brandDir)) {
+    fs.mkdirSync(path.join(OUT, 'assets'), { recursive: true });
+    for (const f of fs.readdirSync(brandDir)) {
+        const src = path.join(brandDir, f);
+        if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(OUT, 'assets', f));
+    }
+    console.log('  · assets/  (站点素材)');
+}
+
 const pageDir = path.join(SRC, 'pages');
-const modules = fs.readdirSync(pageDir)
+const pageFiles = fs.readdirSync(pageDir)
     .filter(f => f.endsWith('.js'))
-    .sort()
-    .map(f => require(path.join(pageDir, f)));
+    .sort();
+const modules = pageFiles.map(f => require(path.join(pageDir, f)));
+
+/* render 会被序列化成字符串内联进页面，模块顶层的变量在浏览器里根本不存在，
+   所以构建时先拦一道，别留下只在构建机上跑得通的引用 */
+function checkRenderScope(file, page) {
+    const srcFiles = [path.join(pageDir, file)];
+    const own = fs.readFileSync(srcFiles[0], 'utf8');
+    if (/require\(['"][^'"]*embed['"]\)/.test(own)) srcFiles.push(path.join(SRC, 'embed.js'));
+    const decls = [];
+    for (const f of srcFiles) {
+        for (const m of fs.readFileSync(f, 'utf8').matchAll(/^(?:const|let|var)\s+([A-Za-z_$][\w$]*)/gm)) {
+            decls.push(m[1]);
+        }
+    }
+    const code = page.render ? page.render.toString() : '';
+    const leaked = decls.filter(n => {
+        if (!new RegExp('\\b' + n + '\\b(?!\\s*:)').test(code)) return false;
+        /* render 里自己声明的同名局部变量（例如 var PROJECTS = window.PAGE_DATA）是合法的 */
+        return !new RegExp('(?:var|let|const|function|class)\\s+' + n + '\\b').test(code);
+    });
+    if (leaked.length) {
+        console.error(`✗ ${file}：render 引用了模块顶层变量 ${leaked.join('、')}，内联到页面后会变成 undefined`);
+        process.exit(1);
+    }
+}
 
 for (const page of modules) {
+    checkRenderScope(pageFiles[modules.indexOf(page)], page);
     page.prefix = page.prefix || '';
     page.title = page.title || { 'zh-CN': '云陌轩' };
     page.desc = page.desc || { 'zh-CN': '' };

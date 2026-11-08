@@ -1,15 +1,14 @@
 /* 404 页
    注意：GitHub Pages 会在任意错误路径下渲染本文件，
-   例如 /blog/2024/old-post —— 此时相对链接会指向不存在的深层路径。
+   例如 /old/path/missing —— 此时相对链接会指向不存在的深层路径。
    所以本页所有站内链接必须是根绝对路径（prefix 设为 '/'）。 */
 'use strict';
 
 const PAGES = [
-    { key: 'home', href: '/index.html', zh: '首页', en: 'Home' },
-    { key: 'projects', href: '/projects.html', zh: '项目', en: 'Projects' },
-    { key: 'blog', href: '/blog.html', zh: '文章', en: 'Writing' },
-    { key: 'games', href: '/games.html', zh: '游戏', en: 'Games' },
-    { key: 'about', href: '/about.html', zh: '关于', en: 'About' }
+    { key: 'home', href: '/index.html' },
+    { key: 'projects', href: '/projects.html' },
+    { key: 'games', href: '/games.html' },
+    { key: 'about', href: '/about.html' }
 ];
 
 module.exports = {
@@ -26,8 +25,10 @@ module.exports = {
         'ja': 'ページが見つかりません · 雲陌軒'
     },
     desc: {
-        'zh-CN': '这个地址在站点里没有对应的页面 —— 下面列出了站内所有可去的地方。',
-        'en': 'This address has no page on the site. Everything that does exist is listed below.'
+        'zh-CN': '这个地址在站点里没有对应的页面 —— 可以从下面的主要入口继续浏览项目与游戏。',
+        'zh-TW': '這個網址在網站裡沒有對應的頁面 —— 可以從下面的主要入口繼續瀏覽項目與遊戲。',
+        'en': 'This address has no page on the site. Use the main links below to explore projects and games.',
+        'ja': 'このアドレスに対応するページはありません。下の主な入口からプロジェクトやゲームをご覧ください。'
     },
 
     styles: `
@@ -68,7 +69,7 @@ module.exports = {
                 <div class="big" aria-hidden="true">404</div>
                 <h1 data-i18n="title">这个地址上没有页面</h1>
                 <p class="lead" data-i18n="lead">
-                    页面不存在，或者已经被移走。不是你的错 —— 站内的链接我这边的都过了一遍。
+                    页面不存在，或者已经被移走。可以从下面的入口继续浏览项目或游戏。
                 </p>
 
                 <div class="path-box">
@@ -81,9 +82,9 @@ module.exports = {
                         <svg class="icon" aria-hidden="true"><use href="#i-home" /></svg>
                         <span data-i18n="go_home">返回首页</span>
                     </a>
-                    <a class="btn btn-ghost" href="/blog.html">
-                        <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
-                        <span data-i18n="go_blog">去翻文章</span>
+                    <a class="btn btn-ghost" href="/games.html">
+                        <svg class="icon" aria-hidden="true"><use href="#i-zap" /></svg>
+                        <span data-i18n="go_games">去玩游戏</span>
                     </a>
                     <button type="button" class="btn btn-ghost" id="copyPath">
                         <svg class="icon" aria-hidden="true"><use href="#i-external" /></svg>
@@ -96,74 +97,70 @@ module.exports = {
                     <div class="card-grid" id="pageMap"></div>
                 </div>
 
-                <p class="report" data-i18n="report_hint">从别处的旧链接过来的？告诉我原本是哪一条，我去把跳转补上。</p>
+                <p class="report" data-i18n="report_hint">从别处的旧链接过来的？欢迎报告原链接和你想找到的页面。</p>
             </div>
         </section>
 `,
 
     i18n: {
         'zh-CN': {
-            meta_description: '这个地址在站点里没有对应的页面 —— 下面列出了站内所有可去的地方。',
+            meta_description: '这个地址在站点里没有对应的页面 —— 可以从下面的主要入口继续浏览项目与游戏。',
             eyebrow: 'route not found',
             title: '这个地址上没有页面',
-            lead: '页面不存在，或者已经被移走。不是你的错 —— 站内的链接我这边的都过了一遍。',
+            lead: '页面不存在，或者已经被移走。可以从下面的入口继续浏览项目或游戏。',
             you_asked: '你找的是',
-            go_home: '返回首页', go_blog: '去翻文章', report: '报告这个坏链接',
+            go_home: '返回首页', go_games: '去玩游戏', report: '报告这个坏链接',
             map_title: '站内地图',
-            report_hint: '从别处的旧链接过来的？告诉我原本是哪一条，我去把跳转补上。',
+            report_hint: '从别处的旧链接过来的？欢迎报告原链接和你想找到的页面。',
             copied: '链接已复制',
             map_desc_home: '一句话说明我是谁、这个站是什么。',
             map_desc_projects: '做过的东西，附上它们解决的问题。',
-            map_desc_blog: '技术笔记和踩坑记录，可按标签筛选。',
-            map_desc_games: '站内写的 2048，方向键或滑动都能玩。',
+            map_desc_games: '2048、星核合成、象棋、五子棋、扫雷、股市模拟，六款游戏从这里开始。',
             map_desc_about: '站点自身的来龙去脉，以及怎么找到我。'
         },
         'zh-TW': {
-            meta_description: '這個網址在網站裡沒有對應的頁面 —— 下面列出了站內所有可去的地方。',
+            meta_description: '這個網址在網站裡沒有對應的頁面 —— 可以從下面的主要入口繼續瀏覽項目與遊戲。',
             eyebrow: 'route not found',
             title: '這個網址上沒有頁面',
-            lead: '頁面不存在，或者已經被移走。不是你的錯 —— 站內的連結我這邊都過了一遍。',
+            lead: '頁面不存在，或者已經被移走。可以從下面的入口繼續瀏覽項目或遊戲。',
             you_asked: '你找的是',
-            go_home: '返回首頁', go_blog: '去翻文章', report: '反應這個壞連結',
+            go_home: '返回首頁', go_games: '去玩遊戲', report: '回報這個壞連結',
             map_title: '站內地圖',
-            report_hint: '從別處的舊連結過來的？告訴我原本是哪一條，我去把跳轉補上。',
+            report_hint: '從別處的舊連結過來的？歡迎回報原連結和你想找到的頁面。',
             copied: '連結已複製',
             map_desc_home: '一句話說明我是誰、這個站是什麼。',
             map_desc_projects: '做過的東西，附上它們解決的問題。',
-            map_desc_blog: '技術筆記和踩坑記錄，可按標籤篩選。',
-            map_desc_games: '站內寫的 2048，方向鍵或滑動都能玩。',
+            map_desc_games: '2048、星核合成、象棋、五子棋、踩地雷、股市模擬，六款遊戲從這裡開始。',
             map_desc_about: '站點自身的來龍去脈，以及怎麼找到我。'
         },
         'en': {
-            meta_description: 'This address has no page on the site. Everything that does exist is listed below.',
+            meta_description: 'This address has no page on the site. Use the main links below to explore projects and games.',
             eyebrow: 'route not found',
             title: 'There is no page at this address',
-            lead: 'The page is missing or has been moved. Not your fault — I did walk the internal links.',
+            lead: 'The page is missing or has been moved. Use the links below to continue exploring projects or games.',
             you_asked: 'You asked for',
-            go_home: 'Go home', go_blog: 'Browse the writing', report: 'Report this link',
+            go_home: 'Go home', go_games: 'Play games', report: 'Report this link',
             map_title: 'Site map',
-            report_hint: 'Arrived from an old link somewhere else? Tell me which one and I will add a redirect.',
+            report_hint: 'Arrived from an old link somewhere else? Please report the original link and the page you expected to find.',
             copied: 'Link copied',
             map_desc_home: 'Who I am and what this site is, in one screen.',
             map_desc_projects: 'What I have built, and the problem each one solved.',
-            map_desc_blog: 'Technical notes and traps, filterable by tag.',
-            map_desc_games: 'A 2048 written for this site; arrows or swipe.',
+            map_desc_games: 'Start here for six games: 2048, Planet Merge, Xiangqi, Gomoku, Minesweeper and Stock Market Simulator.',
             map_desc_about: 'How this site came to be, and how to reach me.'
         },
         'ja': {
-            meta_description: 'このアドレスに対応するページはありません。下にサイトのすべてのページを並べています。',
+            meta_description: 'このアドレスに対応するページはありません。下の主な入口からプロジェクトやゲームをご覧ください。',
             eyebrow: 'route not found',
             title: 'このアドレスにページはありません',
-            lead: 'ページが存在しないか、移されました。あなたのミスではありません —— サイト内のリンクは一通り確認しています。',
+            lead: 'ページが存在しないか、移動されました。下のリンクからプロジェクトやゲームをご覧ください。',
             you_asked: '要求されたのは',
-            go_home: 'ホームへ', go_blog: 'ノートへ', report: 'この壊れたリンクを報告',
+            go_home: 'ホームへ', go_games: 'ゲームで遊ぶ', report: 'この壊れたリンクを報告',
             map_title: 'サイトマップ',
-            report_hint: '他所の古いリンクから来たなら、どのリンクか教えてください。リダイレクトを足します。',
+            report_hint: '他所の古いリンクから来た場合は、元のリンクと探していたページを教えてください。',
             copied: 'リンクをコピーしました',
             map_desc_home: '自分が誰で、このサイトが何かを一文で。',
             map_desc_projects: '作ったものと、それぞれが解決した問題。',
-            map_desc_blog: '技術ノートと落とし穴の記録。タグで絞り込めます。',
-            map_desc_games: 'このサイト製の 2048。矢印キーでもスワイプでも遊べます。',
+            map_desc_games: '2048、星核合成、シャンチー、五目並べ、マインスイーパー、株式市場シミュレーター。6つのゲームへの入口です。',
             map_desc_about: 'このサイトの経緯と、連絡のつき方。'
         }
     },
@@ -174,15 +171,15 @@ module.exports = {
         var bad = document.getElementById('badPath');
         if (bad) bad.textContent = path.length > 96 ? path.slice(0, 96) + '…' : path;
 
-        /* 站内地图：把确实存在的四个页面都列出来，比一句「返回首页」有用 */
+        /* 站内地图：列出主要入口，各游戏详情从游戏中心进入 */
         var map = document.getElementById('pageMap');
         if (map) {
-            var iconOf = { home: 'i-home', projects: 'i-folder', blog: 'i-book', games: 'i-zap', about: 'i-user' };
+            var iconOf = { home: 'i-home', projects: 'i-folder', games: 'i-zap', about: 'i-user' };
             map.innerHTML = window.PAGE_DATA.map(function (p) {
                 return '<a class="tile-link reveal" href="' + safeUrl(p.href) + '">' +
                     '<div class="card">' +
                     '<div class="card-icon"><svg class="icon" aria-hidden="true"><use href="#' + iconOf[p.key] + '" /></svg></div>' +
-                    '<h3>' + escHtml(ctx.lang().indexOf('zh') === 0 ? p.zh : p.en) + '</h3>' +
+                    '<h3>' + escHtml(ctx.t('nav_' + p.key)) + '</h3>' +
                     '<p>' + escHtml(ctx.t('map_desc_' + p.key)) + '</p>' +
                     '</div></a>';
             }).join('\n');

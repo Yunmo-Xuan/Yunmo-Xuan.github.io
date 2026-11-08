@@ -49,36 +49,77 @@ const PROJECTS = [
         featured: false,
         tags: ['HTML', 'CSS', 'JavaScript', 'GitHub Pages'],
         desc: {
-            'zh-CN': '你正在看的个人站：展示实用工具、项目和笔记。五个自包含页面，支持深浅色与四语言界面，不加载外部字体、图标或运行时脚本。',
-            'zh-TW': '你正在看的個人站：展示實用工具、專案和筆記。五個獨立頁面，支援深淺色與四語言介面，不載入外部字型、圖示或執行階段腳本。',
-            en: 'This personal site showcases practical tools, projects and notes. Five self-contained pages with light and dark themes, four interface languages and no external fonts, icons or runtime scripts.',
-            ja: '実用ツール、プロジェクト、ノートを紹介するこの個人サイト。5 つの独立したページ、明暗テーマ、4 言語の UI を備え、外部フォント・アイコン・実行用スクリプトは読み込みません。'
+            'zh-CN': '你正在看的个人站：展示实用工具、项目与六款小游戏。页面自包含，支持深浅色与四语言界面，不加载外部字体、图标或运行时脚本。',
+            'zh-TW': '你正在看的個人站：展示實用工具、項目與六款小遊戲。頁面自包含，支援深淺色與四語言介面，不載入外部字型、圖示或執行階段腳本。',
+            en: 'This personal site showcases practical tools, projects and six games. Self-contained pages with light and dark themes, four interface languages and no external fonts, icons or runtime scripts.',
+            ja: '実用ツール、プロジェクト、6つのミニゲームを紹介するこの個人サイト。自己完結したページ、明暗テーマ、4言語の UI を備え、外部フォント・アイコン・実行用スクリプトは読み込みません。'
         },
-        blocks: [
-            {
-                p: '这个站点原先是几个手写页面，改着改着开始出现三类问题：导航指向了并不存在的 `blog.html`、文章与首页互不相干、新增一条内容要同时改五处版式。现在这几件事都被收拾干净了。'
-            },
-            { h: '结构' },
-            {
-                p: '五个页面各自独立：首页、项目、文章、关于、404。每个文件里都带着自己的样式与脚本，**上传单个文件就等于上线一次改动**，不存在改一处忘一处的共享资源。'
-            },
-            {
-                p: '公共部分（配色、导航、页脚、多语言、主题切换）在 `src/` 里维护一份，由 [build.js](https://github.com/Yunmo-Xuan/Yunmo-Xuan.github.io) 展开进每个页面。源码与产物分开，产物彼此独立。'
-            },
-            { h: '界面' },
-            {
-                ul: [
+        blocks: {
+            'zh-CN': [
+                { p: '这个站集中展示实用项目与小游戏。项目页介绍工具和使用方式，[游戏中心](games.html)汇集六款作品的入口。' },
+                { h: '结构' },
+                { p: '首页、项目、游戏中心、游戏详情、关于与 404 各有对应页面。每个页面带着自己的样式与脚本，源码与产物分开。' },
+                { p: '公共部分（配色、导航、页脚、多语言、主题切换）在 `src/` 里维护一份，构建时展开进各个页面。' },
+                { h: '界面' },
+                { ul: [
                     '浅色与深色两套主题，跟随系统偏好，也可以手动固定，选择记在 localStorage 里',
                     '简体中文、繁體中文、English、日本語四套界面文案',
-                    '图标是内联 SVG，字体用系统字体栈 —— 页面打开后不再有任何网络请求',
-                    '尊重 `prefers-reduced-motion`，也保留了无 JS 时的降级表现'
-                ]
-            },
-            { h: '想改内容' },
-            {
-                p: '文章写在 `blog.html` 顶部的 `POSTS` 数组里，项目写在本页顶部的 `PROJECTS` 数组里。列表、标签筛选、阅读时长、上下一篇文章这些都会自动生成。'
-            }
-        ]
+                    '图标是内联 SVG，字体使用系统字体栈',
+                    '尊重 `prefers-reduced-motion`，也保留无 JS 时的降级表现'
+                ] },
+                { h: '项目与游戏' },
+                { p: '项目资料在 `src/pages/20-projects.js` 的 `PROJECTS` 数组中维护；游戏中心与各游戏页面分别维护。' },
+                { p: '六款游戏：[2048](2048.html)、[星核合成](planet-merge.html)、[象棋](xiangqi.html)、[五子棋](gomoku.html)、[扫雷](minesweeper.html)、[股市模拟](simdesk.html)。' }
+            ],
+            'zh-TW': [
+                { p: '這個站集中展示實用項目與小遊戲。項目頁介紹工具和使用方式，[遊戲中心](games.html)匯集六款作品的入口。' },
+                { h: '結構' },
+                { p: '首頁、項目、遊戲中心、遊戲詳情、關於與 404 各有對應頁面。每個頁面帶著自己的樣式與腳本，原始碼與產物分開。' },
+                { p: '公共部分（配色、導覽、頁尾、多語言、主題切換）在 `src/` 裡維護一份，建置時展開進各個頁面。' },
+                { h: '介面' },
+                { ul: [
+                    '淺色與深色兩套主題，跟隨系統偏好，也可以手動固定，選擇記在 localStorage 裡',
+                    '簡體中文、繁體中文、English、日本語四套介面文案',
+                    '圖示是行內 SVG，字型使用系統字型堆疊',
+                    '尊重 `prefers-reduced-motion`，也保留無 JS 時的降級表現'
+                ] },
+                { h: '項目與遊戲' },
+                { p: '項目資料在 `src/pages/20-projects.js` 的 `PROJECTS` 陣列中維護；遊戲中心與各遊戲頁面分別維護。' },
+                { p: '六款遊戲：[2048](2048.html)、[星核合成](planet-merge.html)、[象棋](xiangqi.html)、[五子棋](gomoku.html)、[踩地雷](minesweeper.html)、[股市模擬](simdesk.html)。' }
+            ],
+            en: [
+                { p: 'This site brings together practical projects and games. The projects page explains the tools and how to use them; the [games hub](games.html) links to six games.' },
+                { h: 'Structure' },
+                { p: 'Home, projects, the games hub, individual games, about and 404 each have their own pages. Each page includes its styles and scripts, with source files separate from generated output.' },
+                { p: 'Shared colors, navigation, footer, translations and theme switching are maintained once in `src/` and included in each page at build time.' },
+                { h: 'Interface' },
+                { ul: [
+                    'Light and dark themes follow the system preference or a manual choice saved in localStorage',
+                    'Interface copy in Simplified Chinese, Traditional Chinese, English and Japanese',
+                    'Inline SVG icons and a system font stack',
+                    'Respects `prefers-reduced-motion` and retains fallbacks when JavaScript is unavailable'
+                ] },
+                { h: 'Projects and games' },
+                { p: 'Project information is maintained in the `PROJECTS` array in `src/pages/20-projects.js`; the games hub and individual game pages are maintained separately.' },
+                { p: 'Six games: [2048](2048.html), [Planet Merge](planet-merge.html), [Xiangqi](xiangqi.html), [Gomoku](gomoku.html), [Minesweeper](minesweeper.html) and [Stock Market Simulator](simdesk.html).' }
+            ],
+            ja: [
+                { p: '実用的なプロジェクトとミニゲームをまとめたサイトです。プロジェクトページではツールと使い方を紹介し、[ゲーム一覧](games.html)には6作品への入口をまとめています。' },
+                { h: '構成' },
+                { p: 'ホーム、プロジェクト、ゲーム一覧、個別ゲーム、概要、404 にそれぞれページがあります。各ページにスタイルとスクリプトを含め、ソースと生成物を分けています。' },
+                { p: '共通の配色・ナビゲーション・フッター・翻訳・テーマ切替は `src/` で一元管理し、ビルド時に各ページへ展開します。' },
+                { h: 'インターフェース' },
+                { ul: [
+                    '明暗テーマはシステム設定に従い、手動で選んだ設定は localStorage に保存',
+                    '簡体字中国語・繁体字中国語・英語・日本語の4言語の UI',
+                    'インライン SVG アイコンとシステムフォント',
+                    '`prefers-reduced-motion` に対応し、JavaScript が使えない場合の代替表示も維持'
+                ] },
+                { h: 'プロジェクトとゲーム' },
+                { p: 'プロジェクト情報は `src/pages/20-projects.js` の `PROJECTS` 配列で管理し、ゲーム一覧と個別ゲームのページは分けて管理しています。' },
+                { p: '6つのゲーム：[2048](2048.html)、[星核合成](planet-merge.html)、[シャンチー](xiangqi.html)、[五目並べ](gomoku.html)、[マインスイーパー](minesweeper.html)、[株式市場シミュレーター](simdesk.html)。' }
+            ]
+        }
     }
 ];
 
