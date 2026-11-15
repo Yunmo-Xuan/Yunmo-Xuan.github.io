@@ -172,6 +172,25 @@ function embedUiJob(page, boardSel, minRatio) {
     } };
 }
 
+/* issue #1 第 7 条：1080p 开 125% / 150% 缩放后 CSS 视口只剩 864 / 720 高，
+   棋盘不能顶穿游戏区，否则要先把 iframe 滚起来才看得见全盘。 */
+function boardFitsJob(page, boardSel, size) {
+  var w = Number(size.split('x')[0]), h = Number(size.split('x')[1]);
+  return { page: page, w: w, h: h, slow: true, name: 'board fits ' + size + ' ' + page, run: function (d, win, done) {
+      var frame = d.getElementById('embedGame');
+      setTimeout(function () {
+        var problems = [], idoc = frame.contentDocument;
+        if (!idoc || !idoc.body) { done('游戏文档没加载'); return; }
+        var board = idoc.querySelector(boardSel);
+        if (!board) { done('找不到 ' + boardSel); return; }
+        var fr = frame.getBoundingClientRect(), r = board.getBoundingClientRect();
+        if (r.bottom > fr.height + 3) problems.push('棋盘下沿 ' + Math.round(r.bottom) + ' 超出游戏区 ' + Math.round(fr.height));
+        if (r.top < -3) problems.push('棋盘上沿 ' + Math.round(r.top) + ' 被顶出画面');
+        done(problems.length ? problems.join('; ') : undefined);
+      }, 1600);
+    } };
+}
+
 var INTERACTIONS = [
   { page: 'index.html', w: 1440, name: 'theme toggle', run: function (d) {
       var before = d.documentElement.getAttribute('data-theme');
@@ -299,7 +318,22 @@ var INTERACTIONS = [
       if (!card || !card.textContent.includes('6.0.4')) throw 'PDF highlight or version missing';
       if (card.querySelector('a').getAttribute('href') !== 'projects.html#pdf-tools') throw 'featured link is incorrect';
     } },
+  { page: 'projects.html', w: 1440, name: 'compact card opens and closes detail', run: function (d) {
+      if (d.querySelectorAll('#projList .project').length !== 2) throw 'expected two compact cards';
+      var card = d.getElementById('pdf-tools');
+      if (!card) throw 'pdf card missing';
+      /* 卡片上只留一句话，细节必须在弹层里 */
+      if (card.querySelector('.project-features').offsetParent !== null) throw 'features still expanded inside the card';
+      card.querySelector('[data-detail]').click();
+      var dlg = d.getElementById('pdf-tools-detail');
+      if (!dlg.open) throw 'detail dialog did not open';
+      if (dlg.querySelectorAll('.project-features li').length !== 6) throw 'detail feature list missing';
+      dlg.querySelector('[data-close]').click();
+      if (dlg.open) throw 'detail dialog did not close';
+    } },
   { page: 'projects.html#pdf-tools', w: 390, name: 'PDF details and download', run: function (d) {
+      var dlg = d.getElementById('pdf-tools-detail');
+      if (!dlg || !dlg.open) throw 'deep link did not open the detail';
       var card = d.getElementById('pdf-tools');
       if (!card || card.querySelectorAll('.project-features li').length !== 6) throw 'PDF feature list missing';
       var download = card.querySelector('a[href^="https://pan.baidu.com/"]');
@@ -660,6 +694,50 @@ INTERACTIONS.push(
   embedUiJob('simdesk.html', null, 0.55)
 );
 
+[['1280x720'], ['1366x732'], ['1536x864']].forEach(function (one) {
+  var size = one[0];
+  INTERACTIONS.push(
+    boardFitsJob('gomoku.html', 'canvas#board', size),
+    boardFitsJob('xiangqi.html', '#board', size),
+    boardFitsJob('minesweeper.html', '.board-wrap', size)
+  );
+});
+
+/* issue #1 第 3 条：面板收起后必须还留一个点得着的展开入口，不能只剩快捷键 */
+INTERACTIONS.push({ page: 'simdesk.html', w: 1440, h: 900, slow: true, name: 'simdesk collapse keeps an expand handle', run: function (d, win, done) {
+    var frame = d.getElementById('embedGame');
+    setTimeout(function () {
+      var idoc = frame.contentDocument, iw = frame.contentWindow;
+      if (!idoc || !idoc.body) { done('游戏文档没加载'); return; }
+      var problems = [];
+      /* 首次进入会先弹教学浮层，终端还没接管布局，收起按钮此时不生效——先跳过 */
+      var skip = [].filter.call(idoc.querySelectorAll('#coach button'), function (x) {
+        return /我熟了|跳过/.test(x.textContent);
+      })[0];
+      if (skip) skip.click();
+      setTimeout(function () {
+        var btn = idoc.getElementById('leftToggle'), stage = idoc.getElementById('stage');
+        if (!btn || !stage) { done('找不到 leftToggle / #stage'); return; }
+        btn.click();
+        setTimeout(function () {
+          if (!stage.classList.contains('hide-l')) { done('收起没生效'); return; }
+          var r = btn.getBoundingClientRect(), cs = iw.getComputedStyle(btn);
+          if (cs.opacity === '0' || cs.pointerEvents === 'none') problems.push('展开按钮跟着面板一起消失了');
+          if (r.width < 8 || r.height < 8) problems.push('展开按钮没有可点尺寸 ' + Math.round(r.width) + 'x' + Math.round(r.height));
+          var hit = idoc.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          if (hit && hit !== btn && !btn.contains(hit)) problems.push('按钮被 ' + (hit.id || hit.className) + ' 盖住');
+          if (!/展开/.test(btn.getAttribute('aria-label') || '')) problems.push('aria-label 还写着收起：' + btn.getAttribute('aria-label'));
+          btn.click();
+          setTimeout(function () {
+            var lb = idoc.getElementById('left');
+            if (stage.classList.contains('hide-l') || lb.getBoundingClientRect().width < 120) problems.push('再点一次展不回来');
+            done(problems.length ? problems.join('; ') : undefined);
+          }, 900);
+        }, 900);
+      }, 900);
+    }, 2600);
+  } });
+
 if (!TOTAL_STAGES) TOTAL_STAGES = queue.length + INTERACTIONS.length;
 
 function runInteraction(job, done) {
@@ -669,7 +747,7 @@ function runInteraction(job, done) {
   wrap.className = 'frame-wrap';
   var f = document.createElement('iframe');
   f.style.width = job.w + 'px';
-  f.style.height = '900px';
+  f.style.height = (job.h || 900) + 'px';
   wrap.appendChild(f);
   stageEl.appendChild(wrap);
   f.addEventListener('load', function () {

@@ -46,8 +46,8 @@ module.exports = {
   data: CATALOG,
   styles: `
     .play-head { padding: 58px 0 26px; }
-    .play-head h1 { font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.12; letter-spacing: -.045em; max-width: 19ch; }
-    .play-head .lead { max-width: 58ch; margin: 18px 0 0; color: var(--muted); }
+    .play-head h1 { font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.12; letter-spacing: -.045em; max-width: var(--measure-title); }
+    .play-head .lead { max-width: var(--measure-lead); margin: 18px 0 0; color: var(--muted); }
     .play-meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; font-size: .82rem; color: var(--muted); }
     .play-meta span:first-child { color: var(--accent-ink); }
     .recent-game { margin: 18px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); font-size: .88rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -77,7 +77,7 @@ module.exports = {
     .game-bottom .icon { transition: transform .22s ease; }
     .game-card:hover .game-bottom .icon { transform: translateX(4px); }
     .game-bottom span { color: var(--muted); font: .7rem/1 var(--mono); }
-    .play-tip { max-width: 92ch; margin: 28px 0 56px; color: var(--muted); font-size: .82rem; }
+    .play-tip { max-width: var(--measure-lead); margin: 28px 0 56px; color: var(--muted); font-size: .82rem; }
     @media (max-width: 980px) { .play-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 620px) { .play-grid { grid-template-columns: minmax(0, 1fr); } .play-head { padding-top: 34px; } .game-cover { height: 138px; } }
   `,

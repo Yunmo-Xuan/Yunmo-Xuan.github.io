@@ -1314,7 +1314,9 @@ if (typeof window !== 'undefined') window.GomokuEngine = GomokuEngine;
   function autoFit() { return innerWidth <= 560 || viewTop() + viewBase() > innerHeight - 12; }
   function sizeFor(zoom) { return Math.min(1900, Math.max(Math.round(viewBase() * zoom), Math.min(MIN_CELL_CSS, 1900))); }
   function applyView() {
-    if (!V.manual) V.fit = autoFit();
+    /* 放大档有个 432px 的下限保证交叉点够点。窗口不够高时（1080p 开 150% 缩放只剩 574px）
+       这个下限会顶穿容器，棋盘被塞进滚动条里——没手动调过缩放就退回全览。 */
+    if (!V.manual) V.fit = autoFit() || sizeFor(V.zoom) > viewBase() + 1;
     const base = viewBase();
     const css = V.fit ? fitSize(base) : sizeFor(V.zoom);
     V.css = css;

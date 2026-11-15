@@ -307,7 +307,7 @@ ul,ol{list-style:none}
 .tb.on{background:var(--surface-3);color:var(--accent);font-weight:700}
 #chartWrap{flex:1;min-height:0;position:relative;background:var(--bg-1);cursor:crosshair}
 #chart{display:block;width:100%;height:100%}
-.hintbar{position:absolute;left:9px;bottom:5px;font-size:9.5px;color:var(--ink-faint);pointer-events:none;
+.hintbar{position:absolute;left:9px;bottom:20px;font-size:9.5px;color:var(--ink-faint);pointer-events:none;
   font-family:var(--mono);letter-spacing:.02em;text-shadow:0 1px 3px var(--scrim)}
 
 /* ---- right ---- */
@@ -506,7 +506,9 @@ kbd{display:inline-block;min-width:19px;padding:1px 5px;border-radius:4px;border
 
 /* ---- mobile ---- */
 #mtab{display:none}
-@media (max-width:1180px){ #stage{grid-template-columns:clamp(180px,22vw,230px) minmax(0,1fr) clamp(262px,27vw,300px)} }
+@media (max-width:1180px){ #stage{grid-template-columns:clamp(180px,22vw,230px) minmax(0,1fr) clamp(262px,27vw,300px)}
+  #stage.hide-l{grid-template-columns:34px minmax(0,1fr) clamp(262px,27vw,300px)}
+  #stage.hide-r{grid-template-columns:clamp(180px,22vw,230px) minmax(0,1fr) 34px} }
 @media (max-width:960px){
   :root{--h-dock:206px}
   #mtab{display:flex;position:sticky;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);
@@ -871,10 +873,17 @@ h1,h2,h3{margin:0;font-weight:700;line-height:1.2}
 
 /* ---- 面板停靠 / 收起 ---- */
 #stage{transition:grid-template-columns var(--t-base) var(--ease)}
-#stage.hide-l{grid-template-columns:0 minmax(0,1fr) clamp(300px,23vw,352px)}
-#stage.hide-r{grid-template-columns:clamp(220px,17vw,300px) minmax(0,1fr) 0}
-#stage.hide-l.hide-r,#stage.only-c{grid-template-columns:0 minmax(0,1fr) 0}
-#stage.hide-l #left,#stage.hide-r #right{opacity:0;pointer-events:none;border-width:0}
+/* 收起后留一条 34px 的边栏，把展开按钮钉在上面。
+   按钮原本长在面板里，整块面板一起淡出后就再也点不到，只能靠 F / D 快捷键。 */
+#stage.hide-l{grid-template-columns:34px minmax(0,1fr) clamp(300px,23vw,352px)}
+#stage.hide-r{grid-template-columns:clamp(220px,17vw,300px) minmax(0,1fr) 34px}
+#stage.hide-l.hide-r,#stage.only-c{grid-template-columns:34px minmax(0,1fr) 34px}
+#stage.hide-l #left,#stage.hide-r #right{border-width:0;padding:0}
+#stage.hide-l #left>:not(.ph),#stage.hide-r #right>:not(.ph){display:none}
+#stage.hide-l #left .ph,#stage.hide-r #right .ph{justify-content:center;padding:0 4px;border:0;background:transparent}
+#stage.hide-l #left .ph>:not(#leftToggle),#stage.hide-r #right .ph>:not(#rightToggle){display:none}
+/* 边栏只剩一个按钮，箭头必须反过来指，否则看上去还是「收起」 */
+#stage.hide-l #left #leftToggle .ic,#stage.hide-r #right #rightToggle .ic{transform:rotate(180deg)}
 #stage .pane{transition:opacity var(--t-base) var(--ease)}
 #dock{transition:height var(--t-base) var(--ease)}
 #dock.min #dockbody{display:none}
@@ -2489,15 +2498,18 @@ function rollBar(s, ctx){
   const m = CLK.min;
   if(!M_of(s).barSet[m]) return;
   let b=s.m1cur;
+  const c=pxr(s,s.last);
   if(!b || b[1]!==m){
     if(b){ s.bars.push(b.slice()); trimBars(s); }
-    s.m1cur=[CLK.di, m, pxr(s,s.last), pxr(s,s.last), pxr(s,s.last), pxr(s,s.last), 0, 0];
+    /* 一分钟只采一个价：把它同时当开高低收，画出来就是一排没有实体的横线。
+       用上一根的收盘作开盘，再按约 0.12% 的分钟波动补出影线，K 线才看得出多空。 */
+    const o = s.bars.length ? s.bars[s.bars.length-1][5] : c;
+    const w = Math.max(pxr(s, Math.max(o,c)*0.0012), 0.01);
+    s.m1cur=[CLK.di, m, o, pxr(s, Math.max(o,c)+w), pxr(s, Math.max(0.01, Math.min(o,c)-w)), c, 0, 0];
     s._v0=s.vol; s._a0=s.amt;
     b=s.m1cur;
   }
   const dv = s.vol-(s._v0||0), da=s.amt-(s._a0||0);
-  const c=pxr(s,s.last);
-  if(!b[2]) b[2]=c;
   b[3]=Math.max(b[3],c); b[4]=Math.min(b[4],c); b[5]=c;
   b[6]=Math.round(Math.max(0,dv)); b[7]=Math.max(0,da);
   s.dayVol=s.vol; s.dayAmt=s.amt;
@@ -4323,8 +4335,16 @@ function applyPanes(){
   const dl=$("#dock"), db=$("#dockbody");
   if(dl) dl.classList.toggle("min", !!LAY.dockMin);
   if(db) db.toggleAttribute("inert", !!LAY.dockMin);
-  $$("#leftToggle,#rightToggle,#dockToggle").forEach(b=> b.setAttribute("aria-expanded",
-    b.id==="leftToggle"? String(LAY.paneL!=="off") : b.id==="rightToggle"? String(LAY.paneR!=="off") : String(!LAY.dockMin)));
+  $$("#leftToggle,#rightToggle,#dockToggle").forEach(b=>{
+    const open = b.id==="leftToggle"? LAY.paneL!=="off" : b.id==="rightToggle"? LAY.paneR!=="off" : !LAY.dockMin;
+    b.setAttribute("aria-expanded", String(open));
+    /* 收起态下面板只剩这条边栏，提示语必须跟着反过来，否则写着「收起」却点不开任何东西 */
+    if(b.id==="leftToggle"||b.id==="rightToggle"){
+      const name = b.id==="leftToggle"? "监控面板":"盘口面板";
+      const label = (open?"收起 ":"展开 ")+name;
+      b.setAttribute("aria-label",label); b.title = label+"（"+(b.id==="leftToggle"?"F":"D")+"）";
+    }
+  });
   setTimeout(chartResize,0);
   DIRTY.chart=true; DIRTY.heat=true;
 }
@@ -5318,7 +5338,7 @@ function viewPerf(){
     ["最大回撤",(P.mdd||0).toFixed(1)+"%","down"],["夏普",(P.sharpe||0).toFixed(2),""],["Calmar",(P.calmar||0).toFixed(2),""],
     ["日胜率",(P.win||0).toFixed(1)+"%",""],["笔胜率",(P.tradeWin||0).toFixed(1)+"%",""],["波动率",(P.vol||0).toFixed(1)+"%",""],
     ["最好/最差一天",((P.best||0).toFixed(1))+"% / "+((P.worst||0).toFixed(1))+"%",""],
-    ["换手",(P.turnover||0).toFixed(2)+"x",""],["成交笔数",ACC.stat.tr,""],["已付费用",money(ACC.feePaid,2),"down"],
+    ["换手",(P.turnover||0).toFixed(2)+"x",""],["成交笔数",ACC.stat.fills||0,""],["已付费用",money(ACC.feePaid,2),"down"],
     ["交易天数",P.n||0,""]];
   const best=Store.best||[];
   return '<div class="statgrid">'+st.map(x=>'<div class="stt"><div class="k">'+x[0]+'</div><div class="v '+x[2]+'">'+x[1]+"</div></div>").join("")+"</div>"+

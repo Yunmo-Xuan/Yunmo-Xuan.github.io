@@ -44,7 +44,7 @@ module.exports = {
             color: var(--faint); margin-bottom: 16px; text-transform: uppercase;
         }
         .notfound h1 { font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 780; letter-spacing: -.025em; margin: 26px 0 12px; }
-        .notfound .lead { color: var(--muted); max-width: 54ch; margin: 0 auto 26px; }
+        .notfound .lead { color: var(--muted); max-width: var(--measure-lead); margin: 0 auto 26px; }
         .path-box {
             display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
             margin-bottom: 30px; padding: 9px 16px; border-radius: 10px;

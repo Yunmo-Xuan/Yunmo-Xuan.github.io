@@ -76,6 +76,7 @@
     --radius: 20px;
     --radius-sm: 12px;
     --radius-lg: 28px;
+    --radius-pill: 999px;
     --nav-h: 74px;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
         'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
@@ -126,8 +127,12 @@ body {
     flex-direction: column;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    /* 别让最后一行只剩一两个字吊着 */
+    text-wrap: pretty;
     transition: background-color .25s ease, color .25s ease;
 }
+
+h1, h2, h3 { text-wrap: balance; }
 
 ::selection { background: var(--accent); color: #fff; }
 
@@ -161,7 +166,24 @@ button { font: inherit; color: inherit; }
     stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
 }
 
-.container { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 24px; }
+/* 正文宽度按字数算：汉字正好 1em，而 ch 是「0」的宽度（约 .5em）。
+   用 ch 卡 CJK 文案会在明明放得下的地方换行，所以中日韩单独换一套令牌。 */
+:root {
+    --measure: 68ch;
+    --measure-lead: 74ch;
+    --measure-tight: 38ch;
+    --measure-title: 20ch;
+}
+:root:is([lang^="zh"], [lang="ja"]) {
+    --measure: 40em;
+    --measure-lead: 52em;
+    --measure-tight: 22em;
+    --measure-title: 13em;
+}
+
+/* 底层容器跟随视口放宽：以前写死 1120px，宽屏上正文只占中间一条，
+   而游戏这类整屏子页面反而比它宽，两层宽度对不上。 */
+.container { width: 100%; max-width: min(1480px, 100%); margin-inline: auto; padding-inline: clamp(20px, 4vw, 44px); }
 
 /* ---------- 顶部导航 ---------- */
 .site-header {
@@ -314,13 +336,13 @@ main { flex: 1; }
 }
 .eyebrow::before { content: ''; width: 18px; height: 2px; border-radius: 2px; background: var(--grad); }
 h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; letter-spacing: -.025em; line-height: 1.25; }
-.section-sub { color: var(--muted); max-width: 62ch; margin-top: 12px; font-size: 1.03rem; }
+.section-sub { color: var(--muted); max-width: var(--measure); margin-top: 12px; font-size: 1.03rem; }
 .muted { color: var(--muted); }
 .mono { font-family: var(--mono); }
 
 .page-head { padding: 58px 0 10px; }
 .page-head h1 { font-size: clamp(2rem, 4.6vw, 2.9rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.15; }
-.page-head .lead { color: var(--muted); font-size: 1.08rem; max-width: 58ch; margin-top: 14px; }
+.page-head .lead { color: var(--muted); font-size: 1.08rem; max-width: var(--measure-lead); margin-top: 14px; }
 
 .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
@@ -390,13 +412,13 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
 }
 
 .noscript-note {
-    margin: 20px auto; max-width: 1072px; padding: 14px 24px;
+    margin: 20px auto; max-width: min(1436px, 100%); padding: 14px 24px;
     border: 1px solid var(--line-strong); border-left: 3px solid var(--accent);
     border-radius: var(--radius-sm); background: var(--surface-2); color: var(--muted); font-size: .92rem;
 }
 
 /* ---------- 正文排版（文章、详情） ---------- */
-.prose { max-width: 72ch; }
+.prose { max-width: var(--measure); }
 .prose > * + * { margin-top: 20px; }
 .prose h2 {
     font-size: 1.32rem; font-weight: 750; letter-spacing: -.02em; line-height: 1.3;
@@ -433,7 +455,7 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
 /* ---------- 页脚 ---------- */
 .site-footer { margin-top: auto; border-top: 1px solid var(--line); background: var(--bg-soft); padding: 46px 0 28px; }
 .footer-grid { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 28px; }
-.footer-brand p { color: var(--muted); font-size: .92rem; max-width: 38ch; margin-top: 10px; }
+.footer-brand p { color: var(--muted); font-size: .92rem; max-width: var(--measure-tight); margin-top: 10px; }
 .footer-nav { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; }
 .footer-nav a { color: var(--muted); text-decoration: none; font-size: .92rem; font-weight: 520; }
 .footer-nav a:hover { color: var(--accent-ink); text-decoration: underline; }
@@ -468,7 +490,6 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
     .page-head { padding-top: 42px; }
 }
 @media (max-width: 620px) {
-    .container { padding-inline: 20px; }
     .section { padding: 50px 0; }
     .footer-grid { flex-direction: column; }
     .filterbar .count { width: 100%; margin-inline-start: 0; }
@@ -527,6 +548,13 @@ body { touch-action: manipulation; }
       .embed-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted);
           background: var(--surface-2); font-size: .92rem; z-index: 2; }
       body.embed-full { overflow: hidden; }
+      /* 1080p 开 150% 缩放只有 720px 高：站点自己的两层头部压薄一点，
+         多让出的几十像素直接决定棋盘是完整可见还是要滚动。 */
+      @media (max-height: 860px) {
+          .embed-app { --nav-h: 58px; }
+          .embed-bar { padding-block: 6px 7px; }
+          .embed-id h1 { font-size: clamp(1rem, 2vw, 1.2rem); }
+      }
       /* 横屏手机只有 390px 高：压缩标题栏，游戏区保底 300px，
          再多一寸棋盘就多一寸可点，外层最多多出几像素的滚动，可以接受。 */
       @media (max-height: 560px) {
@@ -760,7 +788,7 @@ body { touch-action: manipulation; }
         </div>
         <div class="embed-frame" id="embedFrame">
             <div class="embed-loading" id="embedLoading" data-i18n="loading">正在装载游戏…</div>
-            <iframe id="embedGame" src="assets/games/planet-merge.html" title="星核合成" referrerpolicy="no-referrer"></iframe>
+            <iframe id="embedGame" data-game="planet-merge" src="assets/games/planet-merge.html" title="星核合成" referrerpolicy="no-referrer"></iframe>
         </div>
     </main>
 
@@ -799,7 +827,6 @@ body { touch-action: manipulation; }
    ============================================================ */
 window.PAGE_I18N = {
   "zh-CN": {
-    "meta_description": "找准落点，让同级天体相遇。留好空间，等待下一次连锁合成。",
     "eyebrow": "游戏室",
     "back": "返回游戏室",
     "fullscreen": "放大",
@@ -809,6 +836,7 @@ window.PAGE_I18N = {
     "notice": "说明",
     "notes": "玩法与说明",
     "tip": "若游戏没有响应，请刷新页面；进度与纪录保存在本机浏览器。",
+    "meta_description": "找准落点，让同级天体相遇。留好空间，等待下一次连锁合成。",
     "frame_label": "%s 游戏画面",
     "game_name": "星核合成",
     "game_tag": "找准落点，让同级天体相遇。留好空间，等待下一次连锁合成。",
@@ -816,7 +844,6 @@ window.PAGE_I18N = {
     "doc_title": "星核合成 · 云陌轩"
   },
   "zh-TW": {
-    "meta_description": "找準落點，讓同級天體相遇。留好空間，等待下一次連鎖合成。",
     "eyebrow": "遊戲室",
     "back": "返回遊戲室",
     "fullscreen": "放大",
@@ -826,6 +853,7 @@ window.PAGE_I18N = {
     "notice": "說明",
     "notes": "玩法與說明",
     "tip": "若遊戲沒有回應，請重新整理頁面；進度與紀錄保存在本機瀏覽器。",
+    "meta_description": "找準落點，讓同級天體相遇。留好空間，等待下一次連鎖合成。",
     "frame_label": "%s 遊戲畫面",
     "game_name": "星核合成",
     "game_tag": "找準落點，讓同級天體相遇。留好空間，等待下一次連鎖合成。",
@@ -833,7 +861,6 @@ window.PAGE_I18N = {
     "doc_title": "星核合成 · 雲陌軒"
   },
   "en": {
-    "meta_description": "Aim the drop, let matching bodies meet, and leave room for the next chain.",
     "eyebrow": "Play room",
     "back": "Back to play room",
     "fullscreen": "Fullscreen",
@@ -843,6 +870,7 @@ window.PAGE_I18N = {
     "notice": "Note",
     "notes": "How to play",
     "tip": "If the game stops responding, reload the page. Progress and records stay in this browser.",
+    "meta_description": "Aim the drop, let matching bodies meet, and leave room for the next chain.",
     "frame_label": "%s game screen",
     "game_name": "Planet Merge",
     "game_tag": "Aim the drop, let matching bodies meet, and leave room for the next chain.",
@@ -850,7 +878,6 @@ window.PAGE_I18N = {
     "doc_title": "Planet Merge · Yunmo-Xuan"
   },
   "ja": {
-    "meta_description": "落下位置を見極めて同じ天体を衝突させ、次の連鎖のための空間を残しましょう。",
     "eyebrow": "ゲーム室",
     "back": "ゲーム室へ戻る",
     "fullscreen": "拡大",
@@ -860,6 +887,7 @@ window.PAGE_I18N = {
     "notice": "補足",
     "notes": "遊び方と補足",
     "tip": "ゲームが反応しない場合は再読み込みしてください。進捗と記録はこのブラウザに保存されます。",
+    "meta_description": "落下位置を見極めて同じ天体を衝突させ、次の連鎖のための空間を残しましょう。",
     "frame_label": "%s のゲーム画面",
     "game_name": "星核合成",
     "game_tag": "落下位置を見極めて同じ天体を衝突させ、次の連鎖のための空間を残しましょう。",
@@ -879,14 +907,13 @@ window.PAGE_DATA = [];
    本页渲染逻辑
    ============================================================ */
 window.PAGE_RENDER = function(ctx) {
-        var frame = document.getElementById('embedFrame');
         var frameEl = document.getElementById('embedGame');
         var loading = document.getElementById('embedLoading');
-        var button = document.getElementById('embedFull');
         frameEl.title = ctx.t('frame_label').replace('%s', ctx.t('game_name'));
 
-        /* 打开这款游戏就记一笔，游戏室据此提示"再来一局" */
-        try { localStorage.setItem('lastPlayedGame', id); } catch (e) {}
+        /* 打开这款游戏就记一笔，游戏室据此提示"再来一局"。
+           id 只能从 DOM 上取：render 会被序列化成字符串内联，闭包变量在页面里根本不存在。 */
+        try { localStorage.setItem('lastPlayedGame', frameEl.dataset.game); } catch (e) {}
 
         function syncTheme() {
             var theme = document.documentElement.getAttribute('data-theme') || 'light';
@@ -900,30 +927,16 @@ window.PAGE_RENDER = function(ctx) {
             try { return frameEl.contentDocument && frameEl.contentDocument.readyState === 'complete'; } catch (e) { return false; }
         }
 
-        /* 监听器只注册一次：切语言会重跑 render，重复绑定会让"放大"一开一关互相抵消 */
+        /* 监听器只注册一次：切语言会重跑 render，重复绑定会把主题同步挂上两遍 */
         if (!window.EMBED_BOUND) {
             window.EMBED_BOUND = true;
             frameEl.addEventListener('load', opened);
             window.addEventListener('message', function (event) {
                 var data = event.data;
-                if (!data || typeof data !== 'object') return;
-                if (data.type === 'yunmo-theme-request') syncTheme();
-                if (data.type === 'yunmo-exit-fullscreen' && frame.classList.contains('is-full')) toggle(false);
-            });
-            button.addEventListener('click', function () { toggle(!frame.classList.contains('is-full')); });
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape' && frame.classList.contains('is-full')) toggle(false);
+                if (data && data.type === 'yunmo-theme-request') syncTheme();
             });
             new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
-        function toggle(on) {
-            frame.classList.toggle('is-full', on);
-            document.body.classList.toggle('embed-full', on);
-            button.setAttribute('aria-pressed', String(on));
-            button.querySelector('span').textContent = ctx.t(on ? 'exitFullscreen' : 'fullscreen');
-            if (on) frameEl.focus();
-        }
-        toggle(frame.classList.contains('is-full'));   /* 语言切换后按钮文案跟着当前状态走 */
         if (ready()) opened();
         syncTheme();
     };
@@ -1088,6 +1101,7 @@ window.PAGE_RENDER = function(ctx) {
         });
 
         document.body.classList.add('lang-ready');
+        shellLabel();
         if (typeof window.PAGE_RENDER === 'function') {
             window.PAGE_RENDER({ lang: function () { return lang; }, t: t, pick: pick, site: SITE });
         }
@@ -1204,6 +1218,38 @@ window.PAGE_RENDER = function(ctx) {
         setTimeout(revealInViewport, 400);
         window.addEventListener('load', revealInViewport);
         document.addEventListener('yunmo:intro-closed', revealInViewport);
+    }
+
+    /* ── 8. 游戏页外壳：放大 ─────────────────────────────────── */
+    /* 标题栏是静态标记，切语言只改文案，所以监听器绑一次就够；
+       iframe 游戏和站内原生游戏共用这一段，六款游戏的「放大」行为一致。 */
+    var stage = document.getElementById('embedFrame');
+    var fullBtn = document.getElementById('embedFull');
+
+    function shellLabel() {
+        if (!fullBtn) return;
+        var span = fullBtn.querySelector('span');
+        if (span) span.textContent = t(stage.classList.contains('is-full') ? 'exitFullscreen' : 'fullscreen');
+    }
+
+    function setFullscreen(on) {
+        if (!stage) return;
+        stage.classList.toggle('is-full', on);
+        document.body.classList.toggle('embed-full', on);
+        fullBtn.setAttribute('aria-pressed', String(on));
+        shellLabel();
+        var inner = stage.querySelector('iframe');
+        if (on && inner) inner.focus();
+    }
+
+    if (stage && fullBtn) {
+        fullBtn.addEventListener('click', function () { setFullscreen(!stage.classList.contains('is-full')); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && stage.classList.contains('is-full')) setFullscreen(false);
+        });
+        window.addEventListener('message', function (e) {
+            if (e.data && e.data.type === 'yunmo-exit-fullscreen' && stage.classList.contains('is-full')) setFullscreen(false);
+        });
     }
 
     window.SITE = SITE;

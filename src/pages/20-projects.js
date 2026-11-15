@@ -141,21 +141,25 @@ module.exports = {
     },
 
     styles: `
-        .project-list { display: grid; gap: 20px; margin-top: 34px; }
+        /* 小卡片：一张卡只交代名字、版本、状态和一句话，细节收进「查看详情」弹层。
+           以前是一张卡铺满所有信息，两三个项目就把页面撑成一堵墙。 */
+        .project-list { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); margin-top: 34px; }
         .project {
-            display: grid; grid-template-columns: 1fr; gap: 14px;
-            padding: 26px 24px; border-radius: var(--radius);
+            position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0;
+            padding: 22px; border-radius: var(--radius); scroll-margin-top: calc(var(--nav-h) + 24px);
             background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
             transition: transform .22s ease, box-shadow .28s ease, border-color .22s ease;
         }
         .project:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
         .project.is-featured { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), transparent 60%), var(--surface); }
-        .project-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-        .project h2 { font-size: 1.28rem; font-weight: 750; letter-spacing: -.02em; margin: 0; }
-        .project h2 a { color: inherit; text-decoration: none; }
-        .project h2 a:hover { color: var(--accent-ink); }
+        .project-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+        .project h2 { font-size: 1.16rem; font-weight: 750; letter-spacing: -.02em; margin: 0; overflow-wrap: anywhere; }
         .project .year { font-family: var(--mono); font-size: .82rem; color: var(--faint); }
-        .project p.summary { color: var(--muted); font-size: .97rem; margin: 0; }
+        .project .summary { color: var(--muted); font-size: .93rem; margin: 0;
+            display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .project-foot { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+        .project-foot .ext { margin-inline-start: auto; color: var(--muted); }
+        .project-foot .ext:hover { color: var(--accent-ink); }
         .status {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 3px 11px; border-radius: 999px; font-size: .76rem; font-weight: 650;
@@ -164,7 +168,7 @@ module.exports = {
         .status-active { color: var(--ok); background: rgba(15, 138, 77, .10); }
         .status-archived { color: var(--faint); background: var(--surface-2); }
         .featured-badge { color: var(--accent-ink); font-size: .76rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
-        .project-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+        .version { font: 600 .8rem var(--mono); color: var(--accent-ink); background: var(--accent-soft); padding: 4px 10px; border-radius: 8px; }
         .placeholder-card {
             border: 1px dashed var(--line-strong); border-radius: var(--radius);
             padding: 26px 24px; background: var(--surface-2); color: var(--muted);
@@ -174,9 +178,22 @@ module.exports = {
         .placeholder-card code { font-family: var(--mono); font-size: .85em; background: var(--surface); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); }
         .filterbar { margin-top: 30px; }
         .stack-note { margin-top: 34px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .88rem; }
-        .project { scroll-margin-top: calc(var(--nav-h) + 24px); min-width: 0; }
-        .project h2 { overflow-wrap: anywhere; }
-        .version { font: 600 .8rem var(--mono); color: var(--accent-ink); background: var(--accent-soft); padding: 4px 10px; border-radius: 8px; }
+
+        /* 详情弹层 */
+        .project-detail { position: fixed; inset: 0; margin: auto;   /* 全站 margin 归零会吃掉 dialog 的居中 */
+            width: min(780px, calc(100vw - 28px)); max-height: min(88dvh, 940px); padding: 0; overflow: hidden;
+            border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); color: var(--text);
+            box-shadow: var(--shadow-2); }
+        .project-detail::backdrop { background: rgba(8, 10, 14, .55); }
+        .project-detail[open] { display: flex; flex-direction: column; }
+        .detail-scroll { overflow: auto; padding: 24px 26px 28px; display: flex; flex-direction: column; gap: 16px; }
+        .detail-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; gap: 12px;
+            margin: -24px -26px 0; padding: 20px 26px 14px; background: var(--surface); border-bottom: 1px solid var(--line); }
+        .detail-head > div { flex: 1 1 auto; min-width: 0; }
+        .detail-head h3 { font-size: 1.34rem; font-weight: 780; letter-spacing: -.025em; margin: 0 0 8px; overflow-wrap: anywhere; }
+        .detail-head .project-top { gap: 8px 10px; }
+        .detail-close { flex: none; }
+        .project-detail .summary { color: var(--muted); font-size: .97rem; margin: 0; }
         .project-platform { color: var(--muted); font-size: .88rem; }
         .project-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 22px; list-style: none; padding: 18px 0; border-block: 1px solid var(--line); }
         .project-features li { display: flex; align-items: flex-start; gap: 9px; font-size: .93rem; }
@@ -185,13 +202,16 @@ module.exports = {
         .project-usage summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
         .project-usage ul { padding: 4px 0 2px 20px; color: var(--muted); font-size: .88rem; }
         .project-usage li { margin-top: 10px; }
-        .project .project-notice, .project .project-verified { color: var(--muted); font-size: .82rem; line-height: 1.65; }
-        .project .project-verified { padding-top: 12px; border-top: 1px solid var(--line); }
+        .project-links { display: flex; flex-wrap: wrap; gap: 8px; }
         .project-links .btn { white-space: normal; text-align: center; }
+        .project-detail .notice, .project-detail .verified { color: var(--muted); font-size: .82rem; line-height: 1.65; margin: 0; }
+        .project-detail .verified { padding-top: 12px; border-top: 1px solid var(--line); }
         @media (max-width: 700px) {
             .project-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .project { padding: 22px 18px; }
+            .project { padding: 20px 18px; }
             .project-links .btn { flex: 1 1 auto; }
+            .detail-scroll { padding: 18px 18px 22px; }
+            .detail-head { margin: -18px -18px 0; padding: 16px 18px 12px; }
         }
         @media (max-width: 400px) {
             .project-features { grid-template-columns: 1fr; gap: 10px; }
@@ -250,6 +270,8 @@ module.exports = {
             status_active: '维护中',
             status_archived: '已归档',
             status_released: '已发布',
+            detail_open: '查看详情',
+            detail_close: '关闭详情',
             view_docs: '使用说明与更新',
             usage_title: '使用要求、许可与转换限制',
             download_baidu: '前往百度网盘下载',
@@ -274,6 +296,8 @@ module.exports = {
             status_active: '維護中',
             status_archived: '已封存',
             status_released: '已發布',
+            detail_open: '查看詳情',
+            detail_close: '關閉詳情',
             view_docs: '使用說明與更新',
             usage_title: '使用需求、授權與轉換限制',
             download_baidu: '前往百度網盤下載',
@@ -298,6 +322,8 @@ module.exports = {
             status_active: 'Maintained',
             status_archived: 'Archived',
             status_released: 'Released',
+            detail_open: 'Details',
+            detail_close: 'Close details',
             view_docs: 'Documentation & updates',
             usage_title: 'Requirements, license & conversion limits',
             download_baidu: 'Download via Baidu Netdisk',
@@ -322,6 +348,8 @@ module.exports = {
             status_active: 'メンテナンス中',
             status_archived: 'アーカイブ済み',
             status_released: '公開済み',
+            detail_open: '詳細を見る',
+            detail_close: '詳細を閉じる',
             view_docs: '使い方と更新情報',
             usage_title: '動作要件・ライセンス・変換の制限',
             download_baidu: '百度網盤でダウンロード',
@@ -348,40 +376,58 @@ module.exports = {
             (p.tags || []).forEach(function (tag) { if (tags.indexOf(tag) < 0) tags.push(tag); });
         });
 
+        function meta(p) {
+            var status = '<span class="status ' + (p.status === 'archived' ? 'status-archived' : 'status-active') + '"><i aria-hidden="true"></i>' + escHtml(ctx.t('status_' + p.status)) + '</span>';
+            var stars = p.featured ? '<span class="featured-badge">' + escHtml(ctx.t('featured')) + '</span>' : '';
+            var when = p.version ? '<span class="version">v' + escHtml(p.version) + '</span>' : '<span class="year">' + escHtml(p.year || '') + '</span>';
+            return when + status + stars;
+        }
+
         function card(p) {
             var external = isExternal(p.url);
             var label = p.kind === 'documentation' ? ctx.t('view_docs') : ctx.t(external ? 'view_source' : 'visit');
             var mark = external ? '<svg class="icon" aria-hidden="true"><use href="#i-external" /></svg>' : '';
-            var status = '<span class="status ' + (p.status === 'archived' ? 'status-archived' : 'status-active') + '"><i aria-hidden="true"></i>' + escHtml(ctx.t('status_' + p.status)) + '</span>';
-            var stars = p.featured ? '<span class="featured-badge">' + ctx.t('featured') + '</span>' : '';
+            var detailId = p.slug + '-detail';
             var features = p.features ? '<ul class="project-features">' + ctx.pick(p.features).map(function (feature) {
                 return '<li><svg class="icon" aria-hidden="true"><use href="#i-check" /></svg><span>' + escHtml(feature) + '</span></li>';
             }).join('') + '</ul>' : '';
             var usage = p.usage ? '<details class="project-usage"><summary>' + escHtml(ctx.t('usage_title')) + '</summary><ul>' + ctx.pick(p.usage).map(function (item) {
                 return '<li>' + escHtml(item) + '</li>';
             }).join('') + '</ul></details>' : '';
-            var download = p.downloadUrl ? '<a class="btn btn-primary btn-sm" href="' + safeUrl(p.downloadUrl) + '" target="_blank" rel="noopener noreferrer">' + ctx.t('download_baidu') + mark + '</a>' : '';
-            var license = p.licenseUrl ? '<a class="btn btn-ghost btn-sm" href="' + safeUrl(p.licenseUrl) + '" target="_blank" rel="noopener noreferrer">' + ctx.t('view_license') + '</a>' : '';
+            var download = p.downloadUrl ? '<a class="btn btn-primary btn-sm" href="' + safeUrl(p.downloadUrl) + '" target="_blank" rel="noopener noreferrer">' + escHtml(ctx.t('download_baidu')) + mark + '</a>' : '';
+            var license = p.licenseUrl ? '<a class="btn btn-ghost btn-sm" href="' + safeUrl(p.licenseUrl) + '" target="_blank" rel="noopener noreferrer">' + escHtml(ctx.t('view_license')) + '</a>' : '';
+            var tags = '<ul class="tag-list">' + (p.tags || []).map(function (tg) { return '<li><span class="tag">' + escHtml(tg) + '</span></li>'; }).join('') + '</ul>';
+            var summary = '<p class="summary">' + inline(ctx.pick(p.desc) || '') + '</p>';
             return '<article id="' + escHtml(p.slug) + '" class="project reveal' + (p.featured ? ' is-featured' : '') + '">' +
-                '<div class="project-top">' +
-                '<h2><a href="' + safeUrl(p.url) + '"' + (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + escHtml(ctx.pick(p.name)) + '</a></h2>' +
-                (p.version ? '<span class="version">v' + escHtml(p.version) + '</span>' : '<span class="year">' + escHtml(p.year || '') + '</span>') + status + stars +
+                '<div class="project-top"><h2>' + escHtml(ctx.pick(p.name)) + '</h2>' + meta(p) + '</div>' +
+                summary + tags +
+                '<div class="project-foot">' +
+                '<button type="button" class="btn btn-ghost btn-sm" data-detail="' + escHtml(p.slug) + '"><span>' + escHtml(ctx.t('detail_open')) + '</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right" /></svg></button>' +
+                '<a class="icon-btn ext" href="' + safeUrl(p.url) + '"' + (external ? ' target="_blank" rel="noopener noreferrer"' : '') + ' aria-label="' + escHtml(label) + '">' + mark + '</a>' +
                 '</div>' +
-                '<p class="summary">' + inline(ctx.pick(p.desc) || '') + '</p>' +
+                '<dialog class="project-detail" id="' + escHtml(detailId) + '" aria-labelledby="' + escHtml(detailId) + '-title">' +
+                '<div class="detail-scroll">' +
+                '<div class="detail-head"><div><h3 id="' + escHtml(detailId) + '-title">' + escHtml(ctx.pick(p.name)) + '</h3>' +
+                '<div class="project-top">' + meta(p) + '</div></div>' +
+                '<button type="button" class="icon-btn detail-close" data-close aria-label="' + escHtml(ctx.t('detail_close')) + '"><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button></div>' +
+                summary +
                 (p.requirements ? '<p class="project-platform">' + escHtml(ctx.pick(p.requirements)) + '</p>' : '') +
-                features +
-                '<ul class="tag-list">' + (p.tags || []).map(function (tg) { return '<li><span class="tag">' + escHtml(tg) + '</span></li>'; }).join('') + '</ul>' +
-                usage +
-                '<div class="project-links">' + download + '<a class="btn btn-ghost btn-sm" href="' + safeUrl(p.url) + '"' +
-                (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + mark + '<span>' + label + '</span></a>' + license + '</div>' +
-                (p.downloadUrl ? '<p class="project-notice">' + escHtml(ctx.t('download_notice')) + '</p>' : '') +
-                (p.verifiedOn ? '<p class="project-verified">' + escHtml(ctx.t('verified_on')) + ' <time datetime="' + escHtml(p.verifiedOn) + '">' + escHtml(p.verifiedOn) + '</time> · ' + escHtml(ctx.t('version_snapshot')) + '</p>' : '') +
-                '</article>';
+                features + tags + usage +
+                '<div class="project-links">' + download +
+                '<a class="btn btn-ghost btn-sm" href="' + safeUrl(p.url) + '"' + (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + mark + '<span>' + escHtml(label) + '</span></a>' + license + '</div>' +
+                (p.downloadUrl ? '<p class="notice">' + escHtml(ctx.t('download_notice')) + '</p>' : '') +
+                (p.verifiedOn ? '<p class="verified">' + escHtml(ctx.t('verified_on')) + ' <time datetime="' + escHtml(p.verifiedOn) + '">' + escHtml(p.verifiedOn) + '</time> · ' + escHtml(ctx.t('version_snapshot')) + '</p>' : '') +
+                '</div></dialog></article>';
         }
 
         function paint() {
             var items = PROJECTS.filter(function (p) {
                 return !active || (p.tags || []).indexOf(active) >= 0;
+            });
+            /* 重绘会换掉整棵子树，先记下正开着的详情，画完再还原 */
+            var wasOpen = '';
+            Array.prototype.forEach.call(list.querySelectorAll('dialog[open]'), function (dlg) {
+                wasOpen = dlg.id.replace(/-detail$/, '');
             });
             list.innerHTML = items.map(card).join('\n');
             empty.hidden = items.length !== 0;
@@ -389,7 +435,42 @@ module.exports = {
             /* 占位卡只在一条项目都没有时提醒作者；有内容就让位给正文 */
             placeholder.hidden = PROJECTS.length > 0;
             note.hidden = PROJECTS.length === 0;
+            bindDetails();
+            if (wasOpen) openDetail(wasOpen);
             if (window.SITE_RUNTIME) window.SITE_RUNTIME.reveal();
+        }
+
+        /* 卡片只留一句话，细节走弹层；#slug 直链也自动展开，保住原来的锚点习惯 */
+        function openDetail(slug) {
+            var dlg = document.getElementById(slug + '-detail');
+            if (!dlg) return;
+            if (dlg.showModal) dlg.showModal();
+            else dlg.setAttribute('open', '');
+        }
+
+        function bindDetails() {
+            Array.prototype.forEach.call(list.querySelectorAll('dialog.project-detail'), function (dlg) {
+                dlg.addEventListener('close', function () {
+                    var slug = dlg.id.replace(/-detail$/, '');
+                    if (location.hash === '#' + slug) history.replaceState(null, '', location.pathname + location.search);
+                });
+            });
+        }
+
+        if (!window.PROJ_BOUND) {
+            window.PROJ_BOUND = true;
+            list.addEventListener('click', function (event) {
+                var open = event.target.closest('[data-detail]');
+                if (open) {
+                    var slug = open.getAttribute('data-detail');
+                    openDetail(slug);
+                    history.replaceState(null, '', '#' + slug);
+                    return;
+                }
+                var close = event.target.closest('[data-close]');
+                if (close) { close.closest('dialog').close(); return; }
+                if (event.target.tagName === 'DIALOG') event.target.close();
+            });
         }
 
         if (tags.length > 1) {
@@ -415,6 +496,9 @@ module.exports = {
 
         count = document.getElementById('projCount');
         paint();
+        /* 首页的「代表作」按钮带着 #slug 过来，直接替访客把详情展开 */
+        var wanted = /^#([\w-]+)$/.exec(location.hash || '');
+        if (wanted) openDetail(wanted[1]);
     },
 
     data: PROJECTS,

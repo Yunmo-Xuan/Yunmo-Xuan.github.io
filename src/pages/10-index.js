@@ -46,7 +46,7 @@ module.exports = {
             -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent; color: transparent;
         }
-        .hero .lead { font-size: 1.13rem; color: var(--muted); max-width: 52ch; margin-bottom: 30px; }
+        .hero .lead { font-size: 1.13rem; color: var(--muted); max-width: var(--measure-lead); margin-bottom: 30px; }
         .hero .lead strong { color: var(--text); font-weight: 650; }
 
         .featured-project {

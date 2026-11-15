@@ -151,13 +151,22 @@ function spawned(board) {
     return out;
 }
 
-test('page metadata and four translated return links', () => {
+test('page metadata and the shared game shell', () => {
     assert.equal(page.file, '2048.html');
     assert.equal(page.path, '/2048.html');
     assert.equal(page.active, 'games');
     assert.equal(page.jsonld.url, 'https://yunmo-xuan.github.io/2048.html');
-    assert.match(page.body, /href="games\.html"[^>]*data-i18n="g_back"/);
-    for (const lang of ['zh-CN', 'zh-TW', 'en', 'ja']) assert.ok(page.i18n[lang].g_back);
+    /* issue #1 第 1 条：2048 不再是一行裸的「返回游戏室」链接，而是和其他五款同一套整屏外壳 */
+    assert.equal(page.bodyClass, 'embed-app');
+    assert.match(page.body, /class="container embed-bar"/);
+    assert.match(page.body, /<a[^>]*embed-back[^>]*href="games\.html"/);
+    assert.match(page.body, /id="embedFull"/);
+    assert.doesNotMatch(page.body, /g-back-line/);
+    for (const lang of ['zh-CN', 'zh-TW', 'en', 'ja']) {
+        assert.ok(page.i18n[lang].back, lang + ' 缺少返回文案');
+        assert.ok(page.i18n[lang].fullscreen, lang + ' 缺少放大文案');
+        assert.ok(page.i18n[lang].notes, lang + ' 缺少玩法说明入口');
+    }
 });
 
 test('layout declares four fixed equal rows as well as columns and board-sized typography', () => {

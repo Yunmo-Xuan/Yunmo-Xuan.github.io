@@ -1,6 +1,11 @@
 /* 游戏页：2048 */
 'use strict';
 
+const CATALOG = require('../game-catalog');
+const SHELL = require('../game-shell');
+
+const GAME = CATALOG.find(g => g.id === '2048');
+
 module.exports = {
     file: '2048.html',
     path: '/2048.html',
@@ -18,10 +23,15 @@ module.exports = {
         'en': 'A small in-site game: 2048. Arrow keys or swipe, merge equal tiles; progress and best score stay on this device, with light/dark themes and four interface languages.'
     },
 
-    styles: `
-        .g-wrap { max-width: 560px; margin: 0 auto; }
-        .g-back-line { margin: 22px 0 0; font-size: .86rem; }
-        .g-top { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; gap: 12px; margin: 28px 0 12px; }
+    bodyClass: 'embed-app',
+
+    styles: SHELL.styles + `
+        /* 游戏区吃掉标题栏以下的全部高度，棋盘按视口高度收放；放大时再多让出一截 */
+        .g-stage { position: absolute; inset: 0; display: grid; place-items: center;
+            padding: clamp(12px, 2.4vh, 26px); overflow: auto; }
+        .g-wrap { width: min(100%, 620px, max(240px, calc(100dvh - 260px))); }
+        .embed-frame.is-full .g-wrap { width: min(100%, 720px, max(240px, calc(100dvh - 150px))); }
+        .g-top { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
         .g-scores { display: flex; gap: 10px; }
         .g-score {
             min-width: 96px; padding: 10px 16px; text-align: center;
@@ -86,46 +96,29 @@ module.exports = {
 
         .g-hint { margin: 14px 2px 0; font-size: .86rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
         .g-hint .icon { color: var(--accent-ink); flex-shrink: 0; }
-        .g-rules { margin-top: 26px; }
         @media (max-width: 480px) {
             .g-board { padding: 8px; }
             .g-grid { gap: 8px; }
             .g-msg { inset: 8px; }
             .g-score { min-width: 84px; padding: 8px 12px; }
         }
-        /* 矮屏（横放手机等）：收起装饰文案，棋盘按视口高度收缩，保证 controls 够得着 */
+        /* 矮屏（横放手机等）：收起装饰文案，把高度尽量留给棋盘 */
         @media (max-height: 600px) {
-            .page-head { padding-top: 22px; }
-            .page-head .lead { display: none; }
-            .g-top { margin: 12px 0 10px; }
-            .g-rules { display: none; }
-            .g-hint { margin-top: 10px; }
-            .g-board { width: min(100%, max(240px, 58vh)); margin-inline: auto; }
+            .g-top { margin-bottom: 8px; }
+            .g-hint { margin-top: 8px; }
+            .g-wrap { width: min(100%, 520px, max(220px, calc(100dvh - 215px))); }
         }
         @media (max-height: 460px) {
-            .page-head { display: none; }
             .g-hint { display: none; }
-            .section.tight { padding: 6px 0 10px; }
-            .g-top { margin: 6px 0 8px; }
-            .g-board { width: min(100%, calc(100vh - 200px)); min-width: 200px; margin-inline: auto; }
+            .g-top { margin-bottom: 6px; }
+            .g-wrap { width: min(100%, 520px, max(200px, calc(100dvh - 175px))); }
             .g-cell { border-radius: 6px; }
         }
     `,
 
-    body: `        <section class="page-head">
-            <div class="container">
-                <span class="eyebrow" data-i18n="eyebrow">小游戏</span>
-                <h1>2048</h1>
-                <p class="lead" data-i18n="lead">
-                    站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起；进度和最佳纪录留在这台设备上。
-                </p>
-            </div>
-        </section>
-
-        <section class="section tight">
-            <div class="container">
+    body: SHELL.bar(GAME, 'g_rules') + `        <div class="embed-frame" id="embedFrame">
+            <div class="g-stage">
                 <div class="g-wrap">
-                    <p class="g-back-line"><a class="g-back" href="games.html" data-i18n="g_back">返回游戏室</a></p>
                     <div class="g-top">
                         <div class="g-scores">
                             <div class="g-score"><span class="k" data-i18n="g_score">分数</span><span class="v" id="gScore">0</span></div>
@@ -169,23 +162,16 @@ module.exports = {
                         <svg class="icon" aria-hidden="true"><use href="#i-terminal" /></svg>
                         <span data-i18n="g_hint">键盘方向键或 WASD 移动；手机上在棋盘上滑动（棋盘内不会触发页面滚动或下拉刷新）。</span>
                     </p>
-
-                    <aside class="note g-rules" data-i18n="g_rules">
-                        规则：每次移动后随机落下一块 2 或 4；相同数字相撞会合并成它们的和，并计入分数。
-                        合成 2048 即获胜，之后可以继续挑战更大的数字；棋盘填满且无处可合时游戏结束。
-                        棋局、分数与最佳纪录保存在本机浏览器里，关掉页面下次接着玩。
-                    </aside>
                 </div>
             </div>
-        </section>
+        </div>
 `,
 
     i18n: {
         'zh-CN': {
             meta_description: '站内小游戏：2048。方向键或滑动操作，合并相同数字；进度与最佳纪录保存在本机，支持深浅主题与四种界面语言。',
             eyebrow: '小游戏',
-            lead: '站里唯一会动嘴劝你再玩一局的东西。方向键或滑动，把相同的数字合到一起；进度和最佳纪录留在这台设备上。',
-            g_score: '分数', g_best: '最佳', g_new: '新游戏', g_back: '返回游戏室',
+            g_score: '分数', g_best: '最佳', g_new: '新游戏',
             g_keep: '继续游戏', g_retry: '再试一次',
             g_win: '你赢了！', g_over: '游戏结束',
             g_hint: '键盘方向键或 WASD 移动；手机上在棋盘上滑动（棋盘内不会触发页面滚动或下拉刷新）。',
@@ -196,8 +182,7 @@ module.exports = {
         'zh-TW': {
             meta_description: '站內小遊戲：2048。方向鍵或滑動操作，合併相同數字；進度與最佳紀錄保存在本機，支援深淺主題與四種介面語言。',
             eyebrow: '小遊戲',
-            lead: '站裡唯一會開口勸你再玩一局的東西。方向鍵或滑動，把相同的數字合在一起；進度和最佳紀錄留在這台裝置上。',
-            g_score: '分數', g_best: '最佳', g_new: '新遊戲', g_back: '返回遊戲室',
+            g_score: '分數', g_best: '最佳', g_new: '新遊戲',
             g_keep: '繼續遊戲', g_retry: '再試一次',
             g_win: '你贏了！', g_over: '遊戲結束',
             g_hint: '鍵盤方向鍵或 WASD 移動；手機上在棋盤上滑動（棋盤內不會觸發頁面滾動或下拉刷新）。',
@@ -208,8 +193,7 @@ module.exports = {
         'en': {
             meta_description: 'A small in-site game: 2048. Arrow keys or swipe, merge equal tiles; progress and best score stay on this device, with light/dark themes and four interface languages.',
             eyebrow: 'Mini game',
-            lead: 'The only thing on this site that talks you into one more round. Arrows or swipe, merge equal numbers; progress and best score stay on this device.',
-            g_score: 'Score', g_best: 'Best', g_new: 'New game', g_back: 'Back to play room',
+            g_score: 'Score', g_best: 'Best', g_new: 'New game',
             g_keep: 'Keep going', g_retry: 'Try again',
             g_win: 'You win!', g_over: 'Game over',
             g_hint: 'Arrow keys or WASD to move; swipe on the board on touch screens (the board never scrolls the page or pulls to refresh).',
@@ -220,8 +204,7 @@ module.exports = {
         'ja': {
             meta_description: 'サイト内のミニゲーム：2048。矢印キーまたはスワイプで同じ数字を合体。進度とベストは端末に保存。ライト/ダークテーマと4言語UIに対応。',
             eyebrow: 'ミニゲーム',
-            lead: 'このサイトで唯一「もう一局」と囁いてくるもの。矢印キーかスワイプで同じ数字を合わせます。進度とベストはこの端末に残ります。',
-            g_score: 'スコア', g_best: 'ベスト', g_new: '新しいゲーム', g_back: 'ゲーム室へ戻る',
+            g_score: 'スコア', g_best: 'ベスト', g_new: '新しいゲーム',
             g_keep: '続行', g_retry: 'もう一度',
             g_win: '勝利！', g_over: 'ゲームオーバー',
             g_hint: '矢印キーまたは WASD で移動、タッチ端末では盤面をスワイプ（盤面内ではページスクロールや pull-to-refresh は起きません）。',
@@ -642,9 +625,20 @@ module.exports = {
 
     jsonld: {
         '@context': 'https://schema.org',
-        '@type': 'WebPage',
+        '@type': 'Game',
         name: '2048 · 云陌轩',
         url: 'https://yunmo-xuan.github.io/2048.html',
-        inLanguage: ['zh-CN', 'zh-TW', 'en', 'ja']
+        inLanguage: Object.keys(GAME.name),
+        playMode: 'SinglePlayer',
+        description: GAME.desc['zh-CN'],
+        publisher: { '@type': 'Person', name: '云陌轩', url: 'https://yunmo-xuan.github.io/' }
     }
 };
+
+/* 标题栏、放大按钮和玩法浮层的文案属于外壳，逐页补齐；
+   eyebrow 也一起覆盖，2048 从此和其他五款一样落在「游戏室」下面。 */
+for (const code of Object.keys(module.exports.i18n)) {
+    Object.assign(module.exports.i18n[code], SHELL.strings(code), {
+        game_name: GAME.name[code], game_tag: GAME.desc[code], game_how: GAME.how[code]
+    });
+}

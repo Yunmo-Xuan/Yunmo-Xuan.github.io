@@ -61,7 +61,7 @@ module.exports = {
         .about-hero h1 { font-size: clamp(1.9rem, 4.2vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; }
         .about-hero .sub { color: var(--accent-ink); font-weight: 620; margin-top: 4px; }
         .about-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 46px; align-items: start; }
-        .about-grid .prose { max-width: 62ch; }
+        .about-grid .prose { max-width: var(--measure); }
         .side h3 { font-size: .82rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-bottom: 14px; }
         .side .block + .block { margin-top: 34px; }
         .log { list-style: none; }

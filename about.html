@@ -76,6 +76,7 @@
     --radius: 20px;
     --radius-sm: 12px;
     --radius-lg: 28px;
+    --radius-pill: 999px;
     --nav-h: 74px;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
         'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
@@ -126,8 +127,12 @@ body {
     flex-direction: column;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    /* 别让最后一行只剩一两个字吊着 */
+    text-wrap: pretty;
     transition: background-color .25s ease, color .25s ease;
 }
+
+h1, h2, h3 { text-wrap: balance; }
 
 ::selection { background: var(--accent); color: #fff; }
 
@@ -161,7 +166,24 @@ button { font: inherit; color: inherit; }
     stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
 }
 
-.container { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 24px; }
+/* 正文宽度按字数算：汉字正好 1em，而 ch 是「0」的宽度（约 .5em）。
+   用 ch 卡 CJK 文案会在明明放得下的地方换行，所以中日韩单独换一套令牌。 */
+:root {
+    --measure: 68ch;
+    --measure-lead: 74ch;
+    --measure-tight: 38ch;
+    --measure-title: 20ch;
+}
+:root:is([lang^="zh"], [lang="ja"]) {
+    --measure: 40em;
+    --measure-lead: 52em;
+    --measure-tight: 22em;
+    --measure-title: 13em;
+}
+
+/* 底层容器跟随视口放宽：以前写死 1120px，宽屏上正文只占中间一条，
+   而游戏这类整屏子页面反而比它宽，两层宽度对不上。 */
+.container { width: 100%; max-width: min(1480px, 100%); margin-inline: auto; padding-inline: clamp(20px, 4vw, 44px); }
 
 /* ---------- 顶部导航 ---------- */
 .site-header {
@@ -314,13 +336,13 @@ main { flex: 1; }
 }
 .eyebrow::before { content: ''; width: 18px; height: 2px; border-radius: 2px; background: var(--grad); }
 h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; letter-spacing: -.025em; line-height: 1.25; }
-.section-sub { color: var(--muted); max-width: 62ch; margin-top: 12px; font-size: 1.03rem; }
+.section-sub { color: var(--muted); max-width: var(--measure); margin-top: 12px; font-size: 1.03rem; }
 .muted { color: var(--muted); }
 .mono { font-family: var(--mono); }
 
 .page-head { padding: 58px 0 10px; }
 .page-head h1 { font-size: clamp(2rem, 4.6vw, 2.9rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.15; }
-.page-head .lead { color: var(--muted); font-size: 1.08rem; max-width: 58ch; margin-top: 14px; }
+.page-head .lead { color: var(--muted); font-size: 1.08rem; max-width: var(--measure-lead); margin-top: 14px; }
 
 .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
@@ -390,13 +412,13 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
 }
 
 .noscript-note {
-    margin: 20px auto; max-width: 1072px; padding: 14px 24px;
+    margin: 20px auto; max-width: min(1436px, 100%); padding: 14px 24px;
     border: 1px solid var(--line-strong); border-left: 3px solid var(--accent);
     border-radius: var(--radius-sm); background: var(--surface-2); color: var(--muted); font-size: .92rem;
 }
 
 /* ---------- 正文排版（文章、详情） ---------- */
-.prose { max-width: 72ch; }
+.prose { max-width: var(--measure); }
 .prose > * + * { margin-top: 20px; }
 .prose h2 {
     font-size: 1.32rem; font-weight: 750; letter-spacing: -.02em; line-height: 1.3;
@@ -433,7 +455,7 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
 /* ---------- 页脚 ---------- */
 .site-footer { margin-top: auto; border-top: 1px solid var(--line); background: var(--bg-soft); padding: 46px 0 28px; }
 .footer-grid { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 28px; }
-.footer-brand p { color: var(--muted); font-size: .92rem; max-width: 38ch; margin-top: 10px; }
+.footer-brand p { color: var(--muted); font-size: .92rem; max-width: var(--measure-tight); margin-top: 10px; }
 .footer-nav { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; }
 .footer-nav a { color: var(--muted); text-decoration: none; font-size: .92rem; font-weight: 520; }
 .footer-nav a:hover { color: var(--accent-ink); text-decoration: underline; }
@@ -468,7 +490,6 @@ h2.section-title { font-size: clamp(1.6rem, 3.4vw, 2.15rem); font-weight: 780; l
     .page-head { padding-top: 42px; }
 }
 @media (max-width: 620px) {
-    .container { padding-inline: 20px; }
     .section { padding: 50px 0; }
     .footer-grid { flex-direction: column; }
     .filterbar .count { width: 100%; margin-inline-start: 0; }
@@ -506,7 +527,7 @@ body { touch-action: manipulation; }
         .about-hero h1 { font-size: clamp(1.9rem, 4.2vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; }
         .about-hero .sub { color: var(--accent-ink); font-weight: 620; margin-top: 4px; }
         .about-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 46px; align-items: start; }
-        .about-grid .prose { max-width: 62ch; }
+        .about-grid .prose { max-width: var(--measure); }
         .side h3 { font-size: .82rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-bottom: 14px; }
         .side .block + .block { margin-top: 34px; }
         .log { list-style: none; }
@@ -1160,6 +1181,7 @@ window.PAGE_RENDER = function(ctx) {
         });
 
         document.body.classList.add('lang-ready');
+        shellLabel();
         if (typeof window.PAGE_RENDER === 'function') {
             window.PAGE_RENDER({ lang: function () { return lang; }, t: t, pick: pick, site: SITE });
         }
@@ -1276,6 +1298,38 @@ window.PAGE_RENDER = function(ctx) {
         setTimeout(revealInViewport, 400);
         window.addEventListener('load', revealInViewport);
         document.addEventListener('yunmo:intro-closed', revealInViewport);
+    }
+
+    /* ── 8. 游戏页外壳：放大 ─────────────────────────────────── */
+    /* 标题栏是静态标记，切语言只改文案，所以监听器绑一次就够；
+       iframe 游戏和站内原生游戏共用这一段，六款游戏的「放大」行为一致。 */
+    var stage = document.getElementById('embedFrame');
+    var fullBtn = document.getElementById('embedFull');
+
+    function shellLabel() {
+        if (!fullBtn) return;
+        var span = fullBtn.querySelector('span');
+        if (span) span.textContent = t(stage.classList.contains('is-full') ? 'exitFullscreen' : 'fullscreen');
+    }
+
+    function setFullscreen(on) {
+        if (!stage) return;
+        stage.classList.toggle('is-full', on);
+        document.body.classList.toggle('embed-full', on);
+        fullBtn.setAttribute('aria-pressed', String(on));
+        shellLabel();
+        var inner = stage.querySelector('iframe');
+        if (on && inner) inner.focus();
+    }
+
+    if (stage && fullBtn) {
+        fullBtn.addEventListener('click', function () { setFullscreen(!stage.classList.contains('is-full')); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && stage.classList.contains('is-full')) setFullscreen(false);
+        });
+        window.addEventListener('message', function (e) {
+            if (e.data && e.data.type === 'yunmo-exit-fullscreen' && stage.classList.contains('is-full')) setFullscreen(false);
+        });
     }
 
     window.SITE = SITE;

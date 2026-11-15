@@ -156,6 +156,7 @@
         });
 
         document.body.classList.add('lang-ready');
+        shellLabel();
         if (typeof window.PAGE_RENDER === 'function') {
             window.PAGE_RENDER({ lang: function () { return lang; }, t: t, pick: pick, site: SITE });
         }
@@ -272,6 +273,38 @@
         setTimeout(revealInViewport, 400);
         window.addEventListener('load', revealInViewport);
         document.addEventListener('yunmo:intro-closed', revealInViewport);
+    }
+
+    /* ── 8. 游戏页外壳：放大 ─────────────────────────────────── */
+    /* 标题栏是静态标记，切语言只改文案，所以监听器绑一次就够；
+       iframe 游戏和站内原生游戏共用这一段，六款游戏的「放大」行为一致。 */
+    var stage = document.getElementById('embedFrame');
+    var fullBtn = document.getElementById('embedFull');
+
+    function shellLabel() {
+        if (!fullBtn) return;
+        var span = fullBtn.querySelector('span');
+        if (span) span.textContent = t(stage.classList.contains('is-full') ? 'exitFullscreen' : 'fullscreen');
+    }
+
+    function setFullscreen(on) {
+        if (!stage) return;
+        stage.classList.toggle('is-full', on);
+        document.body.classList.toggle('embed-full', on);
+        fullBtn.setAttribute('aria-pressed', String(on));
+        shellLabel();
+        var inner = stage.querySelector('iframe');
+        if (on && inner) inner.focus();
+    }
+
+    if (stage && fullBtn) {
+        fullBtn.addEventListener('click', function () { setFullscreen(!stage.classList.contains('is-full')); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && stage.classList.contains('is-full')) setFullscreen(false);
+        });
+        window.addEventListener('message', function (e) {
+            if (e.data && e.data.type === 'yunmo-exit-fullscreen' && stage.classList.contains('is-full')) setFullscreen(false);
+        });
     }
 
     window.SITE = SITE;
