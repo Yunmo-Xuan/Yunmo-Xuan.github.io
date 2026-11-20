@@ -174,7 +174,7 @@ function embedUiJob(page, boardSel, minRatio) {
 
 /* issue #1 第 7 条：1080p 开 125% / 150% 缩放后 CSS 视口只剩 864 / 720 高，
    棋盘不能顶穿游戏区，否则要先把 iframe 滚起来才看得见全盘。 */
-function boardFitsJob(page, boardSel, size) {
+function boardFitsJob(page, boardSel, size, minW) {
   var w = Number(size.split('x')[0]), h = Number(size.split('x')[1]);
   return { page: page, w: w, h: h, slow: true, name: 'board fits ' + size + ' ' + page, run: function (d, win, done) {
       var frame = d.getElementById('embedGame');
@@ -186,6 +186,9 @@ function boardFitsJob(page, boardSel, size) {
         var fr = frame.getBoundingClientRect(), r = board.getBoundingClientRect();
         if (r.bottom > fr.height + 3) problems.push('棋盘下沿 ' + Math.round(r.bottom) + ' 超出游戏区 ' + Math.round(fr.height));
         if (r.top < -3) problems.push('棋盘上沿 ' + Math.round(r.top) + ' 被顶出画面');
+        /* 不裁切还不够——把间距摊薄也能「不裁切」，棋盘会小到没法点。
+           这里钉住宽度下限，退回到「全盘可见但只剩 282px」那种修法就会被逮住。 */
+        if (minW && r.width < minW) problems.push('棋盘只有 ' + Math.round(r.width) + 'px 宽，低于 ' + minW + 'px 下限');
         done(problems.length ? problems.join('; ') : undefined);
       }, 1600);
     } };
@@ -694,13 +697,49 @@ INTERACTIONS.push(
   embedUiJob('simdesk.html', null, 0.55)
 );
 
-[['1280x720'], ['1366x732'], ['1536x864']].forEach(function (one) {
-  var size = one[0];
+[['1280x720', 330], ['1366x732', 330], ['1536x864', 420], ['1920x1017', 420]].forEach(function (one) {
+  var size = one[0], minW = one[1];
   INTERACTIONS.push(
-    boardFitsJob('gomoku.html', 'canvas#board', size),
-    boardFitsJob('xiangqi.html', '#board', size),
-    boardFitsJob('minesweeper.html', '.board-wrap', size)
+    boardFitsJob('gomoku.html', 'canvas#board', size, minW),
+    boardFitsJob('xiangqi.html', '#board', size, minW),
+    boardFitsJob('minesweeper.html', '.board-wrap', size, minW)
   );
+});
+
+/* issue #1 第 3 条：顶栏以前写死 52px + overflow:hidden，
+   1440 以下指数条被挤成 0 宽（行情整块消失），右侧 命令/主题/战役/菜单 也被裁掉半截 */
+[['1280x720'], ['1440x900']].forEach(function (one) {
+  var w = Number(one[0].split('x')[0]), h = Number(one[0].split('x')[1]);
+  INTERACTIONS.push({ page: 'simdesk.html', w: w, h: h, slow: true, name: 'simdesk topbar shows every index ' + one[0], run: function (d, win, done) {
+      var frame = d.getElementById('embedGame');
+      setTimeout(function () {
+        var idoc = frame.contentDocument;
+        if (!idoc || !idoc.body) { done('游戏文档没加载'); return; }
+        var skip = [].filter.call(idoc.querySelectorAll('#coach button'), function (x) {
+          return /我熟了|跳过/.test(x.textContent);
+        })[0];
+        if (skip) skip.click();
+        setTimeout(function () {
+          var problems = [];
+          var bar = idoc.getElementById('idxbar'), tb = idoc.getElementById('topbar');
+          var items = [].slice.call(bar.querySelectorAll('.idx'));
+          var bs = bar.getBoundingClientRect();
+          var shown = items.filter(function (el) {
+            var r = el.getBoundingClientRect();
+            return r.left >= bs.left - 1 && r.right <= bs.right + 1;
+          }).length;
+          if (items.length < 2) problems.push('指数条没渲染出条目');
+          if (shown < items.length) problems.push(shown + '/' + items.length + ' 个指数看得见');
+          if (tb.scrollWidth - tb.clientWidth > 1) problems.push('顶栏横向溢出 ' + (tb.scrollWidth - tb.clientWidth) + 'px');
+          /* 控件被裁掉时它们的右边缘会顶出视口 */
+          [].forEach.call(tb.querySelectorAll('.ctrl'), function (c) {
+            var r = c.getBoundingClientRect();
+            if (r.right > frame.clientWidth + 1) problems.push('顶栏控件超出 ' + Math.round(r.right) + '>' + frame.clientWidth);
+          });
+          done(problems.length ? problems.join('; ') : undefined);
+        }, 800);
+      }, 2400);
+    } });
 });
 
 /* issue #1 第 3 条：面板收起后必须还留一个点得着的展开入口，不能只剩快捷键 */

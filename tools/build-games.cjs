@@ -142,6 +142,13 @@ const EMBED_CSS = {
     '  html.in-embed .stage{display:block}',
     '  html.in-embed .board-shell{position:sticky;top:0;z-index:6;background:var(--page);padding-block:6px}',
     '  html.in-embed .panel{margin-top:14px}',
+    '}',
+    /* 嵌入态站点自己已经有一条标题栏，游戏再把外边距摊开，1080p 开 150% 缩放（CSS 只有 1280×720）
+       时棋盘只剩 282px。压薄间距，并且不再按「100vh - 340px」这个把品牌行也算进去的常数定宽。 */
+    '@media (min-width:1001px){',
+    '  html.in-embed .app{padding-block:12px;gap:10px}',
+    '  html.in-embed .board-shell{gap:8px;width:min(100%,calc(100dvh - 120px))}',
+    '  html.in-embed .board-bar{gap:8px}',
     '}'
   ],
   /* 扫雷不做布局改写：它的 main.stage 是 1fr 网格，棋盘在自己的滚动容器里；
@@ -152,6 +159,12 @@ const EMBED_CSS = {
     '  html.in-embed .stage{display:block}',
     '  html.in-embed .board-side{position:sticky;top:0;z-index:6;background:var(--bg);padding-block:6px}',
     '  html.in-embed .panel{margin-top:14px}',
+    '}',
+    /* 同上：嵌入态把上下留白和两条玩家行压薄，省出来的高度全部给棋盘。 */
+    '@media (min-width:1041px){',
+    '  html.in-embed .app{padding-block:10px 12px}',
+    '  html.in-embed .player{padding:4px 12px}',
+    '  html.in-embed .board-side{gap:6px}',
     '}'
   ],
   'simdesk.html': []

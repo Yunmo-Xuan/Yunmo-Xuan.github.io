@@ -462,6 +462,11 @@ textarea.fen {
   html.in-embed .board-side{position:sticky;top:0;z-index:6;background:var(--bg);padding-block:6px}
   html.in-embed .panel{margin-top:14px}
 }
+@media (min-width:1041px){
+  html.in-embed .app{padding-block:10px 12px}
+  html.in-embed .player{padding:4px 12px}
+  html.in-embed .board-side{gap:6px}
+}
 </style>
 <script>/* 站点里以 iframe 嵌入时，游戏自带的品牌标题与外壳重复，让位给整屏游戏区 */
 if (window.top !== window.self) document.documentElement.classList.add('in-embed');</script>

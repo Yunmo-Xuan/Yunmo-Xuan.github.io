@@ -890,6 +890,31 @@ h1,h2,h3{margin:0;font-weight:700;line-height:1.2}
 #docktabs .sp{flex:1}
 #docktabs .dt::before{content:"";display:inline-block;width:14px;height:1px}
 
+/* ---- 指数条：单独占一行 ---- */
+/* 五个指数各 104px 加间距要 544px，而顶栏其余块全是 flex:none，指数条是唯一可缩的那一个：
+   1900px 以下它被挤到只剩几十像素甚至 0 宽，行情整块消失，滚动条又是隐藏的，用户只会看到「指数没了」。
+   同时顶栏 overflow:hidden + 写死 52px，右侧的 命令/主题/战役/菜单 一直是被裁掉的半截。
+   所以：指数条换整行、指数改成单行排、窄一点时把控件文字收成图标。
+   这段必须排在窄屏断点之后，才能盖掉那里写死的 --h-top 行高。 */
+@media (min-width:961px){
+  #app{grid-template-rows:auto auto minmax(0,1fr) auto}
+  #topbar{flex-wrap:wrap;height:auto;padding:5px 12px;row-gap:4px}
+  #idxbar{order:9;flex:1 1 100%;min-width:0;padding:2px 0 4px;border-top:1px solid var(--line-soft)}
+  /* 单行排：名称 现价 涨跌 连着读，条高从 64px 降到 22px */
+  #idxbar .idx{flex-direction:row;align-items:baseline;gap:6px;min-width:0;padding:2px 8px}
+  #idxbar .idx .ch{margin-left:2px}
+}
+@media (min-width:961px) and (max-width:1560px){
+  /* 图标够认，文字让位；title 与 aria-label 仍然带着名称 */
+  #topbar .btn.gh>.btn-t{display:none}
+  #topbar .btn.gh{padding-inline:9px}
+  #topbar{gap:7px}
+}
+/* 顶栏换成两行之后，账簿再占死 238px 就不成比例了：矮屏上把它收到 150px，
+   腾出来的高度还给主图，主图反而比改版前更高。 */
+@media (min-width:961px) and (max-height:900px){ :root{--h-dock:150px} }
+@media (min-width:961px) and (max-height:760px){ :root{--h-dock:126px} }
+
 /* ---- 图表状态位与 OHLC 浮层 ---- */
 #chartWrap{contain:paint}
 #ohlcBox{position:absolute;left:8px;top:6px;z-index:3;display:none;gap:0 10px;flex-wrap:wrap;
@@ -2634,7 +2659,8 @@ function validateOrder(o){
   if(!isFinite(o.price)||o.price<=0) return "价格非法";
   if(o.kind==="lim" && (o.price>s.limitUp+1e-9 || o.price<s.limitDown-1e-9))
     return "委托价超出现价范围 "+fmtPx(s,s.limitDown)+" ~ "+fmtPx(s,s.limitUp);
-  if(o.qty<=0) return "数量必须大于 0";
+  /* NaN 通不过 <=0，会一路算成 NaN 金额；这里是所有下单路径的唯一收口，用正向判断 */
+  if(!(o.qty>0)) return "数量必须大于 0";
   const k0 = isOpenAt(s, CLK.sec);
   if((o.kind==="mkt"||o.kind==="stop") && k0!=="cont")
     return !k0 ? M_of(s).n+" 当前休市，市价单无法申报（"+M_of(s).hours+"）"
